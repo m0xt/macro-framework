@@ -1,0 +1,15 @@
+# Virtual environment
+.venv/
+
+# Cache & generated output
+.cache/
+__pycache__/
+*.pyc
+
+# Large/binary files
+*.pkl
+
+# Large docs (ask to read explicitly when needed)
+GUIDE.md
+README.md
+MACRO_FRAMEWORK_ROADMAP.md
