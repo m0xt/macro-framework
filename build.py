@@ -1004,6 +1004,56 @@ def build_html(chart_json: str, build_time: str, brief_html: str = "",
   #mini-badge-hint {{ font-size: 10px; color: #444; }}
 
   /* ── Brief collapse ── */
+  .drivers-toggle {{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 16px;
+    background: #111;
+    border: none;
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+    color: #888;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: left;
+    transition: background 0.15s, color 0.15s;
+    margin-top: 4px;
+  }}
+  .drivers-toggle:hover {{ background: #161616; color: #bbb; }}
+  .drivers-toggle.open {{ color: #ccc; background: #141414; border-bottom-color: #1a1a1a; }}
+  .drivers-toggle-left {{ display: flex; align-items: center; gap: 8px; }}
+  .drivers-toggle-pip {{
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #333;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }}
+  .drivers-toggle.open .drivers-toggle-pip {{ background: #4CAF50; }}
+  #toggle-compass-inputs.open .drivers-toggle-pip {{ background: #FF8C00; }}
+  #toggle-cycle-chart.open .drivers-toggle-pip {{ background: #4DA8DA; }}
+  .drivers-toggle-hint {{
+    font-size: 10px;
+    color: #444;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+  }}
+  .drivers-toggle.open .drivers-toggle-hint {{ color: #555; }}
+  .drivers-toggle-chevron {{
+    font-size: 10px;
+    color: #444;
+    transition: transform 0.2s, color 0.15s;
+    flex-shrink: 0;
+  }}
+  .drivers-toggle.open .drivers-toggle-chevron {{ transform: rotate(180deg); color: #666; }}
+  .drivers-body {{ display: none; }}
+  .drivers-body.open {{ display: block; }}
+
   .brief-collapse-btn {{
     background: none; border: none; cursor: pointer; color: #555;
     font-size: 14px; padding: 0 0 0 8px; line-height: 1;
@@ -1125,14 +1175,22 @@ def build_html(chart_json: str, build_time: str, brief_html: str = "",
   </div>
 
   <!-- ═══════ MRMI Scorecard (the three regime drivers) ═══════ -->
-  <div style="padding: 16px 16px 4px;">
-    <h2 style="font-size: 11px; font-weight: 600; color: #555; letter-spacing: 1px; text-transform: uppercase;">MRMI Drivers</h2>
-    <p style="font-size: 11px; color: #444; margin-top: 4px; line-height: 1.5;">
-      The three alpha-weighted components behind the MRMI signal: <strong style="color:#666;">GII</strong> (global growth momentum, 37%), <strong style="color:#666;">Breadth</strong> (cross-asset breadth, 35%), <strong style="color:#666;">FinCon</strong> (financial conditions, 28%). Click any row to expand the chart.
-    </p>
+  <button class="drivers-toggle" id="toggle-mrmi-drivers" onclick="toggleDrivers('mrmi-drivers')">
+    <span class="drivers-toggle-left">
+      <span class="drivers-toggle-pip"></span>
+      <span>MRMI Drivers</span>
+      <span class="drivers-toggle-hint">GII · Breadth · FinCon — click to expand</span>
+    </span>
+    <span class="drivers-toggle-chevron">▼</span>
+  </button>
+  <div class="drivers-body" id="mrmi-drivers">
+    <div style="padding: 10px 16px 4px;">
+      <p style="font-size: 11px; color: #444; line-height: 1.5;">
+        The three alpha-weighted components behind the MRMI signal: <strong style="color:#666;">GII</strong> (global growth momentum, 37%), <strong style="color:#666;">Breadth</strong> (cross-asset breadth, 35%), <strong style="color:#666;">FinCon</strong> (financial conditions, 28%). Click any row to expand the chart.
+      </p>
+    </div>
+    <div class="scorecard" id="scorecard-mrmi"></div>
   </div>
-
-  <div class="scorecard" id="scorecard-mrmi"></div>
 
   <!-- ═══════ Business Cycle ═══════ -->
   <div id="section-seasons" style="scroll-margin-top:52px"></div>
@@ -1155,48 +1213,62 @@ def build_html(chart_json: str, build_time: str, brief_html: str = "",
   </div>
 
   <!-- ═══════ Growth + Inflation time-series ═══════ -->
-  <div class="chart-panel" style="margin-top: 8px;">
-    <div class="chart-header">
-      <h2>Growth &amp; Inflation Over Time</h2>
+  <button class="drivers-toggle" id="toggle-cycle-chart" onclick="toggleDrivers('cycle-chart')">
+    <span class="drivers-toggle-left">
+      <span class="drivers-toggle-pip"></span>
+      <span>Growth &amp; Inflation Over Time</span>
+      <span class="drivers-toggle-hint">click to expand</span>
+    </span>
+    <span class="drivers-toggle-chevron">▼</span>
+  </button>
+  <div class="drivers-body" id="cycle-chart">
+    <div class="chart-panel" style="margin-top: 0; border-top: none;">
+      <p style="font-size: 11px; color: #444; padding: 12px 16px 8px; line-height: 1.5;">
+        The two inputs that position the dot on the Macro Seasons, shown as time series. Growth (left axis) above zero = expanding; Core CPI (right axis) above the dashed line = above the Fed 2% target.
+      </p>
+      <div class="legend-row" style="padding-top:0;">
+        <span class="legend-item"><span class="legend-dot" style="background:#4CAF50"></span>Growth composite (Y-axis)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#FF8C00"></span>Core CPI YoY (X-axis)</span>
+        <span class="legend-item" style="color:#555;font-size:10px;">── zero / 2% target</span>
+      </div>
+      <div class="chart-container"><canvas id="chart-cycle"></canvas></div>
     </div>
-    <p style="font-size: 11px; color: #444; padding: 0 16px 8px; line-height: 1.5;">
-      The two inputs that position the dot on the Macro Seasons, shown as time series. Growth (left axis) above zero = expanding; Core CPI (right axis) above the dashed line = above the Fed 2% target.
-    </p>
-    <div class="legend-row" style="padding-top:0;">
-      <span class="legend-item"><span class="legend-dot" style="background:#4CAF50"></span>Growth composite (Y-axis)</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#FF8C00"></span>Core CPI YoY (X-axis)</span>
-      <span class="legend-item" style="color:#555;font-size:10px;">── zero / 2% target</span>
-    </div>
-    <div class="chart-container"><canvas id="chart-cycle"></canvas></div>
   </div>
 
   <!-- ═══════ Compass Inputs ═══════ -->
-  <div style="padding: 20px 16px 6px;">
-    <h2 style="font-size: 11px; font-weight: 600; color: #555; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px;">Compass Inputs</h2>
-    <p style="font-size: 11px; color: #444; line-height: 1.5;">The two axes of the Macro Seasons chart are each driven by a separate set of indicators. Click any row to expand the chart.</p>
-  </div>
+  <button class="drivers-toggle" id="toggle-compass-inputs" onclick="toggleDrivers('compass-inputs')">
+    <span class="drivers-toggle-left">
+      <span class="drivers-toggle-pip"></span>
+      <span>Compass Inputs</span>
+      <span class="drivers-toggle-hint">Growth (Y-axis) · Inflation (X-axis) — click to expand</span>
+    </span>
+    <span class="drivers-toggle-chevron">▼</span>
+  </button>
+  <div class="drivers-body" id="compass-inputs">
 
-  <!-- Y-Axis: Growth -->
-  <div style="padding: 12px 16px 4px; border-top: 1px solid #1a1a1a;">
-    <div style="display:flex;align-items:baseline;gap:8px;">
-      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#4CAF50;background:#0d2010;padding:2px 7px;border-radius:3px;">Y-Axis</span>
-      <h3 style="font-size: 12px; font-weight: 600; color: #ccc; margin: 0;">Growth</h3>
-      <span id="freshness-growth" style="font-size:10px;color:#333;margin-left:4px;"></span>
+    <!-- Y-Axis: Growth -->
+    <div style="padding: 12px 16px 4px; border-top: 1px solid #1a1a1a;">
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#4CAF50;background:#0d2010;padding:2px 7px;border-radius:3px;">Y-Axis</span>
+        <h3 style="font-size: 12px; font-weight: 600; color: #ccc; margin: 0;">Growth</h3>
+        <span id="freshness-growth" style="font-size:10px;color:#333;margin-left:4px;"></span>
+      </div>
+      <p style="font-size: 11px; color: #444; margin-top: 6px; line-height: 1.5;">Real Economy (CFNAI, industrial production, housing) + Labor (jobless claims). Above zero = expanding; below zero = contracting.</p>
     </div>
-    <p style="font-size: 11px; color: #444; margin-top: 6px; line-height: 1.5;">Real Economy (CFNAI, industrial production, housing) + Labor (jobless claims). Above zero = expanding; below zero = contracting.</p>
-  </div>
-  <div class="scorecard" id="scorecard-mrci"></div>
+    <div class="scorecard" id="scorecard-mrci"></div>
 
-  <!-- X-Axis: Inflation -->
-  <div style="padding: 16px 16px 4px; border-top: 1px solid #1a1a1a;">
-    <div style="display:flex;align-items:baseline;gap:8px;">
-      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FF8C00;background:#1f1200;padding:2px 7px;border-radius:3px;">X-Axis</span>
-      <h3 style="font-size: 12px; font-weight: 600; color: #ccc; margin: 0;">Inflation</h3>
-      <span id="freshness-inflation" style="font-size:10px;color:#333;margin-left:4px;"></span>
+    <!-- X-Axis: Inflation -->
+    <div style="padding: 16px 16px 4px; border-top: 1px solid #1a1a1a;">
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FF8C00;background:#1f1200;padding:2px 7px;border-radius:3px;">X-Axis</span>
+        <h3 style="font-size: 12px; font-weight: 600; color: #ccc; margin: 0;">Inflation</h3>
+        <span id="freshness-inflation" style="font-size:10px;color:#333;margin-left:4px;"></span>
+      </div>
+      <p style="font-size: 11px; color: #444; margin-top: 6px; line-height: 1.5;">Core CPI YoY minus the Fed 2% target. Right of center = above target; left = below. Tells you the character of the season, not its direction.</p>
     </div>
-    <p style="font-size: 11px; color: #444; margin-top: 6px; line-height: 1.5;">Core CPI YoY minus the Fed 2% target. Right of center = above target; left = below. Tells you the character of the season, not its direction.</p>
+    <div class="scorecard" id="scorecard-inflation"></div>
+
   </div>
-  <div class="scorecard" id="scorecard-inflation"></div>
 
 </div>
 
@@ -2311,6 +2383,22 @@ function _initBriefCollapse() {{
     card.classList.add('collapsed');
   }}
 }}
+
+function toggleDrivers(id) {{
+  const body = document.getElementById(id);
+  const btn  = document.getElementById('toggle-' + id);
+  const open = body.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  localStorage.setItem('drivers-' + id, open ? '1' : '0');
+}}
+
+// Restore driver toggle states (collapsed by default)
+['mrmi-drivers', 'compass-inputs', 'cycle-chart'].forEach(id => {{
+  if (localStorage.getItem('drivers-' + id) === '1') {{
+    document.getElementById(id).classList.add('open');
+    document.getElementById('toggle-' + id).classList.add('open');
+  }}
+}});
 
 function toggleBrief() {{
   const card = document.querySelector('.brief-card');
