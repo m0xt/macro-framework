@@ -79,6 +79,13 @@ FRED_SERIES = {
     "CPIAUCSL": "CPI All Items",
     "CPILFESL": "CPI Core (ex food & energy)",
     "PCEPILFE": "Core PCE",
+    "GDPC1": "Real GDP (chained 2017 dollars)",
+    "GDPPOT": "Real Potential GDP (CBO, chained 2017 dollars)",
+    "M2SL": "M2 Money Supply (US)",
+    "GDPNOW": "Atlanta Fed GDPNow nowcast",
+    "PCEC96": "Real Personal Consumption Expenditures",
+    "UNRATE": "Unemployment Rate",
+    "RPI": "Real Personal Income",
 }
 
 
@@ -149,6 +156,12 @@ def fetch_all_data(use_cache: bool = True) -> pd.DataFrame:
 
     # Drop rows where all values are NaN
     combined = combined.dropna(how="all")
+
+    # Trim to today — some series (e.g. CBO Potential GDP) include forward
+    # projections that would otherwise extend the index into the future and
+    # cause stale-ffilled values to be read as "latest."
+    today = pd.Timestamp.now().normalize()
+    combined = combined[combined.index <= today]
 
     # Cache
     combined.to_pickle(DATA_CACHE)
@@ -316,7 +329,7 @@ def calc_sector_breadth(data: pd.DataFrame) -> pd.DataFrame:
     """
     US Equity Sector Breadth — equal-weight z-score of 8 sector ETFs.
     """
-    LOOKBACK = 63   # optimized (was 252)
+    LOOKBACK = 90   # optimized for drawdown: was 63 (originally 252)
     tickers = ["SMH", "IWM", "IYT", "IBB", "XHB", "KBE", "XRT"]  # optimized: drop SLX
     components = {}
 
@@ -447,16 +460,189 @@ def calc_inflation_context(data: pd.DataFrame) -> pd.DataFrame:
     return zdf
 
 
+def _sahm_rule(unrate: pd.Series) -> pd.Series:
+    """
+    Sahm Rule = (3-month MA of unemployment rate) − (12-month low of that MA).
+    Has historically crossed +0.5pp at the start of every US recession since 1970.
+    Index here is calendar-day frequency, so 3m ≈ 90d, 12m ≈ 365d.
+    """
+    ma3 = unrate.rolling(90, min_periods=30).mean()
+    low12 = ma3.rolling(365, min_periods=120).min()
+    return ma3 - low12
+
+
+def _zscore(series: pd.Series, lookback: int) -> pd.Series:
+    roll = series.rolling(lookback, min_periods=lookback // 2)
+    return (series - roll.mean()) / roll.std()
+
+
+# Release lags from observation date to public release (calendar days).
+# Used to avoid look-ahead bias: at date T, only data actually released by T
+# should influence the Macro Composite.
+RELEASE_LAGS_DAYS = {
+    "PCEC96":   60,  # BEA Personal Income & Outlays — ~last day of next month
+    "UNRATE":   35,  # BLS Employment Situation — first Friday of next month
+    "RPI":      60,  # BEA Personal Income & Outlays — bundled with PCE
+    "GDPNOW":    0,  # Atlanta Fed nowcast — real-time
+    "CPILFESL": 45,  # BLS CPI release — ~mid next month
+}
+
+
+def _lagged(series: pd.Series, days: int) -> pd.Series:
+    """Shift forward in time so each value first appears on its actual release date."""
+    if days <= 0:
+        return series
+    return series.shift(days)
+
+
+def calc_milk_road_macro_index(momentum: pd.Series, macro_ctx: dict,
+                                 buffer_size: float = 1.0, threshold: float = 0.5) -> dict:
+    """
+    Milk Road Macro Index (MRMI) — single quantified signal that combines:
+      · Momentum Score (MMI — composite of GII / Breadth / FinCon)
+      · Macro Stress (positive only when in stagflation territory)
+      · Action threshold (subtracted from the raw score so MRMI > 0 means LONG)
+
+    Formula:
+        raw  = MMI + buffer_size × (1 − Stress_intensity)
+        MRMI = raw − threshold
+
+    Where Stress_intensity is bounded [0, 1] and positive only when the economy is
+    in stagflation territory (Real Economy negative AND Inflation Direction positive):
+        Stress_raw       = max(0, −RE_score) × max(0, Inflation_dir)
+        Stress_intensity = min(1, Stress_raw)
+
+    Action:
+        MRMI > 0 → STAY LONG  (raw > threshold)
+        MRMI < 0 → CASH       (raw < threshold)
+
+    The default buffer_size=1.0 and threshold=0.5 were selected by the drawdown
+    optimization grid search to maximize Calmar ratio (return/|max DD|) across
+    SPX/IWM/BTC. This makes MRMI active ~20% of the time (vs ~3% under prior
+    buffer=2.0/threshold=0 settings), generating real drawdown protection plus
+    positive alpha on equities.
+
+    Returns dict with the index series + intermediate components for transparency.
+    """
+    re_score = macro_ctx.get("real_economy_score")
+    inf_dir = macro_ctx.get("inflation_dir_pp")
+
+    if re_score is None or inf_dir is None:
+        nan_series = pd.Series(np.nan, index=momentum.index)
+        return {
+            "mrmi": nan_series, "momentum": momentum,
+            "stress_intensity": nan_series, "macro_buffer": nan_series,
+        }
+
+    # Align to momentum's index
+    re = re_score.reindex(momentum.index)
+    inf = inf_dir.reindex(momentum.index)
+
+    re_neg = (-re).clip(lower=0)        # positive when RE < 0
+    inf_pos = inf.clip(lower=0)         # positive when inflation rising
+    stress_raw = re_neg * inf_pos
+    stress_intensity = stress_raw.clip(upper=1.0)
+
+    macro_buffer = buffer_size * (1.0 - stress_intensity)
+    raw = momentum + macro_buffer
+    mrmi = raw - threshold  # bake threshold into the value so > 0 = LONG
+
+    return {
+        "mrmi": mrmi,
+        "raw": raw,                       # MMI + macro_buffer (pre-threshold)
+        "momentum": momentum,
+        "stress_intensity": stress_intensity,
+        "macro_buffer": macro_buffer,
+        "buffer_size": buffer_size,
+        "threshold": threshold,
+    }
+
+
+def calc_macro_context(data: pd.DataFrame, lookback_years: int = 3, apply_release_lags: bool = True) -> dict:
+    """
+    Macro context — Real Economy Composite + Inflation Direction.
+
+      Real Economy Score — z-scored composite of monthly real-economy indicators:
+        · Real PCE YoY %       (consumer growth, ~70% of GDP)
+        · Sahm Rule (inverted) (forward-looking labor stress)
+        · Real Personal Income YoY %
+        · Atlanta Fed GDPNow   (real-time GDP nowcast)
+        Positive = expanding, negative = deteriorating.
+
+      Inflation Direction — Core CPI YoY 6-month change, in pp.
+
+    apply_release_lags=True (default) shifts each indicator forward by its
+    actual publication lag, so backtests don't use data that wouldn't have
+    been available in real time. Set to False to compare against the unlagged
+    (look-ahead) baseline.
+    """
+    YEAR = 365
+    LB = YEAR * lookback_years
+    out = {}
+
+    def _get(col):
+        if col not in data:
+            return pd.Series(np.nan, index=data.index)
+        s = data[col]
+        if apply_release_lags:
+            s = _lagged(s, RELEASE_LAGS_DAYS.get(col, 0))
+        return s
+
+    # ── Real Economy Composite ──────────────────────────────
+    components = {}
+    raw = {}
+
+    pce_series = _get("PCEC96")
+    pce_yoy = pce_series.pct_change(YEAR) * 100
+    raw["pce_yoy"] = pce_yoy
+    components["pce"] = _zscore(pce_yoy, LB)
+
+    unrate_series = _get("UNRATE")
+    sahm = _sahm_rule(unrate_series)
+    raw["sahm_rule"] = sahm
+    components["labor_inv"] = -_zscore(sahm, LB)
+
+    rpi_series = _get("RPI")
+    income_yoy = rpi_series.pct_change(YEAR) * 100
+    raw["income_yoy"] = income_yoy
+    components["income"] = _zscore(income_yoy, LB)
+
+    gdpnow_series = _get("GDPNOW")
+    raw["gdpnow"] = gdpnow_series
+    components["gdpnow"] = _zscore(gdpnow_series, LB)
+
+    comp_df = pd.DataFrame(components)
+    real_economy = comp_df.mean(axis=1, skipna=True)
+
+    out["real_economy_score"] = real_economy
+    out["real_economy_components"] = comp_df
+    out["real_economy_raw"] = raw
+
+    # ── Inflation Direction ─────────────────────────────────
+    cpi_series = _get("CPILFESL")
+    core_cpi_yoy = cpi_series.pct_change(YEAR) * 100
+    out["core_cpi_yoy_pct"] = core_cpi_yoy
+    out["inflation_dir_pp"] = core_cpi_yoy.diff(180)  # 6-month change
+
+    out["lookback_years"] = lookback_years
+    out["release_lags_applied"] = apply_release_lags
+
+    return out
+
+
 def calc_composite(gii: pd.DataFrame, fincon: pd.DataFrame,
                    breadth: pd.DataFrame) -> pd.Series:
     """
-    Alpha-weighted composite of GII, FinCon, and Breadth.
-    Weights based on OOS alpha: GII 7.6, Breadth 7.3, FinCon 5.8.
-    All three indicators now have the same convention: positive = good for risk assets.
+    Equal-weighted Momentum Score (MMI) — average of GII, Breadth, FinCon.
+    Convention: positive = good for risk assets.
+
+    Switched to equal weights from prior alpha-weighting (7.6/7.3/5.8) per the
+    drawdown-optimization grid search — equal weights deliver stronger Calmar
+    ratios across SPX/IWM/BTC and survive OOS validation better.
     """
-    W_GII = 7.6
-    W_BREADTH = 7.3
-    W_FINCON = 5.8
+    W_GII = 1.0
+    W_BREADTH = 1.0
+    W_FINCON = 1.0
     W_TOTAL = W_GII + W_BREADTH + W_FINCON
 
     gii_c = gii["fast"]
@@ -471,7 +657,7 @@ def calc_composite(gii: pd.DataFrame, fincon: pd.DataFrame,
 # SECTION 3: CHART DATA PREPARATION
 # ============================================================================
 
-def prepare_chart_data(data, composite, gii, fincon, breadth, business_cycle, inflation_ctx) -> str:
+def prepare_chart_data(data, composite, gii, fincon, breadth, business_cycle, inflation_ctx, macro_ctx=None, mrmi_combined=None) -> str:
     """Convert all indicator data to JSON for the frontend."""
 
     # Use GII index as the date reference (aligned with data)
@@ -611,6 +797,32 @@ def prepare_chart_data(data, composite, gii, fincon, breadth, business_cycle, in
         "scorecard": scorecard,
         "inflation_trend": _compute_inflation_trend(data),
     }
+
+    # Milk Road Macro Index time series (the new headline composite)
+    if mrmi_combined:
+        chart_data["mrmi_combined"] = {
+            "value":            to_list(mrmi_combined["mrmi"].reindex(gii.index)),
+            "momentum":         to_list(mrmi_combined["momentum"].reindex(gii.index)),
+            "stress_intensity": to_list(mrmi_combined["stress_intensity"].reindex(gii.index)),
+            "macro_buffer":     to_list(mrmi_combined["macro_buffer"].reindex(gii.index)),
+        }
+
+    # Macro context — Real Economy Composite + Inflation Direction
+    if macro_ctx:
+        chart_data["macro_ctx"] = {
+            "real_economy_score": to_list(macro_ctx["real_economy_score"].reindex(gii.index)),
+            "inflation_dir_pp":   to_list(macro_ctx["inflation_dir_pp"].reindex(gii.index)),
+            "core_cpi_yoy_pct":   to_list(macro_ctx["core_cpi_yoy_pct"].reindex(gii.index)),
+        }
+        comps = macro_ctx.get("real_economy_components")
+        if comps is not None and not comps.empty:
+            chart_data["macro_ctx"]["components"] = {
+                col: to_list(comps[col].reindex(gii.index)) for col in comps.columns
+            }
+        raw = macro_ctx.get("real_economy_raw") or {}
+        chart_data["macro_ctx"]["raw"] = {
+            k: to_list(v.reindex(gii.index)) for k, v in raw.items() if v is not None
+        }
 
     # ── Season classification → MRCI chart background colors ──────────────────
     _season_colors = ['#A8D86E', '#FF8C00', '#E84B5A', '#4DA8DA']
@@ -2484,7 +2696,7 @@ def _latest(series) -> float | None:
         return None
 
 
-def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx) -> Path:
+def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, macro_ctx=None, mrmi_combined=None) -> Path:
     """Save a compact JSON snapshot of today's key metrics for daily-brief diffing."""
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -2512,6 +2724,35 @@ def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx) ->
         },
         "inflation": _latest(infl_ctx["composite"]) if "composite" in infl_ctx else None,
     }
+
+    # Milk Road Macro Index (combined headline signal)
+    if mrmi_combined:
+        mrmi_v = _latest(mrmi_combined["mrmi"])
+        snapshot["mrmi_combined"] = {
+            "value": mrmi_v,
+            "state": ("LONG" if (mrmi_v is not None and mrmi_v > 0)
+                      else "CASH" if mrmi_v is not None else None),
+            "momentum": _latest(mrmi_combined["momentum"]),
+            "stress_intensity": _latest(mrmi_combined["stress_intensity"]),
+            "macro_buffer": _latest(mrmi_combined["macro_buffer"]),
+            "buffer_size": mrmi_combined.get("buffer_size", 2.0),
+        }
+
+    # Macro context — Real Economy Composite + Inflation Direction
+    if macro_ctx:
+        comps = macro_ctx.get("real_economy_components")
+        comps_latest = {}
+        if comps is not None and not comps.empty:
+            for col in comps.columns:
+                comps_latest[col] = _latest(comps[col])
+        raw = macro_ctx.get("real_economy_raw") or {}
+        snapshot["macro"] = {
+            "real_economy_score":     _latest(macro_ctx["real_economy_score"]),
+            "real_economy_components": comps_latest,
+            "inflation_dir_pp":       _latest(macro_ctx["inflation_dir_pp"]),
+            "core_cpi_yoy_pct":       _latest(macro_ctx["core_cpi_yoy_pct"]),
+            "raw": {k: _latest(v) for k, v in raw.items()},
+        }
 
     # Raw underlier levels — useful for LLM narrative
     underlier_keys = [
@@ -2552,6 +2793,8 @@ def main():
     composite = calc_composite(gii, fincon, breadth)
     biz_cycle = calc_business_cycle(data)
     infl_ctx = calc_inflation_context(data)
+    macro_ctx = calc_macro_context(data, lookback_years=3)
+    mrmi_combined = calc_milk_road_macro_index(composite, macro_ctx, buffer_size=1.0, threshold=0.5)
 
     print(f"  Composite:  {composite.dropna().shape[0]} valid rows, latest={composite.dropna().iloc[-1]:.2f}")
     print(f"  GII:        {gii.dropna().shape[0]} valid rows, latest fast={gii['fast'].dropna().iloc[-1]:.2f}")
@@ -2559,9 +2802,28 @@ def main():
     print(f"  Breadth:    {breadth['composite'].dropna().shape[0] if 'composite' in breadth else 0} valid rows")
     print(f"  Biz Cycle:  {biz_cycle['composite'].dropna().shape[0] if 'composite' in biz_cycle else 0} valid rows")
     print(f"  Inflation:  {infl_ctx['composite'].dropna().shape[0] if 'composite' in infl_ctx else 0} valid rows")
+    mrmi_series = mrmi_combined['mrmi'].dropna()
+    if len(mrmi_series):
+        latest = mrmi_series.iloc[-1]
+        state = "STAY LONG" if latest > 0 else "CASH"
+        stress_now = mrmi_combined['stress_intensity'].dropna().iloc[-1] if len(mrmi_combined['stress_intensity'].dropna()) else 0
+        print(f"  ▶ MRMI:     {latest:+.2f} → {state}  (Momentum {composite.dropna().iloc[-1]:+.2f}  Buffer {mrmi_combined['macro_buffer'].dropna().iloc[-1]:+.2f}  Stress {stress_now:.2f})")
+    re_score = macro_ctx['real_economy_score'].dropna()
+    inf_dir = macro_ctx['inflation_dir_pp'].dropna()
+    if len(re_score):
+        print(f"  Macro:      Real Economy Score {re_score.iloc[-1]:+.2f} (z, 3y lookback)")
+        comps = macro_ctx['real_economy_components']
+        if not comps.empty:
+            latest = comps.dropna().iloc[-1] if len(comps.dropna()) else None
+            if latest is not None:
+                comp_str = "  ".join(f"{k}={v:+.2f}" for k, v in latest.items())
+                print(f"              components: {comp_str}")
+        if len(inf_dir):
+            cpi_y = macro_ctx['core_cpi_yoy_pct'].dropna()
+            print(f"              Inflation Dir Δ6m {inf_dir.iloc[-1]:+.2f}pp  (Core CPI YoY {cpi_y.iloc[-1]:.2f}%)")
 
     # Save daily snapshot for brief diffing
-    save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx)
+    save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, macro_ctx, mrmi_combined)
 
     # Auto-generate commentary using Claude + web search
     try:
@@ -2579,7 +2841,7 @@ def main():
 
     # Prepare chart data
     chart_json, seasons_current = prepare_chart_data(
-        data, composite, gii, fincon, breadth, biz_cycle, infl_ctx
+        data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, macro_ctx, mrmi_combined
     )
 
     # Read daily brief (if present) to inject at top of dashboard

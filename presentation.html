@@ -126,85 +126,105 @@
   <div class="two-col">
     <div>
       <p>Macro indicators are everywhere. VIX, credit spreads, yield curves, breadth, liquidity, jobless claims, shipping indices...</p>
-      <p>The challenge isn't finding data. It's <strong style="color:#fff;">synthesizing it into one decision:</strong></p>
-      <div class="banner green" style="margin-top: 24px;">
-        <span style="font-size: 24px; font-weight: 700; color: #4CAF50;">RISK-ON</span>
-        <span style="font-size: 16px; color: #4CAF50aa; margin-left: 12px;">Stay invested</span>
-      </div>
-      <div class="banner red">
-        <span style="font-size: 24px; font-weight: 700; color: #E84B5A;">RISK-OFF</span>
-        <span style="font-size: 16px; color: #E84B5Aaa; margin-left: 12px;">Move to cash</span>
+      <p>The challenge isn't finding data. It's that most frameworks collapse it into <strong style="color:#fff;">a single answer</strong> — either telling you when to act, or where you are in the cycle. Almost never both.</p>
+      <div style="margin-top: 24px;">
+        <div class="card" style="border-left: 3px solid #4CAF50; margin-bottom: 12px;">
+          <p style="color:#ccc; margin: 0; font-size: 17px;"><strong style="color:#4CAF50;">Momentum signals</strong> tell you to act — but not whether the action has wind at its back.</p>
+        </div>
+        <div class="card" style="border-left: 3px solid #4DA8DA; margin-bottom: 0;">
+          <p style="color:#ccc; margin: 0; font-size: 17px;"><strong style="color:#4DA8DA;">Cycle readings</strong> tell you where you are — but not whether to do anything about it.</p>
+        </div>
       </div>
     </div>
     <div>
       <p class="muted">What we built:</p>
       <ul>
-        <li class="check">3 complementary regime indicators at different speeds</li>
-        <li class="check">Combined into one weighted composite signal</li>
-        <li class="check">Parameters optimized via grid search with out-of-sample validation</li>
-        <li class="check">Business cycle composite for structural context</li>
-        <li class="check">Single dashboard with clear hierarchy: decision → drivers → backdrop</li>
+        <li class="check"><strong style="color:#ccc;">Two pillars, paired</strong> — a velocity signal and a position reading, designed to condition each other</li>
+        <li class="check"><strong style="color:#ccc;">MRMI</strong> — 3 regime indicators at different speeds, combined into one weighted composite</li>
+        <li class="check"><strong style="color:#ccc;">Macro Seasons</strong> — growth × inflation quadrant for cycle context</li>
+        <li class="check"><strong style="color:#ccc;">Optimized via grid search</strong> with out-of-sample validation</li>
+        <li class="check"><strong style="color:#ccc;">Single dashboard</strong> with clear hierarchy: decision → drivers → context</li>
       </ul>
     </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 3: Dashboard Overview -->
+<!-- SLIDE 3: The Framework — Two Questions -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide">
-  <h2>Dashboard: Three Questions, In Order</h2>
-  <div class="three-col" style="margin-top: 24px;">
+  <h2>The Framework: Two Questions</h2>
+  <p>Knowing whether momentum is positive isn't enough. You also need to know where that momentum is starting from.</p>
+  <div class="two-col" style="margin-top: 32px;">
     <div class="card" style="border-left: 3px solid #4CAF50;">
-      <h3 style="color: #4CAF50;">1. Should I Be Invested?</h3>
-      <p>The <strong style="color:#fff;">Milk Road Momentum Index (MRMI)</strong> gives a single green/red signal. Weighted average of 3 regime indicators.</p>
-      <p class="muted small" style="margin-top: 12px;">Actionable. Updated daily.</p>
-    </div>
-    <div class="card" style="border-left: 3px solid #f59e0b;">
-      <h3 style="color: #f59e0b;">2. What's Driving It?</h3>
-      <p>The <strong style="color:#fff;">Scorecard</strong> breaks down all 8 indicators. Spot divergences, understand the narrative.</p>
-      <p class="muted small" style="margin-top: 12px;">Click any row to expand the chart.</p>
+      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Question 1 — Velocity</p>
+      <h3 style="color: #fff; font-size: 26px; margin-bottom: 12px;">Is the wind at my back right now?</h3>
+      <p style="margin-top: 12px;">Are leading indicators pointing up or down today? This is the trade-or-don't-trade decision. Updates daily, drives the binary risk-on / risk-off call.</p>
+      <p class="small muted" style="margin-top: 16px;">Answered by → <strong style="color: #4CAF50;">Milk Road Momentum Index (MRMI)</strong></p>
     </div>
     <div class="card" style="border-left: 3px solid #4DA8DA;">
-      <h3 style="color: #4DA8DA;">3. Where Are We in the Cycle?</h3>
-      <p>The <strong style="color:#fff;">Macro Seasons chart</strong> shows where we are in the cycle. Two axes: Growth (Y) and Core CPI vs 2% target (X). Four quadrants: Spring / Summer / Fall / Winter.</p>
-      <p class="muted small" style="margin-top: 12px;">Context. Changes slowly. Not a trading signal.</p>
+      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Question 2 — Position</p>
+      <h3 style="color: #fff; font-size: 26px; margin-bottom: 12px;">Where in the cycle am I starting from?</h3>
+      <p style="margin-top: 12px;">Is the economy deep in contraction, mid-expansion, or running hot? This conditions what the velocity signal actually means.</p>
+      <p class="small muted" style="margin-top: 16px;">Answered by → <strong style="color: #4DA8DA;">Macro Seasons</strong></p>
     </div>
+  </div>
+  <div style="margin-top: 28px; padding: 20px 24px; background: #111; border-left: 3px solid #f59e0b; border-radius: 4px;">
+    <p style="color: #ccc; font-size: 18px; line-height: 1.55;"><strong style="color: #f59e0b;">Why both:</strong> A green MRMI signal coming out of cycle Winter is early-cycle — the regime can run for months and the upside is asymmetric. The same green signal at cycle peak is late-cycle — shorter runway, smaller upside, fatter left tail. Same number, different meaning.</p>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 4: The Composite -->
+<!-- SLIDE 4: Pillar 1 — MRMI -->
 <!-- ══════════════════════════════════════════════════════════════ -->
-<div class="slide">
-  <h2>The Milk Road Momentum Index (MRMI)</h2>
-  <p>Alpha-weighted average of three indicators, each measuring a different aspect of macro conditions at a different speed:</p>
-  <table style="margin-top: 24px;">
+<div class="slide" style="padding: 40px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Pillar 1 — Velocity</p>
+  <h2 style="margin-bottom: 12px;">The Milk Road Momentum Index (MRMI)</h2>
+  <p style="font-size: 18px; margin-bottom: 16px;">A daily composite that answers <strong style="color:#fff;">"Is the wind at my back right now?"</strong> Three regime indicators, each measuring a different force at a different speed, normalized to a common scale and combined into one weighted signal.</p>
+
+  <table style="margin-top: 12px;">
     <thead>
-      <tr><th>Indicator</th><th>What It Captures</th><th>Speed</th><th>Weight</th></tr>
+      <tr><th>Indicator</th><th>What It Captures</th><th>Window</th><th>Speed</th><th>Weight</th></tr>
     </thead>
     <tbody>
       <tr>
         <td style="color:#fff; font-weight:600;">Growth Impulses (GII)</td>
-        <td>Economic momentum across credit, sectors, copper, vol, yield curve, shipping</td>
-        <td><span class="mono small">21d ROC</span></td>
+        <td>Momentum across credit, sectors, copper, vol, yield curve, shipping</td>
+        <td><span class="mono small">21d ROC, 2yr z-score</span></td>
+        <td class="muted small">Fast</td>
         <td class="accent" style="font-weight:600;">37%</td>
       </tr>
       <tr>
         <td style="color:#fff; font-weight:600;">Sector Breadth</td>
         <td>Whether the rally is broad (cyclicals participating) or narrow</td>
-        <td><span class="mono small">63d lookback</span></td>
+        <td><span class="mono small">63d z-score</span></td>
+        <td class="muted small">Medium</td>
         <td class="accent" style="font-weight:600;">35%</td>
       </tr>
       <tr>
         <td style="color:#fff; font-weight:600;">Financial Conditions</td>
         <td>Equity vol + bond vol + credit spread = market stress</td>
-        <td><span class="mono small">252d lookback</span></td>
+        <td><span class="mono small">252d z-score</span></td>
+        <td class="muted small">Slow</td>
         <td class="accent" style="font-weight:600;">28%</td>
       </tr>
     </tbody>
   </table>
-  <p class="small muted" style="margin-top: 16px;">Three independent forces, three different speeds. <strong style="color:#ccc;">GII</strong> = real-economy momentum (fast). <strong style="color:#ccc;">Breadth</strong> = market participation (medium). <strong style="color:#ccc;">FinCon</strong> = structural stress regime (slow). When fast indicators give false signals, the slow indicator stabilizes the composite — and vice versa.</p>
+
+  <div style="margin-top: 18px; padding: 16px 20px; background: #111; border-left: 3px solid #4DA8DA; border-radius: 4px;">
+    <p style="color: #ccc; font-size: 15px; line-height: 1.55; margin: 0;"><strong style="color: #4DA8DA;">What's a z-score?</strong> A z-score expresses today's value as <em>standard deviations from its recent typical range</em>. <span class="mono">+2</span> = unusually high (above ~98% of recent observations). <span class="mono">0</span> = right at average. <span class="mono">−2</span> = unusually low. This puts copper prices, VIX levels, and credit spreads — all on totally different scales — onto one comparable axis. The "window" column above is how far back we look to define "recent typical."</p>
+  </div>
+
+  <div class="two-col" style="margin-top: 16px; gap: 40px;">
+    <div>
+      <h3 style="font-size: 17px; color: #ccc; margin-bottom: 6px;">How the signal is produced</h3>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 14px;">Each indicator outputs a z-scored composite. The weighted average (37 / 35 / 28) crosses a threshold → <span class="green" style="font-weight:600;">RISK-ON</span> or <span class="red" style="font-weight:600;">RISK-OFF</span>. One number, one color, one action.</p>
+    </div>
+    <div>
+      <h3 style="font-size: 17px; color: #ccc; margin-bottom: 6px;">Why three, not one</h3>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 14px;">Three time horizons of market signaling: fast (positioning shifts), medium (rotation breadth), slow (structural stress). When fast indicators give false signals, the slow ones stabilize the composite — and vice versa.</p>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
@@ -324,95 +344,186 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 8: Business Cycle -->
+<!-- SLIDE: Pillar 2 — Macro Seasons -->
 <!-- ══════════════════════════════════════════════════════════════ -->
-<div class="slide">
-  <h2>Macro Seasons</h2>
-  <p>Not a trading signal. Shows <em>where</em> the economy sits on two dimensions — growth and inflation — and which macro season we're in.</p>
-  <div class="two-col" style="margin-top: 24px;">
-    <div>
-      <div class="card">
-        <h3 style="color:#4CAF50;">Y-Axis: Growth</h3>
-        <p class="small">Real Economy (CFNAI, industrial production, housing starts, building permits) + Labor (inverted jobless claims). Above zero = expanding, below = contracting.</p>
+<div class="slide" style="padding: 36px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Pillar 2 — Position</p>
+  <h2 style="margin-bottom: 10px;">Macro Seasons</h2>
+  <p style="font-size: 18px; margin-bottom: 14px;">A slow-moving context layer that answers <strong style="color:#fff;">"Where in the cycle are we right now?"</strong> Two dimensions — growth and inflation — locate the economy in one of four regimes. Not a trading signal: it conditions what the MRMI signal means.</p>
+
+  <table style="margin-top: 8px;">
+    <thead>
+      <tr><th>Axis</th><th>What It Measures</th><th>Inputs</th><th>Reading</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="color:#fff; font-weight:600;">Y — Growth</td>
+        <td>Real-economy growth vs long-run trend</td>
+        <td><span class="small">Real GDP YoY, z-scored over 10y</span></td>
+        <td class="muted small">Above 0 = above trend (running hot) · Below 0 = below trend (running cold)</td>
+      </tr>
+      <tr>
+        <td style="color:#fff; font-weight:600;">X — Inflation</td>
+        <td>Price pressure vs the Fed's 2% target</td>
+        <td><span class="small">(Core CPI YoY − 2%) ÷ 10y std dev of Core CPI</span></td>
+        <td class="muted small">Right of 0 = above target · Left of 0 = below target</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top: 16px;">
+    <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">The Four Quadrants</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <div class="card" style="border-left: 3px solid #4CAF50; padding: 12px 16px; margin: 0;">
+        <h3 style="color:#4CAF50; font-size: 16px; margin-bottom: 4px;">Spring <span class="muted small" style="font-weight:400;">(Growth ↑ + Inflation ↓)</span></h3>
+        <p class="small" style="margin: 0; font-size: 13px; line-height: 1.5;">Growth without overheating. The Fed can stay accommodative while the economy expands.</p>
       </div>
-      <div class="card">
-        <h3 style="color:#FF8C00;">X-Axis: Inflation</h3>
-        <p class="small">Core CPI YoY minus the Fed 2% target. Right of center = above target, left = below target. Tells you the character of the season, not its direction.</p>
+      <div class="card" style="border-left: 3px solid #FF8C00; padding: 12px 16px; margin: 0;">
+        <h3 style="color:#FF8C00; font-size: 16px; margin-bottom: 4px;">Summer <span class="muted small" style="font-weight:400;">(Growth ↑ + Inflation ↑)</span></h3>
+        <p class="small" style="margin: 0; font-size: 13px; line-height: 1.5;">Strong demand pushing prices up. Fed will eventually tighten, but cycle still expanding.</p>
+      </div>
+      <div class="card" style="border-left: 3px solid #4DA8DA; padding: 12px 16px; margin: 0;">
+        <h3 style="color:#4DA8DA; font-size: 16px; margin-bottom: 4px;">Winter <span class="muted small" style="font-weight:400;">(Growth ↓ + Inflation ↓)</span></h3>
+        <p class="small" style="margin: 0; font-size: 13px; line-height: 1.5;">Slowing economy with falling prices. Fed will eventually pivot to easing.</p>
+      </div>
+      <div class="card" style="border-left: 3px solid #E84B5A; padding: 12px 16px; margin: 0;">
+        <h3 style="color:#E84B5A; font-size: 16px; margin-bottom: 4px;">Fall <span class="muted small" style="font-weight:400;">(Growth ↓ + Inflation ↑)</span></h3>
+        <p class="small" style="margin: 0; font-size: 13px; line-height: 1.5;">The worst combination — economy weakening but Fed can't ease because of inflation.</p>
       </div>
     </div>
+  </div>
+
+  <div class="two-col" style="margin-top: 14px; gap: 40px;">
     <div>
-      <h3>Why Keep It Separate?</h3>
-      <p>We tested combining Macro Seasons with the MRMI:</p>
-      <ul>
-        <li class="cross"><strong style="color:#ccc;">As a gate</strong> (only invest when both green): SPX alpha dropped from +14% to <span class="red">-5.2%</span></li>
-        <li class="cross"><strong style="color:#ccc;">As a size modifier</strong> (half position when cycle is red): alpha dropped to <span class="red">+4.6%</span></li>
-      </ul>
-      <p style="margin-top: 16px;">The cycle has been red for most of 2023–2026 (contracting), yet markets rallied. Using it as a signal would have kept you out of a bull market.</p>
-      <p style="margin-top: 16px;"><strong style="color:#fff;">Its value is qualitative:</strong> Composite green + Cycle green = economy-driven rally (lean into cyclicals). Composite green + Cycle red = liquidity/narrative-driven rally (favor quality, stay selective).</p>
+      <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">How it conditions MRMI</h3>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;"><strong style="color:#4CAF50;">MRMI green + cycle expanding</strong> = economy-driven rally (lean into cyclicals). <strong style="color:#4CAF50;">MRMI green + cycle contracting</strong> = liquidity- or narrative-driven rally (favor quality, stay selective). Same signal, different setup.</p>
+    </div>
+    <div>
+      <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">Why it changes slowly</h3>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">Real-economy data is reported monthly with publication lags. The cycle moves on quarters, not days. That's a feature: it sets the strategic backdrop, while MRMI handles the tactical decision.</p>
     </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE: Reference Library -->
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 8.5: Macro Quadrant -->
-<!-- ══════════════════════════════════════════════════════════════ -->
-<div class="slide">
-  <h2>The Macro Quadrant</h2>
-  <p>Combine the cycle reading with inflation direction → know exactly what regime you're in. Each quadrant has a different asset playbook.</p>
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;">
-    <div class="card" style="border-left: 3px solid #4CAF50;">
-      <h3 style="color:#4CAF50;">Spring <span class="muted small">(Cycle ↑ + Inflation ↓)</span></h3>
-      <p class="small">Growth without overheating. The Fed can stay accommodative while the economy expands.</p>
+<div class="slide" style="padding: 32px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Reference Library</p>
+  <h2 style="margin-bottom: 10px;">Beyond the Two Pillars</h2>
+  <p style="font-size: 17px; margin-bottom: 14px;">MRMI and Macro Seasons drive the formal decision and its interpretation. Everything else lives here — supplementary indicators that round out the picture, surface divergences, and serve as <strong style="color:#fff;">candidates for promotion</strong> into the pillars as the framework evolves.</p>
+
+  <table>
+    <thead>
+      <tr><th>Indicator</th><th>Category</th><th>What It Captures</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="color:#fff; font-weight:600;">Global M2 Liquidity</td>
+        <td class="muted small">Liquidity</td>
+        <td>Cross-currency money supply (US + ECB + BOJ + PBOC)</td>
+        <td class="muted small">Monetary fuel for risk assets · expanding = tailwind, contracting = headwind</td>
+      </tr>
+      <tr>
+        <td style="color:#fff; font-weight:600;">ISM Manufacturing PMI</td>
+        <td class="muted small">Activity</td>
+        <td>Forward-looking manufacturing momentum (survey-based)</td>
+        <td class="muted small">Above 50 = expansion · sub-indices (new orders, prices) flag turns earlier than headline</td>
+      </tr>
+      <tr>
+        <td style="color:#fff; font-weight:600;">Initial + Continuing Jobless Claims</td>
+        <td class="muted small">Labor</td>
+        <td>Weekly labor-market health</td>
+        <td class="muted small">Highest-frequency real-economy signal · strong candidate for Macro Seasons Y-axis</td>
+      </tr>
+      <tr>
+        <td style="color:#fff; font-weight:600;">Atlanta Fed GDPNow</td>
+        <td class="muted small">Activity</td>
+        <td>Real-time nowcast of current-quarter GDP</td>
+        <td class="muted small">Closes the publication-lag gap on official GDP · candidate overlay on the Y-axis</td>
+      </tr>
+      <tr>
+        <td style="color:#fff; font-weight:600;">CFNAI</td>
+        <td class="muted small">Activity</td>
+        <td>Composite of 85 monthly US activity indicators</td>
+        <td class="muted small">Comprehensive but overlaps with GDP · useful sanity check on the Y-axis reading</td>
+      </tr>
+      <tr>
+        <td style="color:#fff; font-weight:600;">Industrial Production</td>
+        <td class="muted small">Activity</td>
+        <td>Manufacturing, mining, and utility output</td>
+        <td class="muted small">Long historical series · partial overlap with copper in MRMI</td>
+      </tr>
+      <tr>
+        <td style="color:#fff; font-weight:600;">Housing Starts / Building Permits</td>
+        <td class="muted small">Activity</td>
+        <td>Residential construction activity</td>
+        <td class="muted small">Rate-sensitive — leads cycle when Fed pivots · noisy on weather and policy</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="two-col" style="margin-top: 16px; gap: 40px;">
+    <div>
+      <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">Why a library, not more pillars</h3>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">A simple two-question framework drives clean decisions. The library lives alongside — visible, interpretable, but not voting on the binary call. Add when useful, never to add.</p>
     </div>
-    <div class="card" style="border-left: 3px solid #FF8C00;">
-      <h3 style="color:#FF8C00;">Summer <span class="muted small">(Cycle ↑ + Inflation ↑)</span></h3>
-      <p class="small">Strong demand pushing prices up. Fed will eventually tighten but cycle still expanding.</p>
-    </div>
-    <div class="card" style="border-left: 3px solid #E84B5A;">
-      <h3 style="color:#E84B5A;">Fall <span class="muted small">(Cycle ↓ + Inflation ↑)</span></h3>
-      <p class="small">The worst combination. Economy weakening but Fed can't ease because of inflation.</p>
-    </div>
-    <div class="card" style="border-left: 3px solid #4DA8DA;">
-      <h3 style="color:#4DA8DA;">Winter <span class="muted small">(Cycle ↓ + Inflation ↓)</span></h3>
-      <p class="small">Slowing economy with falling prices. Fed will eventually pivot to easing.</p>
+    <div>
+      <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">When something gets promoted</h3>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">If a library indicator repeatedly leads or contradicts the formal axes at meaningful turns — and adding it improves interpretive power without bloating the framework — it moves into MRMI or Macro Seasons.</p>
     </div>
   </div>
-  <p class="small muted" style="margin-top: 20px;">The dashboard shows you the current quadrant via the Macro Seasons chart — Growth composite on the Y-axis, Core CPI vs 2% target on the X-axis. This is the Bridgewater "weather" framework — used in some form by virtually every discretionary macro fund.</p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SLIDE 9: How to Use It -->
 <!-- ══════════════════════════════════════════════════════════════ -->
-<div class="slide">
-  <h2>How to Use It</h2>
-  <div class="two-col" style="margin-top: 16px;">
+<div class="slide" style="padding: 32px 80px;">
+  <h2 style="margin-bottom: 8px;">How to Use It</h2>
+  <p style="font-size: 17px; margin-bottom: 16px;">Open the dashboard. Read it top-down. The layout mirrors the framework — every glance answers the questions in the same order.</p>
+
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">The Read · top to bottom</p>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px;">
+    <div class="card" style="border-left: 3px solid #4CAF50; padding: 12px 14px; margin: 0;">
+      <p class="muted small" style="font-size: 11px; letter-spacing: 1px; margin-bottom: 2px;">STEP 1</p>
+      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">The banner</h3>
+      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;"><strong style="color:#fff;">RISK-ON or RISK-OFF?</strong> Plus the current quadrant badge. If both unchanged from yesterday, you're done in 30 seconds.</p>
+    </div>
+    <div class="card" style="border-left: 3px solid #4CAF50; padding: 12px 14px; margin: 0;">
+      <p class="muted small" style="font-size: 11px; letter-spacing: 1px; margin-bottom: 2px;">STEP 2</p>
+      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">MRMI drivers</h3>
+      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;">Which of <strong style="color:#fff;">GII / Breadth / FinCon</strong> is moving? A divergence — one driver out of step — is worth a closer look.</p>
+    </div>
+    <div class="card" style="border-left: 3px solid #4DA8DA; padding: 12px 14px; margin: 0;">
+      <p class="muted small" style="font-size: 11px; letter-spacing: 1px; margin-bottom: 2px;">STEP 3</p>
+      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">Macro Seasons</h3>
+      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;">Where's the dot? Drifting toward a new quadrant? A quadrant change reframes the playbook even if MRMI hasn't flipped.</p>
+    </div>
+    <div class="card" style="border-left: 3px solid #888; padding: 12px 14px; margin: 0;">
+      <p class="muted small" style="font-size: 11px; letter-spacing: 1px; margin-bottom: 2px;">STEP 4</p>
+      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">The library</h3>
+      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;">Anything unusual? M2 contracting? ISM falling? Library entries explain narrative shifts but don't drive the call.</p>
+    </div>
+  </div>
+
+  <div class="two-col" style="gap: 30px;">
     <div>
-      <h3>Daily Routine</h3>
-      <ul>
-        <li class="dot-accent"><strong style="color:#ccc;">Open dashboard</strong> — check the banner: RISK-ON or RISK-OFF?</li>
-        <li class="dot-accent"><strong style="color:#ccc;">Scan the MRMI drivers</strong> — any of the three components changing direction?</li>
-        <li class="dot-accent"><strong style="color:#ccc;">Click into drivers</strong> — understand what's changing and why</li>
-        <li class="dot-accent"><strong style="color:#ccc;">Check the Macro Seasons chart</strong> — which quadrant are we in? Is the dot moving?</li>
-      </ul>
-      <hr>
-      <h3 style="margin-top: 16px;">Regime Change Protocol</h3>
-      <ul>
-        <li class="check"><strong style="color:#4CAF50;">Green → stay invested</strong> in risk assets</li>
-        <li class="cross"><strong style="color:#E84B5A;">Red → reduce exposure</strong>, move to cash or defensives</li>
-        <li class="dot-accent"><strong style="color:#ccc;">Flips ~15x/year</strong> — average regime lasts ~17 trading days</li>
+      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">The Decision · what each move means</p>
+      <ul style="margin: 0;">
+        <li class="check" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#4CAF50;">MRMI flips green</strong> → risk-on, with sizing informed by where the cycle dot sits</li>
+        <li class="cross" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#E84B5A;">MRMI flips red</strong> → reduce exposure, even if the cycle reading looks supportive</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#4DA8DA;">Cycle drifts to a new quadrant</strong> → the interpretation of the same MRMI signal changes</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Library divergence</strong> → context for the narrative, not a trigger for action</li>
       </ul>
     </div>
     <div>
-      <h3>Data Updates</h3>
-      <p class="small">Dashboard rebuilds with fresh data on demand. Market data from Yahoo Finance, economic data from FRED (credit spreads, jobless claims, real rates, liquidity). All free, no API keys.</p>
-      <hr>
-      <h3 style="margin-top: 16px;">Re-optimization</h3>
-      <p class="small">Parameters should be re-optimized periodically as market regimes evolve. The optimizer tests 840+ combinations per indicator with walk-forward validation.</p>
-      <p class="small muted" style="margin-top: 8px;">Current parameters optimized April 2026 on 2016–2026 data with 70/30 in/out-of-sample split.</p>
-      <hr>
-      <h3 style="margin-top: 16px;">Monthly Updates</h3>
-      <p class="small">The dashboard provides all data needed for monthly macro reports: current regime, what's driving it, cycle phase, and how each pillar is trending.</p>
+      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">The Cadence · time per session</p>
+      <ul style="margin: 0;">
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Daily (30 sec)</strong> — banner + driver scan</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Weekly (5 min)</strong> — Macro Seasons drift, library check, sub-component divergences</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Monthly (30 min)</strong> — full framework review, macro report, evaluate library candidates for promotion</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Annually</strong> — re-optimize MRMI parameters, reassess inflation/growth lookbacks</li>
+      </ul>
     </div>
   </div>
 </div>

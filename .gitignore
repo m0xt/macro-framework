@@ -16,3 +16,5 @@ __pycache__/
 .cache/macro_update_*.html
 .cache/macro_update_*.md
 .cache/presentation.html
+.cache/dashboard_v2*.html
+.cache/*.csv
