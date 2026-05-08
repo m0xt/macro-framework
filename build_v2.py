@@ -27,6 +27,62 @@ CACHE_DIR = Path(__file__).parent / ".cache"
 DASHBOARD_HTML = CACHE_DIR / "dashboard.html"
 RAW_DATA_PKL = CACHE_DIR / "raw_data.pkl"
 OUTPUT = CACHE_DIR / "dashboard_v2.html"
+BRIEFS_DIR = Path(__file__).parent / "briefs"
+
+
+def _md_to_html(text: str) -> str:
+    """Minimal markdown: links, **bold**, *italic*, paragraphs. Mirrors generate_brief.py."""
+    out = (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+    out = re.sub(r"\[([^\]]+)\]\(([^)]+)\)",
+                 r'<a href="\2" target="_blank" rel="noopener">\1</a>', out)
+    out = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", out)
+    out = re.sub(r"(?<![*])\*([^*\n]+)\*(?![*])", r"<em>\1</em>", out)
+    paragraphs = [p.strip() for p in out.split("\n\n") if p.strip()]
+    return "".join(f"<p>{p}</p>" for p in paragraphs)
+
+
+def _refresh_all_briefs():
+    """Lazy-regenerate (pillar briefs first, then top) on weekly Tuesday cadence."""
+    try:
+        from generate_commentary import generate_all_briefs
+        generate_all_briefs()
+    except Exception as e:
+        print(f"  Warning: brief refresh failed: {e}")
+
+
+def _latest_brief_dir():
+    if not BRIEFS_DIR.exists():
+        return None, None
+    dated = []
+    for p in BRIEFS_DIR.iterdir():
+        if not p.is_dir():
+            continue
+        try:
+            from datetime import datetime as _dt
+            _dt.strptime(p.name, "%Y-%m-%d")
+        except ValueError:
+            continue
+        dated.append(p)
+    if not dated:
+        return None, None
+    dated.sort(key=lambda p: p.name)
+    return dated[-1], dated[-1].name
+
+
+def _load_brief_html(filename, snap_date):
+    """Returns (html, date_str, is_stale). html='' if missing.
+    Reads from the most-recent dated folder under briefs/."""
+    latest_dir, latest_date = _latest_brief_dir()
+    if not latest_dir:
+        return "", None, False
+    path = latest_dir / filename
+    if not path.exists():
+        return "", None, False
+    body = path.read_text().strip()
+    if not body:
+        return "", None, False
+    is_stale = bool(latest_date and snap_date and latest_date < snap_date)
+    return _md_to_html(body), latest_date, is_stale
 
 
 def latest_snapshot():
@@ -353,6 +409,14 @@ def render(snap, chart, raw_data=None):
     else:  # CASH
         banner_story = "Market signals AND macro conditions are both flashing danger. Framework recommends stepping aside until at least one signal recovers."
 
+    # AI-generated briefs: pillar briefs first, then top brief that consumes them.
+    # Lazy weekly cadence (regenerates if latest archive folder is older than most recent Tuesday).
+    # Briefs persist forever in briefs/YYYY-MM-DD/ — past weeks are preserved for review.
+    _refresh_all_briefs()
+    commentary_html, commentary_date, commentary_stale = _load_brief_html("top.md", snap.get("date"))
+    market_brief_html, market_brief_date, market_brief_stale = _load_brief_html("market.md", snap.get("date"))
+    economy_brief_html, economy_brief_date, economy_brief_stale = _load_brief_html("economy.md", snap.get("date"))
+
     # MMI (momentum) sub-signal coloring
     mmi_color = "#4CAF50" if state == "green" else "#E84B5A"
     mmi_label = "GREEN" if state == "green" else "RED"
@@ -461,15 +525,26 @@ def render(snap, chart, raw_data=None):
 
   /* SECTION TITLE */
   .section-title {{
-    font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
-    color: #555; margin-bottom: 12px; font-weight: 600;
-    display: flex; align-items: center;
+    font-size: 19px; letter-spacing: -0.3px;
+    color: #e0e0e0; margin: 56px 0 14px; font-weight: 600;
+    display: flex; align-items: center; gap: 14px;
+    text-transform: none;
   }}
-  .step-tag {{
-    display: inline-block; background: #1a1a1a; color: #777;
-    font-size: 10px; padding: 2px 8px; border-radius: 4px;
-    margin-right: 10px; letter-spacing: 1px;
+  .step-num {{
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; flex: 0 0 30px;
+    background: #1a1a1a; border: 1px solid #2a2a2a;
+    color: #888; font-size: 13px; font-weight: 600;
+    border-radius: 50%; letter-spacing: 0;
+    font-family: 'SF Mono', Menlo, monospace;
   }}
+  .pillar-chip {{
+    display: inline-block; padding: 2px 9px; border-radius: 4px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+    font-weight: 600; margin-left: auto;
+  }}
+  .pillar-chip.market  {{ background: rgba(255,255,255,0.06); color: #ccc; border: 1px solid #2a2a2a; }}
+  .pillar-chip.economy {{ background: rgba(205,170,106,0.10); color: #cdaa6a; border: 1px solid rgba(205,170,106,0.25); }}
   .lookback-tabs {{
     display: inline-flex; align-items: center; gap: 4px;
     text-transform: none; letter-spacing: normal;
@@ -517,6 +592,11 @@ def render(snap, chart, raw_data=None):
     font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
     color: #555; font-weight: 500; margin-bottom: 18px;
   }}
+  .hero-grid {{
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    gap: 48px; align-items: start;
+  }}
+  .hero-main {{ min-width: 0; }}
   .hero-row {{
     display: flex; align-items: baseline; gap: 28px;
     margin-bottom: 24px;
@@ -533,8 +613,50 @@ def render(snap, chart, raw_data=None):
     font-size: 13px; color: #777; margin-top: 4px;
   }}
   .hero-story {{
-    max-width: 660px; margin: 22px 0 0; color: #999;
+    margin: 22px 0 0; color: #999;
     font-size: 14px; line-height: 1.55;
+  }}
+  .hero-story-ai {{
+    margin: 24px 0 0; color: #c8c8c8;
+    font-size: 14px; line-height: 1.6;
+  }}
+  .hero-story-ai p {{ margin: 0 0 10px; }}
+  .hero-story-ai p:last-child {{ margin-bottom: 0; }}
+  .hero-story-ai a {{ color: #cdaa6a; text-decoration: none; border-bottom: 1px dotted #6c5a36; }}
+  .hero-story-ai a:hover {{ color: #e6c98a; border-bottom-color: #cdaa6a; }}
+  .hero-story-eyebrow {{
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.8px;
+    color: #555; font-weight: 500; margin-bottom: 10px;
+  }}
+  /* Right-column pillars panel — preview of the two signals behind MRMI */
+  .hero-pillars {{
+    border-left: 1px solid #1f1f1f;
+    padding: 4px 0 4px 32px;
+    min-width: 240px;
+  }}
+  .hero-pillars-title {{
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.8px;
+    color: #555; font-weight: 500; margin-bottom: 14px;
+  }}
+  .hero-pillar {{
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px; padding: 10px 0;
+  }}
+  .hero-pillar + .hero-pillar {{ border-top: 1px solid #161616; }}
+  .hero-pillar-name {{ font-size: 13px; color: #aaa; }}
+  .hero-pillar-right {{ display: flex; align-items: baseline; gap: 10px; }}
+  .hero-pillar-state {{
+    font-size: 13px; font-weight: 600; letter-spacing: 0.4px;
+  }}
+  .hero-pillar-value {{
+    font-size: 13px; color: #777;
+  }}
+  .hero-pillar-note {{
+    margin-top: 14px; font-size: 11px; color: #555; line-height: 1.5;
+  }}
+  @media (max-width: 880px) {{
+    .hero-grid {{ grid-template-columns: 1fr; gap: 28px; }}
+    .hero-pillars {{ border-left: none; border-top: 1px solid #1f1f1f; padding: 20px 0 0; }}
   }}
 
   /* Scale bar — visual showing where MRMI sits on its scale */
@@ -807,6 +929,40 @@ def render(snap, chart, raw_data=None):
     font-weight: 400; text-transform: none; letter-spacing: normal;
   }}
   .info-icon:hover .tip-pop {{ opacity: 1; }}
+  .info-icon .tip-pop.tip-pop-wide {{ width: 420px; }}
+  .info-icon .tip-pop p {{ margin: 0 0 8px; }}
+  .info-icon .tip-pop p:last-child {{ margin-bottom: 0; }}
+  .info-icon .tip-pop strong {{ color: #fff; }}
+  .info-icon .tip-pop em {{ color: #cdaa6a; font-style: normal; }}
+
+  /* one-line subtitle under chart titles */
+  .mrmi-chart-subtitle {{
+    font-size: 13px; color: #888; margin: -4px 0 14px;
+    line-height: 1.5;
+  }}
+
+
+  /* Pillar weekly brief (sits between chart and drivers) */
+  .pillar-brief {{
+    margin: 20px 0 24px;
+    padding: 16px 18px;
+    background: #0d0d0d; border: 1px solid #1c1c1c; border-radius: 6px;
+    border-left: 2px solid #333;
+    color: #c8c8c8; font-size: 13.5px; line-height: 1.6;
+  }}
+  .pillar-brief-eyebrow {{
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.8px;
+    color: #666; font-weight: 500; margin-bottom: 10px;
+  }}
+  .pillar-brief p {{ margin: 0 0 10px; }}
+  .pillar-brief p:last-child {{ margin-bottom: 0; }}
+  .pillar-brief a {{ color: #cdaa6a; text-decoration: none; border-bottom: 1px dotted #6c5a36; }}
+  .pillar-brief a:hover {{ color: #e6c98a; border-bottom-color: #cdaa6a; }}
+  /* Headline (top) brief: slightly more prominent than the pillar briefs */
+  .pillar-brief.pillar-brief-headline {{
+    color: #d4d4d4; font-size: 14px; line-height: 1.65;
+    border-left-color: #cdaa6a; padding: 18px 20px;
+  }}
 
   /* 4 — MACRO BACKDROP */
   .seasons {{
@@ -963,26 +1119,51 @@ def render(snap, chart, raw_data=None):
 <!-- 1 · HERO (single source of truth for the headline value) -->
 <header class="hero">
   <div class="hero-eyebrow">Milk Road Macro Index · {snap["date"]}</div>
-  <div class="hero-row">
-    <div class="hero-value mono" style="color:{state_color};">{mrmi_value_str}</div>
-    <div class="hero-action">
-      <div class="hero-action-label" style="color:{state_color};">{state_label}</div>
-      <div class="hero-action-sub">{state_subtitle}</div>
+  <div class="hero-grid">
+    <div class="hero-main">
+      <div class="hero-row">
+        <div class="hero-value mono" style="color:{state_color};">{mrmi_value_str}</div>
+        <div class="hero-action">
+          <div class="hero-action-label" style="color:{state_color};">{state_label}</div>
+          <div class="hero-action-sub">{state_subtitle}</div>
+        </div>
+      </div>
+
+      <!-- Visual scale bar -->
+      {_make_scale_bar(mrmi_value, state_color)}
     </div>
+
+    <aside class="hero-pillars">
+      <div class="hero-pillars-title">What's behind it</div>
+      <div class="hero-pillar">
+        <span class="hero-pillar-name">Market signal (MMI)</span>
+        <span class="hero-pillar-right">
+          <span class="hero-pillar-state" style="color:{mmi_color};">{mmi_label}</span>
+          <span class="hero-pillar-value mono">{mmi_value_str}</span>
+        </span>
+      </div>
+      <div class="hero-pillar">
+        <span class="hero-pillar-name">Macro stress</span>
+        <span class="hero-pillar-right">
+          <span class="hero-pillar-state" style="color:{stress_color};">{stress_label}</span>
+        </span>
+      </div>
+      <div class="hero-pillar-note">MRMI = MMI + macro buffer. Cash only when both turn against you.</div>
+    </aside>
   </div>
 
-  <!-- Visual scale bar -->
-  {_make_scale_bar(mrmi_value, state_color)}
-
-  <p class="hero-story">{banner_story}</p>
+  {(f'<div class="hero-story hero-story-ai">'
+    f'<div class="hero-story-eyebrow">This week’s read{(" · " + commentary_date + " (cached)") if commentary_stale else ""}</div>'
+    f'{commentary_html}'
+    f'</div>') if commentary_html else f'<p class="hero-story">{banner_story}</p>'}
 </header>
 
 <!-- 2 · MRMI HISTORY CHART (right after hero — context for the headline number) -->
-<div class="section-title"><span class="step-tag">STEP 1</span>How the index has evolved</div>
+<div class="section-title"><span class="step-num">1</span>How the index has evolved</div>
 <div class="mrmi-chart">
   <div class="mrmi-chart-header">
     <h3>Milk Road Macro Index (MRMI)
-      <span class="info-icon" data-tip="MRMI is built from two inputs: MMI (market momentum from credit / breadth / volatility) plus a macro buffer that erodes when the economy enters stagflation territory. The buffer keeps us invested by default; only when both the market signal turns red AND macro stress builds does MRMI cross below zero and trigger a CASH signal. White line = MRMI. Green/red shading = the regime. Toggle assets in the legend to overlay how SPX / Russell / BTC moved during each regime.">{info_svg}</span>
+      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>How it's built:</strong> MRMI combines MMI (market momentum from credit, breadth and volatility) with a macro buffer that erodes when growth and inflation both deteriorate. The buffer keeps us invested by default; only when the market signal turns red <em>and</em> macro stress builds does MRMI cross below zero and trigger CASH.</p><p><strong>Reading the chart:</strong> white line is the MRMI value over time. Green shading = LONG regime, red = CASH. Notice the cash episodes around 2018 (vol spike), 2020 (COVID), and 2022 (bear market) — that's when both pillars confirmed danger. Toggle assets in the legend to overlay SPX / Russell / BTC.</p><p><strong>Next:</strong> open <em>MMI Drivers</em> below to see what's behind the market signal, then <em>Macro Backdrop</em> for the economy signal.</p></span></span>
     </h3>
     <div class="range-tabs">
       <button data-range="1y" class="active">1Y</button>
@@ -991,6 +1172,7 @@ def render(snap, chart, raw_data=None):
       <button data-range="all">ALL</button>
     </div>
   </div>
+  <p class="mrmi-chart-subtitle">A single regime signal: above zero stay long, below zero move to cash. Built from market momentum plus a macro stress buffer.</p>
   <div class="legend">
     <span class="legend-item" data-series="mrmi"><span class="legend-dot" style="background:#fff"></span>MRMI (headline)</span>
     <span class="legend-item inactive" data-series="mmi"><span class="legend-dot" style="background:#888"></span>MMI (momentum only)</span>
@@ -1001,8 +1183,6 @@ def render(snap, chart, raw_data=None):
   <div class="chart-container"><canvas id="chart-mrmi"></canvas></div>
 
   <div class="chart-description">
-    <p><strong>What you're looking at:</strong> the white line is the MRMI value over time. Above zero → stay long. Below zero → cash. The shaded green/red regions make the regimes easy to spot. Notice the cash episodes around 2018 (vol spike), 2020 (COVID), and 2022 (bear market) — these are when both pillars confirmed danger.</p>
-    <p><strong>Next:</strong> open the <em>MMI Drivers</em> section below to see what's behind the market signal, then the <em>Macro Backdrop</em> to see what's behind the economy signal.</p>
     <details class="backtest-toggle">
       <summary>How well does this work historically? <span class="muted small">(click)</span></summary>
       <div class="backtest-toggle-body">
@@ -1018,97 +1198,64 @@ def render(snap, chart, raw_data=None):
   </div>
 </div>
 
-<!-- 3 · COMPOSITION (the two pillars feeding MRMI) -->
-<div class="section-title"><span class="step-tag">STEP 2</span>What's inside this number</div>
-<section class="comp">
-  <div class="comp-header">
-    <span class="comp-formula">Market + Economy → MRMI</span>
+<!-- 3 · MMI (market pillar): chart over time + drivers below -->
+<div class="section-title"><span class="step-num">2</span>What the markets are signaling<span class="pillar-chip market">Market pillar</span></div>
+<p class="section-intro"><strong>MMI — Market Momentum Index.</strong> The fast, <em>market-derived</em> half of MRMI: built entirely from price and volatility data — credit spreads, cyclical sector breadth, and financial-conditions volatility — equally weighted. Markets react quickly, so MMI catches turning points early; the trade-off is they can also flash false alarms, which is why MMI alone never triggers a CASH call. It only acts in concert with the slower economy pillar below.</p>
+<div class="mrmi-chart">
+  <div class="mrmi-chart-header">
+    <h3>Market Momentum Index (MMI)
+      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the MMI score over time, equally-weighted from GII (global growth momentum), Breadth (cyclical participation) and FinCon (financial conditions). Above zero = healthy momentum. Below zero = momentum is rolling over.</p><p><strong>Drivers below:</strong> click any row to expand the underlying series. The MMI score is just the average of the three.</p></span></span>
+    </h3>
   </div>
-  <div class="comp-rows">
-    <div class="comp-row">
-      <div class="comp-row-label">Market signal · MMI</div>
-      <div class="comp-row-value mono" style="color:{mmi_color};">{mmi_value_str}</div>
-      <div class="comp-row-state" style="color:{mmi_color};">{mmi_label.lower()}</div>
-      <div class="comp-row-meta">Credit spreads, sector breadth, volatility — what the market itself is signaling.</div>
-    </div>
-    <div class="comp-row">
-      <div class="comp-row-label">Economy signal · Macro Stress</div>
-      <div class="comp-row-value mono" style="color:{stress_color};">{('on' if stress_on else 'off')}</div>
-      <div class="comp-row-state" style="color:{stress_color};">{('stress active' if stress_on else 'no stagflation')}</div>
-      <div class="comp-row-meta">Real economy + inflation direction — fires only when both turn negative simultaneously.</div>
-    </div>
-  </div>
-  <p class="comp-rule">Both pillars must turn against the market to trigger CASH. Either alone is not enough.</p>
-</section>
-
-<!-- 4 · MMI DRIVERS (collapsible scorecard) -->
-<div class="section-title"><span class="step-tag">STEP 3 · Market pillar</span>What's behind the market signal</div>
-<p class="section-intro">MMI is built from three market-derived measures, equally weighted. It tells us how the market itself is behaving — independent of the underlying economy. When all three are aligned positive, momentum is healthy. When they diverge, the signal weakens.</p>
-<details class="drivers">
+  <p class="mrmi-chart-subtitle">Market momentum on its own, averaged from credit spreads, sector breadth and financial-conditions volatility.</p>
+  <div class="chart-container" style="height: 220px;"><canvas id="chart-mmi"></canvas></div>
+</div>
+{(f'<div class="pillar-brief"><div class="pillar-brief-eyebrow">This week’s read · market pillar{(" · " + market_brief_date + " (cached)") if market_brief_stale else ""}</div>{market_brief_html}</div>') if market_brief_html else ''}
+<details class="drivers" open>
   <summary>
-    <span><span class="state-dot" style="background:{mmi_color}"></span>MMI · MOMENTUM SCORE: <span class="mono" style="color:{mmi_color};">{mmi_value_str}</span> ({mmi_label}) <span class="muted small">· GII · Breadth · FinCon — click to expand</span></span>
+    <span><span class="state-dot" style="background:{mmi_color}"></span>MMI DRIVERS <span class="muted small">· GII · Breadth · FinCon — click any row to expand</span></span>
   </summary>
   <div class="drivers-body">
-    <p class="drivers-desc">
-      <strong>GII</strong> — global growth momentum (credit spreads, sector rotation, copper, vol, yield curve, shipping)<br>
-      <strong>Breadth</strong> — how broadly cyclical sectors are participating<br>
-      <strong>FinCon</strong> — financial conditions (equity vol + bond vol + credit spreads)<br>
-      <span class="muted">Click any row to expand the chart. MMI alone does not trigger action — MRMI requires both MMI red AND macro stress to flip to CASH.</span></p>
     <div id="scorecard-mrmi"></div>
   </div>
 </details>
 
-<!-- 5 · MACRO BACKDROP -->
-<div class="section-title"><span class="step-tag">STEP 4 · Economy pillar</span>What's behind the economy signal</div>
-<p class="section-intro">Macro Stress fires only when two conditions hit at once: the <strong>Real Economy Score</strong> is negative (consumer spending, jobs, income, GDP nowcast deteriorating) AND <strong>Inflation Direction</strong> is positive (Core CPI rising over the last 6 months). Either alone is not enough. This is the slow, fundamental side of the framework — markets can flash false alarms, but real-economy stress takes time to build.</p>
-<div class="seasons">
-  <div class="chart-container" style="height: 200px; margin-bottom: 20px;"><canvas id="chart-macro"></canvas></div>
-  <div class="legend" style="margin-top: -8px; margin-bottom: 18px;">
-    <span class="legend-item"><span class="legend-dot" style="background:#4CAF50"></span>Real Economy Score (z, left axis)</span>
-    <span class="legend-item"><span class="legend-dot" style="background:#FF8C00"></span>Inflation Direction Δ6m (pp, right axis)</span>
+<!-- 5 · MACRO BACKDROP — chart over time + drivers, parallel to MMI -->
+<div class="section-title"><span class="step-num">3</span>What the economy is signaling<span class="pillar-chip economy">Economy pillar</span></div>
+<p class="section-intro"><strong>Macro Stress.</strong> The slow, <em>economy-derived</em> half of MRMI: built entirely from real-economy data — consumer spending, jobs, income, GDP nowcast — and inflation trajectory. The economy moves slowly, so stress takes time to build, but when it does it's grounded in fundamentals rather than market noise. Stress fires only when growth is weak <em>and</em> inflation is rising — that AND condition is what filters out the false alarms the market pillar would otherwise produce on its own.</p>
+<div class="mrmi-chart">
+  <div class="mrmi-chart-header">
+    <h3>Macro Stress Pressure
+      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the smoothed AND-condition between weak growth and rising inflation, expressed as a z-score against the full historical pressure series. <em>0σ</em> = a typical macro reading; <em>+1σ</em> = stress building above the historical norm (top ~16% of readings); <em>+2σ</em> = unusual; <em>+3σ</em> = extreme. Negative values mean conditions are actively benign vs history.</p><p><strong>How it's built:</strong> <code>sigmoid(−2·Real_Economy) × sigmoid(2·Inflation_Direction)</code>, then z-scored against its own history. Same AND logic as the model's hard-clipped <code>stress_intensity</code> (which still drives MRMI internally) but always informative and self-anchored to history.</p><p><strong>Underlying components:</strong> expand the section below to see the two raw axes — Real Economy Score and Inflation Direction Δ6m — that feed this score.</p></span></span>
+    </h3>
   </div>
-  <div class="backdrop-grid">
-    <div class="backdrop-cell" style="border-left-color: #4CAF50;">
-      <div class="backdrop-eyebrow">REAL ECONOMY SCORE</div>
-      <div class="backdrop-value mono" id="re-value-display">{fmt_signed(re_score) if re_score is not None else '—'}</div>
-      <div class="backdrop-meta" id="re-meta">{('rising · ' if (re_score or 0) > 0 else 'weakening · ') + 'composite z (3y)'}</div>
-    </div>
-    <div class="backdrop-cell" style="border-left-color: #FF8C00;">
-      <div class="backdrop-eyebrow">INFLATION DIRECTION</div>
-      <div class="backdrop-value mono" id="inf-value-display">{fmt_signed(inf_dir) + 'pp' if inf_dir is not None else '—'}</div>
-      <div class="backdrop-meta" id="inf-meta">{('rising · ' if (inf_dir or 0) >= 0 else 'falling · ') + 'Core CPI Δ6m'}{f' · level {core_cpi_yoy_pct:.2f}%' if core_cpi_yoy_pct is not None else ''}</div>
-    </div>
-  </div>
-
-  <div class="backdrop-summary" style="border-left-color: {backdrop['color']};">
-    <div class="backdrop-summary-tag" style="color: {backdrop['color']};">{backdrop['tag']} · {backdrop['label']}</div>
-    <p>{backdrop['summary']}</p>
-  </div>
-
-  <div class="seasons-axis-spec">
-    <strong>Real Economy Score:</strong> equal-weighted z-score of Real PCE YoY · Sahm Rule (inverted) · Real Personal Income YoY · Atlanta Fed GDPNow
-    &nbsp;·&nbsp;
-    <strong>Inflation Direction:</strong> Δ in Core CPI YoY over the last 6 months, in pp
-  </div>
+  <p class="mrmi-chart-subtitle">Stress pressure z-scored against its own history. Above +1σ = stress building above norm; below −1σ = unusually calm.</p>
+  <div class="chart-container" style="height: 240px;"><canvas id="chart-stress-strip"></canvas></div>
 </div>
-
-<!-- Macro Drivers (collapsible scorecard) -->
-<details class="drivers seasons-drivers">
+{(f'<div class="pillar-brief"><div class="pillar-brief-eyebrow">This week’s read · economy pillar{(" · " + economy_brief_date + " (cached)") if economy_brief_stale else ""}</div>{economy_brief_html}</div>') if economy_brief_html else ''}
+<details class="drivers" style="margin-top: 12px;">
   <summary>
-    <span><span class="state-dot" style="background:{backdrop['color']}"></span>MACRO DRIVERS <span class="muted small">· what's behind the Real Economy Score — click to expand</span></span>
+    <span><span class="state-dot" style="background:#cdaa6a"></span>UNDERLYING COMPONENTS <span class="muted small">· Real Economy Score · Inflation Direction Δ6m — click to expand</span></span>
   </summary>
   <div class="drivers-body">
-    <p class="drivers-desc">The four real-economy components that feed the Real Economy Score:
-      <strong>PCE</strong> (consumer growth · ~70% of GDP),
-      <strong>Sahm</strong> (forward-looking labor stress signal),
-      <strong>Real Income</strong> (household income trajectory),
-      <strong>GDPNow</strong> (Atlanta Fed real-time GDP nowcast). Click any row to expand the chart.</p>
+    <div class="chart-container" style="height: 220px;"><canvas id="chart-macro"></canvas></div>
+    <div class="legend" style="margin-top: 10px;">
+      <span class="legend-item"><span class="legend-dot" style="background:#ffffff"></span>Real Economy Score (z, left axis)</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#cdaa6a"></span>Inflation Direction Δ6m (pp, right axis)</span>
+    </div>
+  </div>
+</details>
+<details class="drivers seasons-drivers">
+  <summary>
+    <span><span class="state-dot" style="background:{backdrop['color']}"></span>REAL ECONOMY DRIVERS <span class="muted small">· PCE · Sahm · Real Income · GDPNow — click any row to expand</span></span>
+  </summary>
+  <div class="drivers-body">
     <div id="scorecard-seasons"></div>
   </div>
 </details>
 
 <!-- 6 · LIBRARY -->
-<div class="section-title"><span class="step-tag">STEP 5</span>Reference Library</div>
+<div class="section-title"><span class="step-num">4</span>Reference Library</div>
 <div class="library">
   <table>
     <thead>
@@ -1211,6 +1358,54 @@ function buildMrmiChart(rangeKey) {{
 
 let currentRange = '1y';
 let driverCharts = {{}};
+let mmiChart = null;
+
+function buildMmiChart(rangeKey) {{
+  const n = RANGE_BARS[rangeKey] ?? 252;
+  const dates = sliceRecent(CHART_DATA.dates, n);
+  const mmi = sliceRecent(CHART_DATA.composite, n);
+  if (mmiChart) mmiChart.destroy();
+  const canvas = document.getElementById('chart-mmi');
+  if (!canvas) return;
+  mmiChart = new Chart(canvas, {{
+    type: 'line',
+    data: {{
+      labels: dates,
+      datasets: [{{
+        label: 'MMI', data: mmi,
+        borderColor: '#ffffff', borderWidth: 1.8,
+        pointRadius: 0, tension: 0.1, spanGaps: true,
+        fill: {{ target: 'origin', above: 'rgba(76,175,80,0.18)', below: 'rgba(232,75,90,0.18)' }},
+      }}],
+    }},
+    options: {{
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: {{ mode: 'index', intersect: false }},
+      plugins: {{
+        legend: {{ display: false }},
+        tooltip: {{
+          backgroundColor: '#1a1a1a', borderColor: '#333', borderWidth: 1,
+          titleColor: '#999', bodyColor: '#e0e0e0',
+          titleFont: {{ size: 11 }},
+          bodyFont: {{ size: 11, family: "'SF Mono', Menlo, monospace" }},
+          padding: 8,
+          callbacks: {{
+            label: ctx => 'MMI: ' + (ctx.parsed.y !== null ? ctx.parsed.y.toFixed(2) : '—'),
+          }},
+        }},
+        annotation: {{
+          annotations: {{
+            zero: {{ type: 'line', yMin: 0, yMax: 0, borderColor: '#333', borderWidth: 1, scaleID: 'y' }},
+          }},
+        }},
+      }},
+      scales: {{
+        x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 10, maxRotation: 0 }}, grid: {{ display: false }} }},
+        y: {{ position: 'left', ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 6 }}, grid: {{ color: '#1a1a1a' }} }},
+      }},
+    }},
+  }});
+}}
 
 function lastValid(arr) {{
   for (let i = arr.length - 1; i >= 0; i--) {{
@@ -1355,9 +1550,11 @@ document.querySelectorAll('.range-tabs button').forEach(btn => {{
     btn.classList.add('active');
     currentRange = btn.dataset.range;
     buildMrmiChart(currentRange);
+    buildMmiChart(currentRange);
     buildScorecard();
     buildMacroDriversScorecard();
     buildMacroChart();
+    buildStressStripChart();
     Object.keys(driverCharts).forEach(k => createDriverChart(k));
     Object.keys(macroDriverCharts).forEach(k => createMacroDriverChart(k));
     Object.keys(libCharts).forEach(k => createLibChart(k));
@@ -1578,10 +1775,43 @@ function createLibChart(key) {{
   }});
 }}
 
+// Compute stress windows: contiguous index ranges where stress > 0 (light) or > 0.5 (strong).
+// Returns array of {{xMin, xMax, level}} where level is 'low' or 'high'.
+function computeStressWindows(stressArr) {{
+  const windows = [];
+  let inLow = false, inHigh = false, lowStart = -1, highStart = -1;
+  for (let i = 0; i < stressArr.length; i++) {{
+    const v = stressArr[i] ?? 0;
+    const isHigh = v > 0.5;
+    const isLow  = v > 0 && !isHigh;
+    if (isHigh && !inHigh) {{ highStart = i; inHigh = true; }}
+    if (!isHigh && inHigh) {{ windows.push({{xMin: highStart, xMax: i - 1, level: 'high'}}); inHigh = false; }}
+    if (isLow && !inLow) {{ lowStart = i; inLow = true; }}
+    if (!isLow && inLow) {{ windows.push({{xMin: lowStart, xMax: i - 1, level: 'low'}}); inLow = false; }}
+  }}
+  if (inHigh) windows.push({{xMin: highStart, xMax: stressArr.length - 1, level: 'high'}});
+  if (inLow)  windows.push({{xMin: lowStart,  xMax: stressArr.length - 1, level: 'low'}});
+  return windows;
+}}
+
 function buildMacroChart() {{
   const dates = sliceRecent(CHART_DATA.dates, RANGE_BARS[currentRange]);
   const re_series = sliceRecent((CHART_DATA.macro || {{}}).real_economy_score || [], RANGE_BARS[currentRange]);
   const inf_series = sliceRecent((CHART_DATA.macro || {{}}).inflation_dir_pp || [], RANGE_BARS[currentRange]);
+  const stress_series = sliceRecent((CHART_DATA.mrmi_combined || {{}}).stress_intensity || [], RANGE_BARS[currentRange]);
+
+  // Background tint for stress episodes — faint red where stress > 0, stronger > 0.5.
+  const stressWindows = computeStressWindows(stress_series);
+  const stressAnnotations = {{}};
+  stressWindows.forEach((w, i) => {{
+    stressAnnotations['stress' + i] = {{
+      type: 'box',
+      xMin: w.xMin, xMax: w.xMax,
+      backgroundColor: w.level === 'high' ? 'rgba(232,75,90,0.14)' : 'rgba(232,75,90,0.06)',
+      borderWidth: 0,
+      drawTime: 'beforeDatasetsDraw',
+    }};
+  }});
 
   if (window.macroChart) window.macroChart.destroy();
   window.macroChart = new Chart(document.getElementById('chart-macro'), {{
@@ -1589,11 +1819,12 @@ function buildMacroChart() {{
     data: {{
       labels: dates,
       datasets: [
-        {{ label: 'Real Economy Score', data: re_series, borderColor: '#4CAF50', borderWidth: 2,
+        {{ label: 'Real Economy Score', data: re_series,
+           borderColor: '#ffffff', borderWidth: 1.8,
            pointRadius: 0, tension: 0.1, spanGaps: true,
-           fill: {{ target: 'origin', above: 'rgba(76,175,80,0.10)', below: 'rgba(232,75,90,0.08)' }},
            yAxisID: 'y' }},
-        {{ label: 'Inflation Direction Δ6m', data: inf_series, borderColor: '#FF8C00', borderWidth: 2,
+        {{ label: 'Inflation Direction Δ6m', data: inf_series,
+           borderColor: '#cdaa6a', borderWidth: 1.4, borderDash: [4, 3],
            pointRadius: 0, tension: 0.1, spanGaps: true,
            yAxisID: 'yInf' }},
       ],
@@ -1611,33 +1842,123 @@ function buildMacroChart() {{
           callbacks: {{ label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? ctx.parsed.y.toFixed(2) : '—') }},
         }},
         annotation: {{
-          annotations: {{
+          annotations: Object.assign({{
             zero: {{ type: 'line', yMin: 0, yMax: 0, borderColor: '#333', borderWidth: 1, scaleID: 'y' }},
+          }}, stressAnnotations),
+        }},
+      }},
+      scales: {{
+        x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 10, maxRotation: 0 }}, grid: {{ display: false }} }},
+        y:    {{ position: 'left',  ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 6 }}, grid: {{ color: '#1a1a1a' }} }},
+        yInf: {{ position: 'right', ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 5 }}, grid: {{ display: false }} }},
+      }},
+    }},
+  }});
+}}
+
+// Sigmoid-smoothed, centered stress pressure. Same AND logic as the model's
+// stress_intensity, but always continuous and informative — never flat 0.
+//   re_concern   = sigmoid(-k · RE)        // ~0 when growth strong, ~1 when weak
+//   infl_concern = sigmoid(+k · Inf_Dir)   // ~0 when inflation falling, ~1 when rising
+//   pressure     = re_concern × infl_concern − 0.25   // centered: 0 = neutral
+// The unsmoothed stress_intensity is unchanged in MRMI — this is display-only.
+function _sigmoid(x) {{ return 1 / (1 + Math.exp(-x)); }}
+function smoothedStressPressure(reArr, infArr, k) {{
+  k = k || 2;
+  const n = Math.min(reArr.length, infArr.length);
+  const out = new Array(n);
+  for (let i = 0; i < n; i++) {{
+    const re = reArr[i], inf = infArr[i];
+    if (re == null || inf == null) {{ out[i] = null; continue; }}
+    out[i] = _sigmoid(-k * re) * _sigmoid(k * inf) - 0.25;
+  }}
+  return out;
+}}
+
+function buildStressStripChart() {{
+  // Compute the smoothed pressure over the FULL history first so we can
+  // z-score against the entire available distribution (not just the visible range).
+  const re_full  = (CHART_DATA.macro || {{}}).real_economy_score || [];
+  const inf_full = (CHART_DATA.macro || {{}}).inflation_dir_pp   || [];
+  const raw_full = smoothedStressPressure(re_full, inf_full, 2);
+
+  // Mean / std of the historical pressure series, ignoring nulls.
+  let sum = 0, n = 0;
+  for (const v of raw_full) {{ if (v != null) {{ sum += v; n++; }} }}
+  const mean = n ? sum / n : 0;
+  let sqsum = 0;
+  for (const v of raw_full) {{ if (v != null) sqsum += (v - mean) ** 2; }}
+  const std = n > 1 ? Math.sqrt(sqsum / (n - 1)) : 1;
+
+  // Z-score the full series, then slice for display.
+  const z_full = raw_full.map(v => v == null ? null : (v - mean) / std);
+  const dates  = sliceRecent(CHART_DATA.dates, RANGE_BARS[currentRange]);
+  const z      = sliceRecent(z_full, RANGE_BARS[currentRange]);
+
+  if (window.stressStripChart) window.stressStripChart.destroy();
+  const canvas = document.getElementById('chart-stress-strip');
+  if (!canvas) return;
+
+  window.stressStripChart = new Chart(canvas, {{
+    type: 'line',
+    data: {{
+      labels: dates,
+      datasets: [{{
+        label: 'Macro Stress Pressure (z)', data: z,
+        borderColor: '#ffffff', borderWidth: 1.8,
+        pointRadius: 0, tension: 0.1, spanGaps: true,
+        fill: {{
+          target: 'origin',
+          above: 'rgba(232,75,90,0.22)',   // building above mean → red
+          below: 'rgba(76,175,80,0.16)',   // calmer than typical → green
+        }},
+      }}],
+    }},
+    options: {{
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: {{ mode: 'index', intersect: false }},
+      plugins: {{
+        legend: {{ display: false }},
+        tooltip: {{
+          backgroundColor: '#1a1a1a', borderColor: '#333', borderWidth: 1,
+          titleColor: '#999', bodyColor: '#e0e0e0',
+          titleFont: {{ size: 11 }}, bodyFont: {{ size: 11, family: "'SF Mono', Menlo, monospace" }},
+          padding: 8,
+          callbacks: {{
+            label: ctx => {{
+              if (ctx.parsed.y == null) return 'Pressure: —';
+              const v = ctx.parsed.y;
+              return 'Pressure: ' + (v >= 0 ? '+' : '') + v.toFixed(2) + 'σ';
+            }},
+          }},
+        }},
+        annotation: {{
+          annotations: {{
+            mean: {{ type: 'line', yMin: 0, yMax: 0, borderColor: '#555', borderWidth: 1,
+                     label: {{ display: true, content: 'historical mean', position: 'start',
+                              backgroundColor: 'transparent', color: '#666', font: {{ size: 9 }} }} }},
           }},
         }},
       }},
       scales: {{
         x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 10, maxRotation: 0 }}, grid: {{ display: false }} }},
-        y: {{ position: 'left', ticks: {{ color: '#4CAF50', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 5 }}, grid: {{ color: '#1a1a1a' }} }},
-        yInf: {{ position: 'right', ticks: {{ color: '#FF8C00', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 5 }}, grid: {{ display: false }} }},
+        y: {{ position: 'left',
+              ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 6,
+                       callback: v => (v > 0 ? '+' : '') + v.toFixed(1) }},
+              grid: {{ color: '#1a1a1a' }} }},
       }},
     }},
   }});
 }}
 
 buildMrmiChart('1y');
+buildMmiChart('1y');
 buildScorecard();
 buildMacroDriversScorecard();
 buildMacroChart();
+buildStressStripChart();
 
-// Auto-expand all driver charts when a section is opened for the first time
-document.querySelectorAll('details.drivers').forEach(d => {{
-  d.addEventListener('toggle', e => {{
-    if (!e.target.open) return;
-    if (d.querySelector('#scorecard-mrmi')) expandAllDrivers();
-    if (d.querySelector('#scorecard-seasons')) expandAllMacroDrivers();
-  }});
-}});
+// Driver charts stay collapsed by default — click an individual row to expand it.
 </script>
 
 </body>

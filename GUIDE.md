@@ -2,66 +2,84 @@
 
 ## The Investment Thesis
 
-Markets move because of two things: **fundamentals** (the actual economy and corporate earnings) and **liquidity/sentiment** (how much money is chasing how many assets, and how risk-tolerant people are). Most of the time, these reinforce each other. When they don't, you get the most interesting market moves.
+Markets move because of two things: **fundamentals** (the actual economy) and **market dynamics** (price action, volatility, sector rotation, credit spreads). Most of the time these reinforce each other. When they don't, you get the most interesting market moves — and the highest risk of being wrong.
 
-This dashboard separates these forces into three layers:
+This framework separates the two and only acts when they agree:
 
-1. **Regime layer** — fast-moving signals (volatility, credit spreads, sector breadth, growth momentum) that tell you whether the market is currently in a risk-on or risk-off mode. This is the trading decision.
+- A **fast, market-derived signal** (MMI) catches turning points early.
+- A **slow, economy-derived buffer** (Macro Stress) prevents over-reaction by demanding fundamental confirmation before the framework moves to cash.
 
-2. **Cycle layer** — slow-moving fundamentals (real economy, monetary policy, labor) that tell you whether the macro backdrop is supportive or hostile. This is the context.
-
-3. **Inflation context** — the price level dimension that's separate from cycle direction because it's interpretation-dependent (good or bad depending on level and regime).
-
-The dashboard is designed for daily checks (60 seconds) and monthly deep dives. Same-day execution on regime changes is required to capture the alpha — the backtest shows a 1-day delay erases most of the edge.
+The combination is **MRMI — Milk Road Macro Index** — a single composite number designed for a weekly research cadence (Tuesday meetings) and same-week execution.
 
 ---
 
 ## How To Read The Dashboard
 
-### Top: The Regime Banner
+The dashboard is a four-step walkthrough wrapped by a hero with the headline number.
 
-The first thing you see. Big, bold, unambiguous.
+### Hero — the at-a-glance read
 
-- **RISK-ON (green)**: composite > 0. Stay invested in risk assets. Historical average return during green regimes: +25.7%/yr on SPX vs +11.6% buy-and-hold.
-- **RISK-OFF (red)**: composite < 0. Move to cash or defensives. Historical max drawdown reduced from -18.9% to -2.9%.
+The first thing you see, designed so anyone in a Tuesday meeting can read it in 10 seconds:
 
-The number next to the banner is the composite value. Magnitude matters:
-- +0.1 = barely positive, low conviction
-- +0.5 to +1.0 = solid positive
-- +1.5+ = strong conviction
+- **Big number** (e.g. `+1.14`) — the current MRMI value.
+- **State** — `STAY LONG` (green) or `CASH` (red), with `100% position` or `0% position`.
+- **Scale bar** — visual showing where the value sits between −3 and +5, with the `0 · threshold` line marked.
+- **What's behind it** — the two pillar states side-by-side: MMI (`GREEN +0.64`) and Macro Stress (`OFF`).
+- **This week's read** — AI-generated weekly brief (5–7 sentences) synthesizing the cross-pillar story.
 
-### Middle: Milk Road Momentum Index (MRMI) Chart
+### Step 1 — How the index has evolved
 
-Visualizes the regime over time. Background colors show historical regimes. The white dashed line is the composite value. The yellow line is S&P 500 (toggle Russell and BTC if needed).
+MRMI history chart. White line = MRMI value over time. Green shading = LONG regime, red = CASH. Range tabs (1Y / 2Y / 5Y / ALL). The legend lets you toggle SPX, Russell, BTC, and the underlying MMI line as overlays. Backtest stats sit in a click-to-expand panel below the chart.
 
-You should see that periods of red background often coincide with market declines, and green backgrounds with rallies. The signal isn't perfect but the historical edge is meaningful.
+This is the chart you walk into the meeting with. Everyone glances at it, sees where the regime has been, and the conversation starts.
 
-### Indicator Scorecard
+### Step 2 — What the markets are signaling (Market pillar)
 
-Compact table showing every underlying indicator. For each row:
-- **Value**: current z-score reading
-- **7d / 30d**: percentage change over those windows with direction arrow
-- **Signal**: green/red dot for regime indicators
+**MMI — Market Momentum Index.** The fast, market-derived half of MRMI: built entirely from price and volatility data — credit spreads, cyclical sector breadth, and financial-conditions volatility. Markets react quickly so MMI catches turning points early; the trade-off is they can also flash false alarms, which is why MMI alone never triggers a CASH call.
 
-Two groups:
-- **MRMI Drivers** (Regime): GII, Sector Breadth, Financial Conditions
-- **Macro Seasons**: Y-Axis — Growth (Real Economy + Labor); X-Axis — Inflation (Core CPI)
+A single white-line chart shows MMI over time, followed by the **weekly market pillar brief** and an open drivers scorecard with the three components (GII / Breadth / FinCon). Click any driver row to expand its individual chart.
 
-Click any row to expand the chart with description.
+### Step 3 — What the economy is signaling (Economy pillar)
 
-### Bottom: Macro Seasons
+**Macro Stress.** The slow, economy-derived half of MRMI: built entirely from real-economy data and inflation trajectory. The chart shows the two underlying axes — Real Economy Score (white solid, left axis) and Inflation Direction Δ6m (amber dashed, right axis). Stress fires only when growth is weak **and** inflation is rising — that AND condition filters out the false alarms the market pillar would otherwise produce on its own.
 
-Two charts showing where the economy sits on the growth and inflation axes. The scatter chart positions the current reading across four quadrants (Spring / Summer / Fall / Winter). The time-series chart shows Growth composite and Core CPI YoY over time.
+The economy moves slowly (most data refreshes monthly), so this layer takes time to build. That's a feature: it sets the strategic backdrop, while MMI handles the tactical decision.
 
-This is context only — not a trading decision input.
+The **weekly economy pillar brief** sits between the chart and the drivers (PCE / Sahm / Real Income / GDPNow). The top brief in the hero builds on both pillar briefs.
+
+### Step 4 — Reference Library
+
+Supplementary indicators that round out the picture but aren't in the formal signal. Click any row to expand. These are kept for divergence-spotting and as candidates for promotion into the pillars as the framework evolves.
 
 ---
 
-## The Regime Indicators (What Drives the Decision)
+## How MRMI is Computed
 
-### Growth Impulses Index (GII) — Weight: 37%
+```
+Stress_intensity = min(1, max(0, −Real_Economy) × max(0, Inflation_Direction))
+Macro_buffer     = buffer_size × (1 − Stress_intensity)         # buffer_size = 1.0
+MRMI             = MMI + Macro_buffer − threshold                # threshold = 0.5
 
-**What it measures**: A composite of 10 components reflecting the rate of change of economic momentum:
+MRMI > 0  → LONG  (stay invested)
+MRMI < 0  → CASH  (step aside)
+```
+
+The mechanics:
+
+- When the economy is healthy (`Real_Economy ≥ 0` *or* `Inflation_Direction ≤ 0`), `Stress_intensity = 0` and the macro buffer is at full strength. MRMI ≈ MMI + 0.5, so MMI has to be deeply negative (below −0.5) before MRMI flips to CASH.
+- When stress builds (both conditions adverse), `Stress_intensity` rises toward 1.0, eroding the buffer. At full stress, MRMI ≈ MMI − 0.5, so even moderately negative MMI flips the signal to CASH.
+
+The multiplicative AND gate is what makes the system honest: stress can only build when the economy is *both* weakening and seeing rising inflation. Either alone is not enough. Markets can flash false alarms; the buffer keeps you long until fundamentals confirm.
+
+---
+
+## The Market Pillar — MMI
+
+MMI is the equal-weighted (1/1/1) average of three market-derived indicators calibrated to different speeds. Equal weights were selected by drawdown-optimization grid search — they deliver stronger Calmar ratios than the prior alpha-weighted (37/35/28) scheme and survive OOS validation better.
+
+### Growth Impulses Index (GII) — ⅓ weight
+
+**What it measures**: A composite of 10 components reflecting the rate of change of economic momentum (priced through markets):
 - HYG (high-yield bond ETF) — credit risk appetite
 - HY credit spread (inverted) — credit stress
 - XLY/XLP ratio — consumer discretionary vs staples (offensive vs defensive consumption)
@@ -79,9 +97,7 @@ Each component is converted to a 21-day rate of change, z-scored over 504 days, 
 
 **Why fast (21-day ROC)**: Economic momentum shifts manifest in markets within weeks, not months. A 21-day ROC catches inflection points before they become obvious in slower data.
 
-**Economic interpretation**: When GII is rising and positive, the economy is in an acceleration phase — credit is flowing, cyclicals are bid, copper is up, vol is contained. This is the environment where risk assets perform best. When GII is falling and negative, the opposite is happening: credit tightening, defensive rotation, copper falling, vol spiking.
-
-### Sector Breadth — Weight: 35%
+### Sector Breadth — ⅓ weight
 
 **What it measures**: The z-score (over 63 days) of 7 cyclical sector ETFs:
 - SMH — semiconductors (the AI/cycle barometer)
@@ -98,16 +114,12 @@ Equal-weighted z-score average.
 
 **Why these 7 sectors**: They're the most cyclically sensitive parts of the market. SLX (steel) was tested and excluded — too noisy. The remaining 7 cover the key economic verticals: tech, small caps, transport, healthcare innovation, housing, financials, consumer.
 
-**Economic interpretation**: This is the market's collective vote on whether the cycle is expanding. When XHB is rising, builders are seeing demand. When KBE is rising, banks are lending profitably. When IYT is rising, goods are moving. Their combined trend is a real-time poll of cyclical health.
-
-### Financial Conditions — Weight: 28%
+### Financial Conditions (FinCon) — ⅓ weight
 
 **What it measures**: Z-score (over 252 days) of three stress indicators:
 - VIX — equity volatility (fear gauge)
 - MOVE — bond market volatility
 - BAML High-Yield Spread — credit risk premium
-
-When these are elevated, financial markets are stressed. When they're compressed, markets are calm and risk-taking is rewarded.
 
 **Why it works**: Financial conditions are the "weather" in which assets trade. Tight conditions (high VIX, wide spreads) mean any negative news amplifies. Loose conditions mean even bad news gets shrugged off. This is structural — it changes slowly over months, not days.
 
@@ -115,151 +127,118 @@ When these are elevated, financial markets are stressed. When they're compressed
 
 **Why VIX + MOVE + HY (no IG)**: We tested adding IG (investment-grade) credit spreads. They didn't add signal — too correlated with HY but with less noise reduction. The three retained capture equity vol, bond vol, and credit risk — three independent dimensions of market stress.
 
-**Economic interpretation**: When this is below zero (loose conditions), the financial plumbing is healthy. Capital flows freely, hedging is cheap, risk premia are compressed. When it's above zero (tight conditions), the opposite — investors are paying up for protection, credit is harder, risk premia are elevated.
-
-### Why these three together?
+### Why these three together
 
 The three indicators are calibrated to different speeds (21d / 63d / 252d) and capture different forces:
 - **GII** = economic momentum (real economy + market signals)
 - **Breadth** = market participation
 - **FinCon** = financial stress
 
-When all three agree, you have high-conviction signals. When they disagree, the composite gets weaker — signaling uncertainty. The diversification across timescales means at least one indicator typically catches a regime change while the others confirm.
-
-The weights (37/35/28) come from each indicator's historical out-of-sample alpha on SPX. GII works across all assets. Breadth is strongest standalone. FinCon adds structural stability but is SPX-focused.
+When all three agree, MMI is high-conviction. When they disagree, MMI is weak — signaling uncertainty. The diversification across timescales means at least one indicator typically catches a regime change while the others confirm. Weight-sensitivity testing confirms equal weights produce positive alpha across SPX/IWM/BTC, and even drop-one tests preserve the edge — no single component is carrying the result.
 
 ---
 
-## The Macro Seasons Inputs (Growth Axis — Y)
+## The Economy Pillar — Macro Stress
 
-### Real Economy
+Macro Stress is a 0–1 score capturing how deep we are inside the stagflation pocket. Two underlying axes feed the AND gate.
 
-**Components**: CFNAI (Chicago Fed National Activity Index) + Industrial Production + Housing Starts + Building Permits.
+### Real Economy Score
 
-**Why these**:
-- **CFNAI** is a weighted composite of 85 monthly economic indicators (production, employment, sales, consumption). It's effectively a "super-PMI." When CFNAI is below -0.7, the economy is likely in or entering recession.
-- **Industrial Production** measures the physical output of factories, mines, utilities. It's the most direct measure of "real" economic activity.
-- **Housing Starts** are the leading indicator of construction activity. Housing is the most rate-sensitive sector and turns 6-12 months before the broader economy.
-- **Building Permits** lead housing starts by a few months — they're an even earlier signal.
+**What it measures**: Equal-weighted z-score (3-year window) of:
+- **Real PCE YoY** — consumer growth (~70% of GDP)
+- **Sahm Rule (inverted)** — forward-looking labor stress; the rule fires (suggesting recession) when 3-month-MA unemployment rises >0.5pp from its 12-month low
+- **Real Personal Income YoY** — household income trajectory in inflation-adjusted terms
+- **Atlanta Fed GDPNow** — real-time nowcast of current-quarter GDP growth
 
-We z-score year-over-year growth (not levels) so trends matter, not absolute size.
+**Why these four**: Each captures a different facet of real-economy health. PCE is the demand-side dominant component. Sahm flags labor-market deterioration before recessions. Real income is what consumers actually have to spend. GDPNow is the highest-frequency real-time GDP read available.
 
-**Economic interpretation**: This is the answer to "is the actual economy growing or shrinking?" When all four are positive, real activity is expanding. When housing rolls over (often the first signal), it's an early warning that the broader economy may follow.
+**Why z-scored**: Levels matter less than trend. A z-score over 3 years tells you whether each measure is above or below its recent norm — the signal is "is the economy weakening relative to where it's been?", not "is GDP positive?"
 
-### Labor
+### Inflation Direction
 
-**Components**: Initial jobless claims + continuing claims (both inverted, so positive z-score = strong labor market).
+**What it measures**: Δ Core CPI YoY over the last 6 months, in pp. Positive = inflation accelerating, negative = decelerating.
 
-**Why jobless claims**: This is the most reliable leading recession indicator in the US. Initial claims rise 3-6 months before recessions begin. Weekly data, no revisions, hard to manipulate. Continuing claims confirm whether layoffs are temporary or persistent.
+**Why direction, not level**: The framework is about *whether stress is building*, not whether inflation is high. Inflation can be high and falling (as in 2023), which is disinflationary and not stress-inducing. Inflation can be low and rising (as in early 2021), which is reflationary and warrants attention. The 6-month change captures the trajectory the Fed is actually responding to.
 
-**Why labor is in cycle, not Fed Watch**: Labor data IS economic data — it tells you whether companies are hiring or firing, which directly reflects economic activity. The Fed cares about it because of their dual mandate, but functionally it's a growth/cycle indicator.
+**Why Core CPI**: Excludes food and energy noise. It's the realized inflation the Fed actually targets.
 
-**Economic interpretation**: When claims are below average (positive z-score), companies are hiring, the economy is healthy. When claims start rising even modestly, it's an early warning. Recessions are essentially defined by widespread job losses.
+### The AND gate
 
----
+```
+Stress_intensity = min(1, max(0, −Real_Economy) × max(0, Inflation_Direction))
+```
 
-## The Macro Seasons Input (Inflation Axis — X)
+The two `max(0, …)` clips mean each factor only contributes when it's adversely positioned: weak growth (RE < 0) and rising inflation (Inf_Dir > 0). The product is non-zero only when *both* are adverse — that's the stagflation pocket. This is the one macro condition that overrides the buffer and pulls MRMI toward CASH.
 
-### Inflation (Core CPI)
-
-**What it measures**: Core CPI year-over-year % change (excludes food & energy), expressed as the deviation from the Fed's 2% target. This is the X-axis driver for the Macro Seasons chart.
-
-**Why Core CPI, not breakevens**: Breakevens reflect forward market expectations and are interpretation-dependent depending on level and cycle phase — not useful as a mechanical axis input. Core CPI is the realized inflation the Fed actually responds to.
-
-**Why it's separate from cycle**: Inflation is interpretation-dependent. High inflation can signal strong demand (good) or Fed tightening ahead (bad). The right interpretation depends on context. Adding it to a growth composite that mechanically averages would lose this nuance.
-
-**Economic interpretation**: Combined with the growth reading, Core CPI tells you which macro season you're in — Spring (growth up, below target), Summer (growth up, above target), Fall (growth down, above target), Winter (growth down, below target).
+A consequence of the AND gate: when the economy is healthy on either dimension, stress sits flat at 0 regardless of the other. The chart will look uneventful in benign regimes — that's by design. Stress firing is rare *and meaningful*.
 
 ---
 
-## Why This Framework Makes Sense As A Whole
+## Why the Combination Makes Sense
 
-### The hierarchy mirrors how decisions actually get made
+The two pillars are deliberately complementary:
 
-Portfolio managers don't ask "is GII at +0.7 with FinCon at -0.3?" They ask three questions:
+| | Market pillar (MMI) | Economy pillar (Macro Stress) |
+|--|----------------------|-------------------------------|
+| **Source** | Price / volatility data | Real-economy + inflation data |
+| **Speed** | Fast (intraday → days) | Slow (weeks → months) |
+| **Strength** | Catches turning points early | Grounded in fundamentals |
+| **Weakness** | False alarms (vol spikes, single-day moves) | Lags, noisy month-to-month |
+| **Role in MRMI** | Headline signal | Buffer / confirmation |
 
-1. **Should I be invested?** (Yes/No) — answered by the MRMI
-2. **What's the macro backdrop?** (Supportive/Hostile) — answered by the business cycle
-3. **What kind of regime is this?** (Spring/Summer/Fall/Winter) — answered by combining cycle + inflation
+Markets can flash false alarms — a single VIX spike, a credit-spread blow-out from a single name, a sector rotation that reverses in days. The economy can't fake it: if PCE is weakening *and* core CPI is accelerating over six months, that's a real condition. Requiring both pillars to agree before flipping to CASH is what cuts whipsaw risk while preserving alpha.
 
-The dashboard is structured to answer exactly these three questions in order.
+The historical evidence: backtested 2016–2026, the production framework (equal-weighted MMI + macro buffer) delivers **+9.6% / +12.9% / +2.1%** OOS annual alpha on SPX / Russell / BTC, with SPX max drawdown reduced from −18.9% to −4.8%. Walk-forward shows positive SPX and IWM alpha in 10 out of 10 years (2017–2026).
 
-### Different speeds capture different forces
-
-A common failure of macro frameworks is using indicators at the same speed. They become correlated and you lose diversification. We deliberately mixed:
-- **Fast** (21d ROC): GII catches momentum shifts
-- **Medium** (63d): Sector Breadth reflects rotation
-- **Slow** (252d): FinCon captures structural stress
-- **Slow** (252d, monthly data): Cycle indicators reflect fundamentals
-
-This means when one indicator is noisy, others are stable. False signals from one rarely propagate through all.
-
-### We test what we include
-
-Every indicator in the framework was backtested. Things we tested and rejected:
-- IG credit spread (no signal improvement over HY)
-- SLX steel ETF (too noisy, hurt breadth signal)
-- Baltic Dry Index as a standalone (negative alpha out-of-sample)
-- GII "both fast and slow positive" mode (too restrictive, only green 5% of time)
-- Combining business cycle with MRMI (cuts alpha by 60-75%)
-
-This means everything that's IN the framework earned its place by improving signal quality.
-
-### The framework is honest about what it doesn't do
-
-- It doesn't predict — it reacts to current conditions.
-- It doesn't tell you which assets to buy within a regime — it tells you risk-on or risk-off.
-- It doesn't size positions — that's a separate decision.
-- It doesn't work without same-day execution — short regimes (~17 days) require fast action.
-
-These limitations are documented and the backtest accounts for them.
-
-### The framework is robust, not optimized
-
-Walk-forward testing (rolling 1-year out-of-sample windows) shows positive SPX alpha every year from 2021-2026. Equal weights perform within 0.6% of the optimized weights. This means the result isn't a fluke of one specific parameter set — the underlying signal is real.
-
-### What it doesn't replace
-
-This framework helps with the **timing** decision (when to be invested). It doesn't replace:
-- **Stock/asset selection** (what to buy within risk-on)
-- **Position sizing** (how much to bet)
-- **Risk management** (stops, hedges)
-- **Investment thesis** (long-term views)
-
-It's one input — arguably the most important macro input — but only one input.
+**Honest caveat — MMI standalone vs MRMI in the current OOS.** Bare MMI (no buffer) posts higher OOS alpha than MRMI right now (+12.6% vs +9.6% on SPX). That's not a defect: the buffer is *designed* to keep us invested through false alarms, and the OOS window happens to contain no real stagflation event, so the buffer pays a tax for protection it wasn't asked to provide. The buffer's value shows up in 2018, 2020, and 2022 in walk-forward — those are the years it sidestepped major SPX drawdowns. The framework is built for full cycles, not calm periods.
 
 ---
 
-## Daily and Monthly Workflow
+## What the Framework Doesn't Do
 
-### Daily routine (60 seconds)
-
-1. Open dashboard. Read the banner.
-2. If regime is unchanged from yesterday → done.
-3. If regime changed → act today (same-day execution matters).
-4. Scan the scorecard for any indicators changing direction. 7d arrows that diverge from 30d trends signal turning points.
-5. Note the cycle backdrop and inflation direction for context.
-
-### Monthly review (10-15 minutes)
-
-1. Look at the 1-year time range on the composite chart. What were the major regime shifts?
-2. Review each scorecard category. Which indicators are trending up/down?
-3. Identify the macro quadrant: cycle direction × inflation direction.
-4. Use this for monthly reports: "We're in [cycle phase], with [inflation regime], MRMI is [green/red] driven primarily by [strongest indicator]."
-
-### When to re-optimize
-
-Parameters were last optimized April 2026 on 2016-2026 data. Consider re-optimizing annually or after a major regime change that the framework failed to capture. Robustness tests show low sensitivity to exact parameters, so minor drift is unlikely to break it.
+- **Predict** — it reacts to current conditions. The signal lags economic releases by their natural cadence.
+- **Asset selection** — it tells you risk-on or risk-off, not which assets to buy within a regime.
+- **Position sizing** — that's a separate decision.
+- **Sub-regime nuance** — it's binary (LONG / CASH). Magnitude tells you confidence, not allocation.
 
 ---
 
-## Limitations (Important)
+## The AI Briefs (Three-Tier, Weekly Tuesday)
 
-1. **Same-day execution required.** A 1-day delay erases most of the edge (tested).
-2. **Whipsaw risk.** ~15 regime flips per year, some are false signals lasting only a few days.
-3. **Backtest is 2016-2026.** No data before that. Cannot test against 2008 or dot-com crash.
-4. **Binary signal.** Tells you in/out, not how much. Doesn't size positions.
-5. **Not asset selection.** Risk-on/off across all assets, not within-asset rotation.
-6. **Macro can be wrong.** Markets sometimes diverge from macro for extended periods (e.g., AI-driven rally during tightening cycle 2023-2024).
+The framework includes three AI-generated briefs that translate the numbers into prose for the Tuesday research meeting:
+
+1. **Market pillar brief** — what the markets are signaling this week, focused on GII / Breadth / FinCon and their drivers.
+2. **Economy pillar brief** — what the economy is signaling this week, focused on the Real Economy Score and Inflation Direction trajectories.
+3. **Top brief** — synthesis. Reads both pillar briefs and writes the cross-pillar story that goes in the hero.
+
+Generation order is **always pillar briefs first, then top brief** — the synthesis builds on fresh foundations rather than re-deriving the underlying analysis. All three are generated via the `claude` CLI (Claude Code subscription), with WebSearch enabled for current macro context.
+
+Cadence is **lazy weekly Tuesday**: a brief is stale if its archive date is older than the most recent Tuesday on or before today. Past briefs are git-tracked under `briefs/YYYY-MM-DD/` and preserved forever — week-over-week evolution is auditable.
+
+---
+
+## Weekly Workflow
+
+**Tuesday morning, before the macro-research meeting:**
+
+1. Run `.venv/bin/python build.py` to refresh data.
+2. Run `.venv/bin/python build_v2.py` to render the dashboard. Brief generation triggers automatically if any are stale.
+3. Open `.cache/dashboard_v2.html`. Skim the hero (number, state, this week's read).
+4. Click into Step 1 to see how the regime has evolved over the chosen lookback.
+5. Read the market pillar brief (Step 2) and economy pillar brief (Step 3) before the meeting.
+6. In the meeting: project the dashboard, walk through the four steps in order. The briefs are pre-meeting prep, not slide content.
+
+**Mid-week reviews**: skip brief regeneration (it's gated to Tuesday). Just refresh the data if you want updated charts.
+
+**Annual review**: re-optimize MMI weights, reassess the buffer/threshold parameters, validate Real Economy Score components against any new data series.
+
+---
+
+## Limitations
+
+1. **Same-week execution required.** Briefs and signal cadence are weekly. Same-day execution within Tuesday's meeting is sufficient — but a Wednesday→Friday delay erodes meaningful edge.
+2. **No data before 2016.** Cannot test against 2008 or dot-com.
+3. **Binary signal.** Tells you in/out, not how much.
+4. **Macro can be wrong.** Markets sometimes diverge from macro for extended periods (e.g., AI-driven rally during tightening cycle 2023–2024). The framework will lag those.
 
 The framework is designed to win over many cycles with disciplined execution, not to be right every time.

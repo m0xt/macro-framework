@@ -9,7 +9,6 @@ __pycache__/
 .cache/raw_data.pkl
 .cache/dashboard.html
 .cache/brief.html
-.cache/brief_commentary.md
 .cache/daily_refresh.log
 .cache/snapshots/
 .cache/charts/

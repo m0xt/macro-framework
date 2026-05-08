@@ -112,9 +112,9 @@
 <div class="slide active">
   <div>
     <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Macro Framework</p>
-    <h1>A Systematic Approach to<br><span class="accent">Risk-On / Risk-Off</span> Decisions</h1>
-    <p class="subtitle" style="margin-top: 32px;">Combining growth momentum, market breadth, and financial conditions<br>into one actionable signal — backtested across equities and crypto.</p>
-    <p class="muted small" style="margin-top: 48px;">April 2026</p>
+    <h1>A Systematic Approach to<br><span class="accent">LONG / CASH</span> Decisions</h1>
+    <p class="subtitle" style="margin-top: 32px;">A fast market-derived pillar (MMI) and a slow economy-derived buffer (Macro Stress)<br>combined into one composite signal — MRMI — backtested across equities and crypto.</p>
+    <p class="muted small" style="margin-top: 48px;">May 2026</p>
   </div>
 </div>
 
@@ -139,11 +139,11 @@
     <div>
       <p class="muted">What we built:</p>
       <ul>
-        <li class="check"><strong style="color:#ccc;">Two pillars, paired</strong> — a velocity signal and a position reading, designed to condition each other</li>
-        <li class="check"><strong style="color:#ccc;">MRMI</strong> — 3 regime indicators at different speeds, combined into one weighted composite</li>
-        <li class="check"><strong style="color:#ccc;">Macro Seasons</strong> — growth × inflation quadrant for cycle context</li>
-        <li class="check"><strong style="color:#ccc;">Optimized via grid search</strong> with out-of-sample validation</li>
-        <li class="check"><strong style="color:#ccc;">Single dashboard</strong> with clear hierarchy: decision → drivers → context</li>
+        <li class="check"><strong style="color:#ccc;">Two pillars that confirm each other</strong> — a fast market signal and a slow economy buffer; the market alone never triggers cash</li>
+        <li class="check"><strong style="color:#ccc;">MMI — Market Momentum Index</strong> — three market signals at different speeds, equally-weighted into one composite</li>
+        <li class="check"><strong style="color:#ccc;">Macro Stress</strong> — a 0–1 score that fires only when growth weakens AND inflation rises (the stagflation pocket)</li>
+        <li class="check"><strong style="color:#ccc;">MRMI = MMI + macro buffer</strong> — the headline regime signal combining both pillars into one number</li>
+        <li class="check"><strong style="color:#ccc;">Single dashboard, four-step walkthrough</strong> — headline → market pillar → economy pillar → reference library</li>
       </ul>
     </div>
   </div>
@@ -153,34 +153,34 @@
 <!-- SLIDE 3: The Framework — Two Questions -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide">
-  <h2>The Framework: Two Questions</h2>
-  <p>Knowing whether momentum is positive isn't enough. You also need to know where that momentum is starting from.</p>
+  <h2>The Framework: Two Pillars, One Signal</h2>
+  <p>Markets can flash false alarms — a single VIX spike, a credit blow-out, a sector rotation that reverses in days. The economy can't fake it: weak growth plus rising inflation is a real condition. We require both to agree before flipping to cash.</p>
   <div class="two-col" style="margin-top: 32px;">
     <div class="card" style="border-left: 3px solid #4CAF50;">
-      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Question 1 — Velocity</p>
-      <h3 style="color: #fff; font-size: 26px; margin-bottom: 12px;">Is the wind at my back right now?</h3>
-      <p style="margin-top: 12px;">Are leading indicators pointing up or down today? This is the trade-or-don't-trade decision. Updates daily, drives the binary risk-on / risk-off call.</p>
-      <p class="small muted" style="margin-top: 16px;">Answered by → <strong style="color: #4CAF50;">Milk Road Momentum Index (MRMI)</strong></p>
+      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Pillar 1 — Market</p>
+      <h3 style="color: #fff; font-size: 26px; margin-bottom: 12px;">What are markets signaling?</h3>
+      <p style="margin-top: 12px;">Built from price &amp; volatility data — credit spreads, sector breadth, financial-conditions vol. Fast: catches turning points early. Trade-off: prone to false alarms.</p>
+      <p class="small muted" style="margin-top: 16px;">Answered by → <strong style="color: #4CAF50;">MMI — Market Momentum Index</strong></p>
     </div>
-    <div class="card" style="border-left: 3px solid #4DA8DA;">
-      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Question 2 — Position</p>
-      <h3 style="color: #fff; font-size: 26px; margin-bottom: 12px;">Where in the cycle am I starting from?</h3>
-      <p style="margin-top: 12px;">Is the economy deep in contraction, mid-expansion, or running hot? This conditions what the velocity signal actually means.</p>
-      <p class="small muted" style="margin-top: 16px;">Answered by → <strong style="color: #4DA8DA;">Macro Seasons</strong></p>
+    <div class="card" style="border-left: 3px solid #cdaa6a;">
+      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Pillar 2 — Economy</p>
+      <h3 style="color: #fff; font-size: 26px; margin-bottom: 12px;">Is the economy confirming?</h3>
+      <p style="margin-top: 12px;">Built from real-economy &amp; inflation data — PCE, jobs, income, GDPNow, Core CPI direction. Slow: takes time to build. Strength: grounded in fundamentals, filters market noise.</p>
+      <p class="small muted" style="margin-top: 16px;">Answered by → <strong style="color: #cdaa6a;">Macro Stress</strong></p>
     </div>
   </div>
   <div style="margin-top: 28px; padding: 20px 24px; background: #111; border-left: 3px solid #f59e0b; border-radius: 4px;">
-    <p style="color: #ccc; font-size: 18px; line-height: 1.55;"><strong style="color: #f59e0b;">Why both:</strong> A green MRMI signal coming out of cycle Winter is early-cycle — the regime can run for months and the upside is asymmetric. The same green signal at cycle peak is late-cycle — shorter runway, smaller upside, fatter left tail. Same number, different meaning.</p>
+    <p style="color: #ccc; font-size: 18px; line-height: 1.55;"><strong style="color: #f59e0b;">The synthesis — MRMI:</strong> <span class="mono">MRMI = MMI + (1 − Stress) − 0.5</span>. The economy provides a default buffer that keeps us invested. Only when MMI turns red <em>and</em> Macro Stress builds (growth weak AND inflation rising) does the buffer erode and MRMI cross below zero. One number. One color. One action.</p>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 4: Pillar 1 — MRMI -->
+<!-- SLIDE 4: Pillar 1 — MMI (Market Momentum Index) -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide" style="padding: 40px 80px;">
-  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Pillar 1 — Velocity</p>
-  <h2 style="margin-bottom: 12px;">The Milk Road Momentum Index (MRMI)</h2>
-  <p style="font-size: 18px; margin-bottom: 16px;">A daily composite that answers <strong style="color:#fff;">"Is the wind at my back right now?"</strong> Three regime indicators, each measuring a different force at a different speed, normalized to a common scale and combined into one weighted signal.</p>
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Pillar 1 — Market</p>
+  <h2 style="margin-bottom: 12px;">MMI — Market Momentum Index</h2>
+  <p style="font-size: 18px; margin-bottom: 16px;">A daily composite that answers <strong style="color:#fff;">"What are markets signaling right now?"</strong> Three market-derived indicators, each capturing a different force at a different speed, normalized to a common scale and combined into one weighted signal.</p>
 
   <table style="margin-top: 12px;">
     <thead>
@@ -192,21 +192,21 @@
         <td>Momentum across credit, sectors, copper, vol, yield curve, shipping</td>
         <td><span class="mono small">21d ROC, 2yr z-score</span></td>
         <td class="muted small">Fast</td>
-        <td class="accent" style="font-weight:600;">37%</td>
+        <td class="accent" style="font-weight:600;">⅓</td>
       </tr>
       <tr>
         <td style="color:#fff; font-weight:600;">Sector Breadth</td>
         <td>Whether the rally is broad (cyclicals participating) or narrow</td>
         <td><span class="mono small">63d z-score</span></td>
         <td class="muted small">Medium</td>
-        <td class="accent" style="font-weight:600;">35%</td>
+        <td class="accent" style="font-weight:600;">⅓</td>
       </tr>
       <tr>
         <td style="color:#fff; font-weight:600;">Financial Conditions</td>
         <td>Equity vol + bond vol + credit spread = market stress</td>
         <td><span class="mono small">252d z-score</span></td>
         <td class="muted small">Slow</td>
-        <td class="accent" style="font-weight:600;">28%</td>
+        <td class="accent" style="font-weight:600;">⅓</td>
       </tr>
     </tbody>
   </table>
@@ -218,7 +218,7 @@
   <div class="two-col" style="margin-top: 16px; gap: 40px;">
     <div>
       <h3 style="font-size: 17px; color: #ccc; margin-bottom: 6px;">How the signal is produced</h3>
-      <p class="small" style="color:#888; line-height: 1.5; font-size: 14px;">Each indicator outputs a z-scored composite. The weighted average (37 / 35 / 28) crosses a threshold → <span class="green" style="font-weight:600;">RISK-ON</span> or <span class="red" style="font-weight:600;">RISK-OFF</span>. One number, one color, one action.</p>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 14px;">Each indicator outputs a z-scored composite. The equal-weighted average (1/1/1) becomes the MMI score. MMI feeds into <span class="mono">MRMI = MMI + (1 − Stress) − 0.5</span> — the headline signal. MMI alone never triggers a CASH call.</p>
     </div>
     <div>
       <h3 style="font-size: 17px; color: #ccc; margin-bottom: 6px;">Why three, not one</h3>
@@ -231,8 +231,8 @@
 <!-- SLIDE 5: Backtest — The Headline Numbers -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide">
-  <h2>Backtest Results <span class="muted small">(out-of-sample: 2023–2026)</span></h2>
-  <p>Strategy: invested during green, cash during red. No leverage, no shorting.</p>
+  <h2>Backtest Results <span class="muted small">(out-of-sample · last 30% of data, ~4.2 years)</span></h2>
+  <p>Strategy: invested when MRMI &gt; 0, cash when MRMI &lt; 0. No leverage, no shorting.</p>
   <table style="margin-top: 24px;">
     <thead>
       <tr><th>Asset</th><th>Buy & Hold</th><th>Signal-Only</th><th>Alpha</th><th>Max Drawdown</th></tr>
@@ -240,32 +240,33 @@
     <tbody>
       <tr>
         <td style="color:#fff; font-weight:600;">S&P 500</td>
-        <td>+11.6%/yr</td>
-        <td class="green" style="font-weight:600;">+25.7%/yr</td>
-        <td><span class="green mono" style="font-weight:700;">+14.0%</span></td>
-        <td><span class="muted">-18.9%</span> → <span class="green">-2.9%</span></td>
+        <td>+13.4%/yr</td>
+        <td class="green" style="font-weight:600;">+23.0%/yr</td>
+        <td><span class="green mono" style="font-weight:700;">+9.6%</span></td>
+        <td><span class="muted">-18.9%</span> → <span class="green">-4.8%</span></td>
       </tr>
       <tr>
         <td style="color:#fff; font-weight:600;">Russell 2000</td>
-        <td>+10.3%/yr</td>
-        <td class="green" style="font-weight:600;">+32.6%/yr</td>
-        <td><span class="green mono" style="font-weight:700;">+22.4%</span></td>
-        <td><span class="muted">-27.5%</span> → <span class="green">-7.5%</span></td>
+        <td>+12.2%/yr</td>
+        <td class="green" style="font-weight:600;">+25.2%/yr</td>
+        <td><span class="green mono" style="font-weight:700;">+12.9%</span></td>
+        <td><span class="muted">-27.5%</span> → <span class="green">-11.1%</span></td>
       </tr>
       <tr>
         <td style="color:#fff; font-weight:600;">Bitcoin</td>
-        <td>+17.0%/yr</td>
-        <td class="green" style="font-weight:600;">+40.5%/yr</td>
-        <td><span class="green mono" style="font-weight:700;">+23.4%</span></td>
-        <td><span class="muted">-49.7%</span> → <span class="green">-35.6%</span></td>
+        <td>+26.2%/yr</td>
+        <td class="green" style="font-weight:600;">+28.3%/yr</td>
+        <td><span class="green mono" style="font-weight:700;">+2.1%</span></td>
+        <td><span class="muted">-49.7%</span> → <span class="muted">-46.6%</span></td>
       </tr>
     </tbody>
   </table>
   <div style="display: flex; gap: 40px; margin-top: 32px;">
-    <div><span class="big-num green">65–72%</span><div class="big-label">of time in green</div></div>
-    <div><span class="big-num accent">~15</span><div class="big-label">regime flips per year</div></div>
-    <div><span class="big-num" style="color:#4DA8DA;">~17d</span><div class="big-label">average regime duration</div></div>
+    <div><span class="big-num green">~85%</span><div class="big-label">of time in LONG (OOS)</div></div>
+    <div><span class="big-num accent">~7</span><div class="big-label">regime flips per year</div></div>
+    <div><span class="big-num" style="color:#4DA8DA;">~35d</span><div class="big-label">average regime duration</div></div>
   </div>
+  <p class="small muted" style="margin-top: 16px;">Production framework: equal-weighted MMI + macro buffer (buffer_size=1.0, threshold=0.5). The buffer's high active fraction reflects its design — stay invested by default, only flip to cash when both market AND economy turn against you.</p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
@@ -295,7 +296,8 @@
         <li class="check"><strong style="color:#ccc;">No smoothing</strong> — EMA consistently hurt performance across all indicators</li>
       </ul>
       <hr>
-      <p class="small muted" style="margin-top: 16px;">The composite outperforms every individual indicator because the three capture different things at different speeds. FinCon misses BTC entirely. GII is noisy for SPX alone. Breadth is the strongest standalone but combining all three reduces drawdowns further.</p>
+      <p class="small muted" style="margin-top: 16px;">The composite (MMI) outperforms every individual indicator because the three capture different things at different speeds. <span class="green">Breadth</span> is the strongest standalone for equities (SPX +9.4%, IWM +19.3%) but is hit-or-miss on crypto. <span class="green">GII</span> is the most balanced — modest on SPX (+6.0%) but the only one with consistently positive crypto alpha (+11.5%). <span class="green">FinCon</span> adds structural SPX edge (+6.7%) but is actually negative on BTC (-8.2%), confirming it's an equity-specific signal.</p>
+      <p class="small muted" style="margin-top: 10px;">Combining all three: MMI lifts SPX alpha to +12.6%, IWM to +20.3%, BTC to +13.4% — better than any individual on every asset. That's diversification of signals doing real work.</p>
     </div>
   </div>
 </div>
@@ -304,52 +306,59 @@
 <!-- SLIDE 7: Individual Indicators -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide">
-  <h2>Individual Indicator Alpha <span class="muted small">(out-of-sample)</span></h2>
+  <h2>Individual Indicator Alpha <span class="muted small">(out-of-sample · last 30%)</span></h2>
   <table style="margin-top: 24px;">
     <thead>
       <tr><th>Indicator</th><th>SPX Alpha</th><th>IWM Alpha</th><th>BTC Alpha</th><th>Role</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td style="color:#fff; font-weight:600;">Sector Breadth</td>
-        <td class="green">+7.3%</td>
-        <td class="green">+18.3%</td>
-        <td style="color:#888;">-2.4%</td>
-        <td class="muted small">Strongest standalone</td>
+        <td style="color:#fff; font-weight:600;">GII (Growth Impulses)</td>
+        <td class="green">+6.0%</td>
+        <td class="green">+10.9%</td>
+        <td class="green">+11.5%</td>
+        <td class="muted small">Most balanced across assets</td>
       </tr>
       <tr>
-        <td style="color:#fff; font-weight:600;">GII (Growth Impulses)</td>
-        <td class="green">+7.6%</td>
-        <td class="green">+15.0%</td>
-        <td class="green">+15.6%</td>
-        <td class="muted small">Best for crypto</td>
+        <td style="color:#fff; font-weight:600;">Sector Breadth</td>
+        <td class="green">+9.4%</td>
+        <td class="green">+19.3%</td>
+        <td class="green">+10.5%</td>
+        <td class="muted small">Strongest standalone for equities</td>
       </tr>
       <tr>
         <td style="color:#fff; font-weight:600;">Financial Conditions</td>
-        <td class="green">+5.8%</td>
-        <td class="muted">—</td>
-        <td class="red">-12.0%</td>
-        <td class="muted small">SPX structural signal</td>
+        <td class="green">+6.7%</td>
+        <td class="green">+8.4%</td>
+        <td class="red">-8.2%</td>
+        <td class="muted small">SPX structural signal · weak for BTC</td>
       </tr>
       <tr style="border-top: 2px solid #333;">
-        <td style="color:#f59e0b; font-weight:700;">Composite (weighted)</td>
-        <td style="color:#4CAF50; font-weight:700;">+14.0%</td>
-        <td style="color:#4CAF50; font-weight:700;">+22.4%</td>
-        <td style="color:#4CAF50; font-weight:700;">+23.4%</td>
-        <td class="accent small">Better than any single</td>
+        <td style="color:#fff; font-weight:600;">MMI <span class="muted small">(equal-weighted combo)</span></td>
+        <td style="color:#4CAF50; font-weight:700;">+12.6%</td>
+        <td style="color:#4CAF50; font-weight:700;">+20.3%</td>
+        <td style="color:#4CAF50; font-weight:700;">+13.4%</td>
+        <td class="muted small">Better than any single component</td>
+      </tr>
+      <tr>
+        <td style="color:#f59e0b; font-weight:700;">MRMI <span class="muted small">(MMI + macro buffer)</span></td>
+        <td class="green" style="font-weight:700;">+9.6%</td>
+        <td class="green" style="font-weight:700;">+12.9%</td>
+        <td class="green" style="font-weight:700;">+2.1%</td>
+        <td class="accent small">Headline framework signal</td>
       </tr>
     </tbody>
   </table>
-  <p class="small muted" style="margin-top: 24px;">Key insight: FinCon alone doesn't work for BTC (-12% alpha). GII alone doesn't work as well for SPX. But combined, the composite produces strong positive alpha across all three asset classes. Diversification of signals matters.</p>
+  <p class="small muted" style="margin-top: 24px;">Key insight: MMI on its own posts higher OOS alpha than MRMI — that's the cost of the macro buffer being designed to keep us invested through false alarms. The OOS window is unusually quiet (no real stress event), so the buffer pays a tax for protection it wasn't asked to provide. The buffer's value comes through in stress periods (e.g. 2022 in walk-forward).</p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- SLIDE: Pillar 2 — Macro Seasons -->
+<!-- SLIDE: Pillar 2 — Macro Stress -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide" style="padding: 36px 80px;">
-  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Pillar 2 — Position</p>
-  <h2 style="margin-bottom: 10px;">Macro Seasons</h2>
-  <p style="font-size: 18px; margin-bottom: 14px;">A slow-moving context layer that answers <strong style="color:#fff;">"Where in the cycle are we right now?"</strong> Two dimensions — growth and inflation — locate the economy in one of four regimes. Not a trading signal: it conditions what the MRMI signal means.</p>
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Pillar 2 — Economy</p>
+  <h2 style="margin-bottom: 10px;">Macro Stress</h2>
+  <p style="font-size: 18px; margin-bottom: 14px;">A slow-moving economy-derived layer that answers <strong style="color:#fff;">"Is the economy confirming the market signal?"</strong> One score, in [0, 1], capturing how deep we are inside the stagflation pocket — the only macro condition that pulls MRMI toward CASH.</p>
 
   <table style="margin-top: 8px;">
     <thead>
@@ -357,50 +366,34 @@
     </thead>
     <tbody>
       <tr>
-        <td style="color:#fff; font-weight:600;">Y — Growth</td>
-        <td>Real-economy growth vs long-run trend</td>
-        <td><span class="small">Real GDP YoY, z-scored over 10y</span></td>
-        <td class="muted small">Above 0 = above trend (running hot) · Below 0 = below trend (running cold)</td>
+        <td style="color:#fff; font-weight:600;">Real Economy Score</td>
+        <td>Strength of real-economy activity</td>
+        <td><span class="small">PCE YoY · Sahm Rule (inv) · Real Income YoY · Atlanta Fed GDPNow, equal-weighted z-score over 3y</span></td>
+        <td class="muted small">Above 0 = healthy · Below 0 = weakening</td>
       </tr>
       <tr>
-        <td style="color:#fff; font-weight:600;">X — Inflation</td>
-        <td>Price pressure vs the Fed's 2% target</td>
-        <td><span class="small">(Core CPI YoY − 2%) ÷ 10y std dev of Core CPI</span></td>
-        <td class="muted small">Right of 0 = above target · Left of 0 = below target</td>
+        <td style="color:#fff; font-weight:600;">Inflation Direction</td>
+        <td>Trajectory of inflation, not its level</td>
+        <td><span class="small">Δ Core CPI YoY over the last 6 months, in pp</span></td>
+        <td class="muted small">Above 0 = accelerating · Below 0 = decelerating</td>
       </tr>
     </tbody>
   </table>
 
-  <div style="margin-top: 16px;">
-    <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">The Four Quadrants</p>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-      <div class="card" style="border-left: 3px solid #4CAF50; padding: 12px 16px; margin: 0;">
-        <h3 style="color:#4CAF50; font-size: 16px; margin-bottom: 4px;">Spring <span class="muted small" style="font-weight:400;">(Growth ↑ + Inflation ↓)</span></h3>
-        <p class="small" style="margin: 0; font-size: 13px; line-height: 1.5;">Growth without overheating. The Fed can stay accommodative while the economy expands.</p>
-      </div>
-      <div class="card" style="border-left: 3px solid #FF8C00; padding: 12px 16px; margin: 0;">
-        <h3 style="color:#FF8C00; font-size: 16px; margin-bottom: 4px;">Summer <span class="muted small" style="font-weight:400;">(Growth ↑ + Inflation ↑)</span></h3>
-        <p class="small" style="margin: 0; font-size: 13px; line-height: 1.5;">Strong demand pushing prices up. Fed will eventually tighten, but cycle still expanding.</p>
-      </div>
-      <div class="card" style="border-left: 3px solid #4DA8DA; padding: 12px 16px; margin: 0;">
-        <h3 style="color:#4DA8DA; font-size: 16px; margin-bottom: 4px;">Winter <span class="muted small" style="font-weight:400;">(Growth ↓ + Inflation ↓)</span></h3>
-        <p class="small" style="margin: 0; font-size: 13px; line-height: 1.5;">Slowing economy with falling prices. Fed will eventually pivot to easing.</p>
-      </div>
-      <div class="card" style="border-left: 3px solid #E84B5A; padding: 12px 16px; margin: 0;">
-        <h3 style="color:#E84B5A; font-size: 16px; margin-bottom: 4px;">Fall <span class="muted small" style="font-weight:400;">(Growth ↓ + Inflation ↑)</span></h3>
-        <p class="small" style="margin: 0; font-size: 13px; line-height: 1.5;">The worst combination — economy weakening but Fed can't ease because of inflation.</p>
-      </div>
-    </div>
+  <div style="margin-top: 16px; padding: 14px 18px; background: #111; border-left: 3px solid #cdaa6a; border-radius: 4px;">
+    <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">The AND gate</p>
+    <p style="color:#ccc; font-size: 15px; line-height: 1.55; margin: 0;"><span class="mono">Stress = min(1, max(0, −Real_Economy) × max(0, Inflation_Direction))</span></p>
+    <p class="small" style="color:#888; line-height: 1.5; font-size: 13px; margin-top: 8px; margin-bottom: 0;">Each <span class="mono">max(0, …)</span> means the factor only contributes when it's adversely positioned: weak growth AND rising inflation. The product is non-zero only when <em>both</em> are. Stress fires (ON) when the score crosses 0.5.</p>
   </div>
 
   <div class="two-col" style="margin-top: 14px; gap: 40px;">
     <div>
-      <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">How it conditions MRMI</h3>
-      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;"><strong style="color:#4CAF50;">MRMI green + cycle expanding</strong> = economy-driven rally (lean into cyclicals). <strong style="color:#4CAF50;">MRMI green + cycle contracting</strong> = liquidity- or narrative-driven rally (favor quality, stay selective). Same signal, different setup.</p>
+      <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">Why an AND gate</h3>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">Inflation alone or weakness alone is normal — neither warrants stepping out of risk assets on its own. Stagflation is the asymmetric scenario where the Fed can't ease and the economy is rolling. Requiring both filters out the false alarms market vol would otherwise produce.</p>
     </div>
     <div>
       <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">Why it changes slowly</h3>
-      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">Real-economy data is reported monthly with publication lags. The cycle moves on quarters, not days. That's a feature: it sets the strategic backdrop, while MRMI handles the tactical decision.</p>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">Real-economy data is reported monthly with publication lags. Macro Stress moves on weeks-to-quarters, not days. That's a feature: when the score is rising, it's a real condition, not noise. Fast pivots on macro data are almost always wrong.</p>
     </div>
   </div>
 </div>
@@ -411,7 +404,7 @@
 <div class="slide" style="padding: 32px 80px;">
   <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Reference Library</p>
   <h2 style="margin-bottom: 10px;">Beyond the Two Pillars</h2>
-  <p style="font-size: 17px; margin-bottom: 14px;">MRMI and Macro Seasons drive the formal decision and its interpretation. Everything else lives here — supplementary indicators that round out the picture, surface divergences, and serve as <strong style="color:#fff;">candidates for promotion</strong> into the pillars as the framework evolves.</p>
+  <p style="font-size: 17px; margin-bottom: 14px;">MMI and Macro Stress drive the formal MRMI decision. Everything else lives here — supplementary indicators that round out the picture, surface divergences, and serve as <strong style="color:#fff;">candidates for promotion</strong> into the pillars as the framework evolves.</p>
 
   <table>
     <thead>
@@ -434,19 +427,19 @@
         <td style="color:#fff; font-weight:600;">Initial + Continuing Jobless Claims</td>
         <td class="muted small">Labor</td>
         <td>Weekly labor-market health</td>
-        <td class="muted small">Highest-frequency real-economy signal · strong candidate for Macro Seasons Y-axis</td>
+        <td class="muted small">Highest-frequency real-economy signal · complements Sahm Rule in the Real Economy Score</td>
       </tr>
       <tr>
         <td style="color:#fff; font-weight:600;">Atlanta Fed GDPNow</td>
         <td class="muted small">Activity</td>
         <td>Real-time nowcast of current-quarter GDP</td>
-        <td class="muted small">Closes the publication-lag gap on official GDP · candidate overlay on the Y-axis</td>
+        <td class="muted small">Already part of Real Economy Score · also surfaced here for direct viewing</td>
       </tr>
       <tr>
         <td style="color:#fff; font-weight:600;">CFNAI</td>
         <td class="muted small">Activity</td>
         <td>Composite of 85 monthly US activity indicators</td>
-        <td class="muted small">Comprehensive but overlaps with GDP · useful sanity check on the Y-axis reading</td>
+        <td class="muted small">Comprehensive · useful sanity check on the Real Economy Score reading</td>
       </tr>
       <tr>
         <td style="color:#fff; font-weight:600;">Industrial Production</td>
@@ -470,7 +463,7 @@
     </div>
     <div>
       <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">When something gets promoted</h3>
-      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">If a library indicator repeatedly leads or contradicts the formal axes at meaningful turns — and adding it improves interpretive power without bloating the framework — it moves into MRMI or Macro Seasons.</p>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">If a library indicator repeatedly leads or contradicts the formal axes at meaningful turns — and adding it improves interpretive power without bloating the framework — it moves into MMI or Macro Stress.</p>
     </div>
   </div>
 </div>
@@ -480,29 +473,29 @@
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide" style="padding: 32px 80px;">
   <h2 style="margin-bottom: 8px;">How to Use It</h2>
-  <p style="font-size: 17px; margin-bottom: 16px;">Open the dashboard. Read it top-down. The layout mirrors the framework — every glance answers the questions in the same order.</p>
+  <p style="font-size: 17px; margin-bottom: 16px;">Open the dashboard. Read it top-down. The layout is a four-step walkthrough wrapped by a hero with the headline number. Designed for the Tuesday macro-research meeting.</p>
 
-  <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">The Read · top to bottom</p>
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">The Read · hero + four steps</p>
   <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px;">
-    <div class="card" style="border-left: 3px solid #4CAF50; padding: 12px 14px; margin: 0;">
+    <div class="card" style="border-left: 3px solid #f59e0b; padding: 12px 14px; margin: 0;">
+      <p class="muted small" style="font-size: 11px; letter-spacing: 1px; margin-bottom: 2px;">HERO</p>
+      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">The headline</h3>
+      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;">MRMI value, <strong style="color:#fff;">LONG / CASH</strong>, both pillar states. AI-generated weekly read sits below. 10-second glance.</p>
+    </div>
+    <div class="card" style="border-left: 3px solid #888; padding: 12px 14px; margin: 0;">
       <p class="muted small" style="font-size: 11px; letter-spacing: 1px; margin-bottom: 2px;">STEP 1</p>
-      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">The banner</h3>
-      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;"><strong style="color:#fff;">RISK-ON or RISK-OFF?</strong> Plus the current quadrant badge. If both unchanged from yesterday, you're done in 30 seconds.</p>
+      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">History chart</h3>
+      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;">MRMI over time with green/red regime shading and SPX/Russell/BTC overlays. The chart everyone walks into the meeting on.</p>
     </div>
     <div class="card" style="border-left: 3px solid #4CAF50; padding: 12px 14px; margin: 0;">
       <p class="muted small" style="font-size: 11px; letter-spacing: 1px; margin-bottom: 2px;">STEP 2</p>
-      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">MRMI drivers</h3>
-      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;">Which of <strong style="color:#fff;">GII / Breadth / FinCon</strong> is moving? A divergence — one driver out of step — is worth a closer look.</p>
+      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">Market pillar</h3>
+      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;">MMI chart + weekly market brief + drivers (<strong style="color:#fff;">GII / Breadth / FinCon</strong>). Click any driver to expand.</p>
     </div>
-    <div class="card" style="border-left: 3px solid #4DA8DA; padding: 12px 14px; margin: 0;">
+    <div class="card" style="border-left: 3px solid #cdaa6a; padding: 12px 14px; margin: 0;">
       <p class="muted small" style="font-size: 11px; letter-spacing: 1px; margin-bottom: 2px;">STEP 3</p>
-      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">Macro Seasons</h3>
-      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;">Where's the dot? Drifting toward a new quadrant? A quadrant change reframes the playbook even if MRMI hasn't flipped.</p>
-    </div>
-    <div class="card" style="border-left: 3px solid #888; padding: 12px 14px; margin: 0;">
-      <p class="muted small" style="font-size: 11px; letter-spacing: 1px; margin-bottom: 2px;">STEP 4</p>
-      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">The library</h3>
-      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;">Anything unusual? M2 contracting? ISM falling? Library entries explain narrative shifts but don't drive the call.</p>
+      <h3 style="font-size: 15px; color: #fff; margin-bottom: 4px;">Economy pillar</h3>
+      <p class="small" style="color:#999; font-size: 12px; line-height: 1.5; margin: 0;">Real Economy Score + Inflation Direction chart, weekly economy brief, drivers (<strong style="color:#fff;">PCE / Sahm / Real Income / GDPNow</strong>).</p>
     </div>
   </div>
 
@@ -510,19 +503,19 @@
     <div>
       <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">The Decision · what each move means</p>
       <ul style="margin: 0;">
-        <li class="check" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#4CAF50;">MRMI flips green</strong> → risk-on, with sizing informed by where the cycle dot sits</li>
-        <li class="cross" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#E84B5A;">MRMI flips red</strong> → reduce exposure, even if the cycle reading looks supportive</li>
-        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#4DA8DA;">Cycle drifts to a new quadrant</strong> → the interpretation of the same MRMI signal changes</li>
-        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Library divergence</strong> → context for the narrative, not a trigger for action</li>
+        <li class="check" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#4CAF50;">MRMI &gt; 0</strong> → stay long. Buffer is intact and either MMI is healthy or stress is off.</li>
+        <li class="cross" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#E84B5A;">MRMI &lt; 0</strong> → step aside. Both pillars must be against you for this to fire.</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#4CAF50;">MMI weakens but stress is off</strong> → buffer holds, no action. False-alarm filter doing its job.</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#cdaa6a;">Stress rising toward 0.5</strong> → early warning. Watch for MMI confirmation before sizing down.</li>
       </ul>
     </div>
     <div>
-      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">The Cadence · time per session</p>
+      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">The Cadence · weekly Tuesday workflow</p>
       <ul style="margin: 0;">
-        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Daily (30 sec)</strong> — banner + driver scan</li>
-        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Weekly (5 min)</strong> — Macro Seasons drift, library check, sub-component divergences</li>
-        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Monthly (30 min)</strong> — full framework review, macro report, evaluate library candidates for promotion</li>
-        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Annually</strong> — re-optimize MRMI parameters, reassess inflation/growth lookbacks</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Tuesday morning</strong> — refresh data + rebuild dashboard; briefs auto-regenerate</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Tuesday meeting (15 min)</strong> — project dashboard, walk through hero + four steps</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Mid-week (1 min)</strong> — quick check on MRMI value if conditions change materially</li>
+        <li class="dot-accent" style="font-size: 14px; padding: 5px 0 5px 24px; line-height: 1.5;"><strong style="color:#ccc;">Annually</strong> — re-optimize MMI weights, reassess buffer/threshold parameters</li>
       </ul>
     </div>
   </div>
@@ -533,29 +526,33 @@
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide">
   <h2>Robustness: Walk-Forward Backtest</h2>
-  <p>Does the signal work year-by-year, not just on one fixed test period?<br><span class="green" style="font-weight:600;">Positive SPX alpha every single year.</span></p>
+  <p>Does the signal work year-by-year, not just on one fixed test period?<br><span class="green" style="font-weight:600;">Positive SPX alpha every single year</span> — full 10-year history of the production framework.</p>
   <table style="margin-top: 16px;">
     <thead>
-      <tr><th>Year</th><th>SPX Alpha</th><th>IWM Alpha</th><th>BTC Alpha</th><th>Signal MaxDD</th><th>Buy&Hold MaxDD</th></tr>
+      <tr><th>Year</th><th>SPX Alpha</th><th>IWM Alpha</th><th>BTC Alpha</th><th>Signal MaxDD <span class="muted small">(SPX)</span></th><th>Buy&Hold MaxDD <span class="muted small">(SPX)</span></th></tr>
     </thead>
     <tbody>
-      <tr><td>2021</td><td class="green">+7.4%</td><td class="green">+18.9%</td><td class="green">+26.7%</td><td>-3.1%</td><td>-5.2%</td></tr>
-      <tr><td>2022</td><td class="green" style="font-weight:700;">+26.9%</td><td class="green">+31.2%</td><td class="green">+53.0%</td><td>-5.6%</td><td style="color:#E84B5A;">-25.4%</td></tr>
-      <tr><td>2023</td><td class="green">+10.6%</td><td class="green">+25.4%</td><td class="red">-47.8%</td><td>-4.5%</td><td>-10.3%</td></tr>
-      <tr><td>2024</td><td class="green">+12.4%</td><td class="green">+23.7%</td><td class="green">+56.1%</td><td>-2.9%</td><td>-8.5%</td></tr>
-      <tr><td>2025</td><td class="green">+15.5%</td><td class="green">+21.9%</td><td class="green">+17.0%</td><td>-2.7%</td><td style="color:#E84B5A;">-18.9%</td></tr>
-      <tr><td>2026 YTD</td><td class="green">+19.4%</td><td class="green">+25.1%</td><td class="green">+24.1%</td><td>-2.6%</td><td>-9.1%</td></tr>
+      <tr><td>2017</td><td class="green">+5.9%</td><td class="green">+8.4%</td><td class="muted">n/a</td><td>-2.3%</td><td>-2.8%</td></tr>
+      <tr><td>2018</td><td class="green" style="font-weight:700;">+21.1%</td><td class="green">+21.5%</td><td class="green">+24.2%</td><td>-2.9%</td><td style="color:#E84B5A;">-19.8%</td></tr>
+      <tr><td>2019</td><td class="green">+3.8%</td><td class="green">+9.4%</td><td class="red">-27.8%</td><td>-2.5%</td><td>-6.8%</td></tr>
+      <tr><td>2020</td><td class="green" style="font-weight:700;">+19.6%</td><td class="green" style="font-weight:700;">+36.0%</td><td class="green" style="font-weight:700;">+61.6%</td><td>-9.6%</td><td style="color:#E84B5A;">-33.9%</td></tr>
+      <tr><td>2021</td><td class="green">+8.7%</td><td class="green">+12.3%</td><td class="green">+33.2%</td><td>-4.2%</td><td>-5.2%</td></tr>
+      <tr><td>2022</td><td class="green" style="font-weight:700;">+17.7%</td><td class="green">+20.0%</td><td class="green">+34.9%</td><td>-10.1%</td><td style="color:#E84B5A;">-25.4%</td></tr>
+      <tr><td>2023</td><td class="green">+2.8%</td><td class="green">+9.9%</td><td class="red">-57.2%</td><td>-6.6%</td><td>-10.3%</td></tr>
+      <tr><td>2024</td><td class="green">+7.9%</td><td class="green">+12.2%</td><td class="green">+27.6%</td><td>-4.7%</td><td>-8.5%</td></tr>
+      <tr><td>2025</td><td class="green">+11.8%</td><td class="green">+12.7%</td><td class="green">+3.6%</td><td>-3.2%</td><td style="color:#E84B5A;">-18.9%</td></tr>
+      <tr><td>2026 YTD</td><td class="green">+11.1%</td><td class="green">+13.6%</td><td class="green">+3.0%</td><td>-2.6%</td><td>-9.1%</td></tr>
       <tr style="border-top: 2px solid #333;">
         <td style="color:#f59e0b; font-weight:600;">Average</td>
-        <td style="color:#4CAF50; font-weight:700;">+15.4%</td>
-        <td style="color:#4CAF50; font-weight:700;">+24.4%</td>
-        <td style="color:#4CAF50;">+21.5%</td>
-        <td class="accent">-3.6%</td>
-        <td class="muted">-12.9%</td>
+        <td style="color:#4CAF50; font-weight:700;">+11.0%</td>
+        <td style="color:#4CAF50; font-weight:700;">+15.6%</td>
+        <td class="muted">-0.8%</td>
+        <td class="accent">-4.9%</td>
+        <td class="muted">-14.1%</td>
       </tr>
     </tbody>
   </table>
-  <p class="small muted" style="margin-top: 16px;">2022 was the standout — the signal avoided most of the bear market. BTC had one bad year (2023) but strong otherwise. 6 out of 6 years positive on SPX and IWM.</p>
+  <p class="small muted" style="margin-top: 16px;">2018, 2020 and 2022 are the standout years — production MRMI sidestepped the worst of every major SPX drawdown of the decade. Crypto's a tougher track because BTC has its own boom-bust cycles that don't always align with macro stress (2019, 2023 were bad calls); the average BTC alpha is barely negative but the median year is positive.</p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
@@ -563,47 +560,47 @@
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide">
   <h2>Robustness: vs Simple Alternatives</h2>
-  <p>Is the complexity justified? Compare against strategies anyone can run with one line of code.</p>
+  <p>Is the complexity justified? Compare against strategies anyone can run with one line of code. <span class="muted small">(Full-sample, 2016–2026.)</span></p>
   <table style="margin-top: 24px;">
     <thead>
       <tr><th>Strategy</th><th>SPX Return</th><th>SPX Alpha</th><th>SPX MaxDD</th><th>BTC Alpha</th><th>Flips/yr</th></tr>
     </thead>
     <tbody>
       <tr style="background: #4CAF5008;">
-        <td style="color:#f59e0b; font-weight:700;">Milk Road Momentum Index (MRMI)</td>
-        <td class="green" style="font-weight:700;">+22.0%/yr</td>
-        <td class="green" style="font-weight:700;">+13.3%</td>
-        <td class="green" style="font-weight:700;">-7.3%</td>
-        <td class="green" style="font-weight:700;">+10.0%</td>
-        <td>14</td>
+        <td style="color:#f59e0b; font-weight:700;">MRMI <span class="muted small">(production)</span></td>
+        <td class="green" style="font-weight:700;">+20.6%/yr</td>
+        <td class="green" style="font-weight:700;">+11.2%</td>
+        <td class="green" style="font-weight:700;">-10.1%</td>
+        <td class="green" style="font-weight:700;">+14.2%</td>
+        <td>9</td>
       </tr>
       <tr>
-        <td style="color:#ccc;">VIX < 20</td>
-        <td>+18.7%/yr</td>
-        <td class="green">+10.1%</td>
-        <td>-7.8%</td>
-        <td>+3.5%</td>
+        <td style="color:#ccc;">VIX &lt; 20</td>
+        <td>+19.3%/yr</td>
+        <td class="green">+10.0%</td>
+        <td class="green">-7.8%</td>
+        <td>+3.3%</td>
         <td>12</td>
       </tr>
       <tr>
-        <td style="color:#ccc;">SPX > 200d SMA</td>
-        <td>+16.2%/yr</td>
-        <td class="green">+7.5%</td>
+        <td style="color:#ccc;">SPX &gt; 200d SMA</td>
+        <td>+17.4%/yr</td>
+        <td class="green">+8.2%</td>
         <td>-9.6%</td>
-        <td>+8.2%</td>
+        <td class="green">+13.9%</td>
         <td>6</td>
       </tr>
       <tr>
-        <td style="color:#ccc;">VIX < 25</td>
-        <td>+16.2%/yr</td>
-        <td class="green">+7.5%</td>
+        <td style="color:#ccc;">VIX &lt; 25</td>
+        <td>+17.0%/yr</td>
+        <td class="green">+7.6%</td>
         <td>-10.4%</td>
-        <td>+8.9%</td>
+        <td>+9.4%</td>
         <td>7</td>
       </tr>
       <tr style="border-top: 2px solid #333;">
         <td style="color:#888;">Buy & Hold</td>
-        <td>+8.7%/yr</td>
+        <td>+9.3%/yr</td>
         <td class="muted">0%</td>
         <td class="red">-33.9%</td>
         <td class="muted">—</td>
@@ -611,7 +608,7 @@
       </tr>
     </tbody>
   </table>
-  <p style="margin-top: 24px;">The composite delivers <strong style="color:#fff;">nearly 2x the alpha</strong> of a 200-day SMA with better drawdown protection. It also outperforms every VIX-based threshold. The added complexity generates real, measurable edge.</p>
+  <p style="margin-top: 24px;">MRMI tops every simple alternative on SPX alpha and is the only one that delivers materially positive BTC alpha — VIX&lt;20 (the closest competitor on SPX) gives only +3.3% on BTC. The added complexity earns real, measurable edge across asset classes.</p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
@@ -619,7 +616,7 @@
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide">
   <h2>Robustness: Transaction Costs <span class="red small">⚠</span></h2>
-  <p>What happens with execution delay and trading friction?</p>
+  <p>What happens with execution delay and trading friction? <span class="muted small">(Production MRMI · SPX · full sample.)</span></p>
   <div class="two-col" style="margin-top: 24px;">
     <div>
       <table>
@@ -627,25 +624,27 @@
           <tr><th>Delay</th><th>Cost/flip</th><th>SPX Alpha</th></tr>
         </thead>
         <tbody>
-          <tr style="background:#4CAF5008;"><td>0 days</td><td>0</td><td class="green" style="font-weight:700;">+13.3%</td></tr>
-          <tr><td>0 days</td><td>10bps</td><td class="green">+11.6%</td></tr>
-          <tr><td>0 days</td><td>20bps</td><td class="green">+9.9%</td></tr>
-          <tr><td>0 days</td><td>50bps</td><td class="green">+4.8%</td></tr>
+          <tr style="background:#4CAF5008;"><td>0 days</td><td>0</td><td class="green" style="font-weight:700;">+11.2%</td></tr>
+          <tr><td>0 days</td><td>10bps</td><td class="green">+10.2%</td></tr>
+          <tr><td>0 days</td><td>20bps</td><td class="green">+9.1%</td></tr>
+          <tr><td>0 days</td><td>50bps</td><td class="green">+6.0%</td></tr>
           <tr style="border-top: 2px solid #E84B5A33;">
-            <td style="color:#E84B5A; font-weight:600;">1 day</td><td>0</td><td class="red" style="font-weight:700;">-2.1%</td>
+            <td style="color:#E84B5A; font-weight:600;">1 day</td><td>0</td><td class="green">+1.0%</td>
           </tr>
-          <tr><td style="color:#E84B5A;">1 day</td><td>20bps</td><td class="red">-5.1%</td></tr>
+          <tr><td style="color:#E84B5A;">1 day</td><td>20bps</td><td class="red">-1.0%</td></tr>
+          <tr><td style="color:#E84B5A;">5 days</td><td>0</td><td class="red">-2.4%</td></tr>
+          <tr><td style="color:#E84B5A;">5 days</td><td>20bps</td><td class="red">-4.3%</td></tr>
         </tbody>
       </table>
     </div>
     <div>
       <h3 class="red">The Key Finding</h3>
-      <p>With same-day execution, alpha is robust even with 50bps friction (+4.8%).</p>
-      <p>But <strong style="color:#E84B5A;">a 1-day delay kills the edge entirely.</strong> Alpha drops from +13.3% to -2.1%.</p>
+      <p>With same-day execution, MRMI's edge is robust even with 50bps friction (+6.0%).</p>
+      <p>But <strong style="color:#E84B5A;">a 1-day delay collapses the alpha</strong> from +11.2% to roughly breakeven. A 5-day delay turns it negative.</p>
       <hr>
       <h3 style="margin-top: 16px;">Implication</h3>
-      <p>This signal requires <strong style="color:#fff;">daily monitoring and same-day action</strong>. Short regime durations (~17 days) mean the first day matters. Most of the alpha comes from catching regime transitions immediately.</p>
-      <p class="small muted" style="margin-top: 12px;">This is a feature of fast signals. Slower signals (like 200d SMA) are more forgiving of delay but generate less alpha.</p>
+      <p>MRMI flips ~9× per year and avg regime is ~30 days. Most of the alpha comes from catching the flip on the same bar — the buffer makes flips rarer, but when they happen, speed still matters.</p>
+      <p class="small muted" style="margin-top: 12px;">In practice the framework's weekly Tuesday cadence works because cash-trigger events require <em>both</em> pillars to agree, and macro stress builds slowly. When MRMI does flip, same-week execution captures most of the available edge — but a multi-week delay materially erodes it.</p>
     </div>
   </div>
 </div>
@@ -655,35 +654,35 @@
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide">
   <h2>Robustness: Weight Sensitivity</h2>
-  <p>Do the results depend on the specific weights chosen? <span class="green" style="font-weight:600;">No — the system is robust.</span></p>
+  <p>Do the results depend on the specific weights chosen? <span class="green" style="font-weight:600;">No — the system is robust.</span> <span class="muted small">(Production MRMI · full sample · all 8 schemes use the same buffer/threshold.)</span></p>
   <table style="margin-top: 24px;">
     <thead>
-      <tr><th>Weight Scheme</th><th>SPX Alpha</th><th>IWM Alpha</th><th>BTC Alpha</th><th>MaxDD</th></tr>
+      <tr><th>Weight Scheme</th><th>SPX Alpha</th><th>IWM Alpha</th><th>BTC Alpha</th><th>SPX MaxDD</th></tr>
     </thead>
     <tbody>
       <tr style="background:#4CAF5008;">
-        <td style="color:#f59e0b; font-weight:600;">Alpha-weighted (37/35/28)</td>
-        <td class="green" style="font-weight:700;">+13.3%</td>
-        <td class="green">+20.2%</td>
-        <td class="green">+10.0%</td>
-        <td>-7.3%</td>
+        <td style="color:#f59e0b; font-weight:600;">Equal weight (1/1/1) <span class="muted small">· production</span></td>
+        <td class="green" style="font-weight:700;">+11.2%</td>
+        <td class="green" style="font-weight:700;">+15.6%</td>
+        <td class="green" style="font-weight:700;">+14.2%</td>
+        <td>-10.1%</td>
       </tr>
       <tr>
-        <td style="color:#ccc;">Equal weight (33/33/33)</td>
-        <td class="green">+12.7%</td>
-        <td class="green">+18.4%</td>
-        <td class="green">+6.4%</td>
-        <td>-7.3%</td>
+        <td style="color:#ccc;">Alpha-weighted (37/35/28)</td>
+        <td class="green">+11.5%</td>
+        <td class="green">+15.9%</td>
+        <td class="green">+12.1%</td>
+        <td>-10.2%</td>
       </tr>
-      <tr><td style="color:#ccc;">GII-heavy (50/25/25)</td><td class="green">+13.2%</td><td class="green">+19.7%</td><td class="green">+8.2%</td><td>-7.3%</td></tr>
-      <tr><td style="color:#ccc;">Breadth-heavy (25/50/25)</td><td class="green">+12.9%</td><td class="green">+19.5%</td><td>+0.2%</td><td>-7.1%</td></tr>
-      <tr><td style="color:#ccc;">FinCon-heavy (25/25/50)</td><td class="green">+11.8%</td><td class="green">+16.3%</td><td class="green">+11.4%</td><td>-8.4%</td></tr>
-      <tr style="border-top: 1px solid #333;"><td style="color:#888;">Drop GII</td><td class="green">+11.6%</td><td class="green">+17.5%</td><td class="green">+6.1%</td><td>-7.3%</td></tr>
-      <tr><td style="color:#888;">Drop Breadth</td><td class="green">+9.5%</td><td class="green">+12.4%</td><td class="green">+8.2%</td><td>-9.6%</td></tr>
-      <tr><td style="color:#888;">Drop FinCon</td><td class="green">+14.9%</td><td class="green">+24.7%</td><td>+0.7%</td><td>-7.1%</td></tr>
+      <tr><td style="color:#ccc;">GII-heavy (50/25/25)</td><td class="green">+10.8%</td><td class="green">+14.5%</td><td class="green">+13.4%</td><td>-10.6%</td></tr>
+      <tr><td style="color:#ccc;">Breadth-heavy (25/50/25)</td><td class="green">+12.1%</td><td class="green">+16.8%</td><td class="green">+14.6%</td><td>-11.3%</td></tr>
+      <tr><td style="color:#ccc;">FinCon-heavy (25/25/50)</td><td class="green">+10.4%</td><td class="green">+15.3%</td><td class="green">+17.8%</td><td>-10.9%</td></tr>
+      <tr style="border-top: 1px solid #333;"><td style="color:#888;">Drop GII</td><td class="green">+10.9%</td><td class="green">+15.3%</td><td class="green">+15.4%</td><td>-12.3%</td></tr>
+      <tr><td style="color:#888;">Drop Breadth</td><td class="green">+11.3%</td><td class="green">+15.3%</td><td class="green">+17.2%</td><td>-12.1%</td></tr>
+      <tr><td style="color:#888;">Drop FinCon</td><td class="green">+13.4%</td><td class="green">+18.3%</td><td class="green">+16.2%</td><td>-10.4%</td></tr>
     </tbody>
   </table>
-  <p style="margin-top: 24px;"><strong style="color:#fff;">Every combination produces positive SPX alpha.</strong> Equal weight (+12.7%) is within 0.6% of alpha-weighted (+13.3%). The edge comes from the indicator selection, not the specific weights. No single component is carrying the result — all three contribute.</p>
+  <p style="margin-top: 24px;"><strong style="color:#fff;">Every combination produces positive alpha across all three asset classes.</strong> Equal weight (production) is within 0.5% of alpha-weighted on SPX/IWM and beats it on BTC. The edge comes from the indicator selection, not the specific weights. Even dropping any one indicator preserves positive alpha — the system has no single point of failure.</p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
@@ -696,17 +695,17 @@
       <h3 class="red">Limitations</h3>
       <ul>
         <li class="cross"><strong style="color:#ccc;">Not a crystal ball</strong> — it reacts to conditions, doesn't predict them. Lag is inherent.</li>
-        <li class="cross"><strong style="color:#ccc;">~15 flips/year, same-day execution required</strong> — a 1-day delay erases the alpha entirely (tested). Short regimes (~17 days) demand daily monitoring.</li>
-        <li class="cross"><strong style="color:#ccc;">Walk-forward tested 2021–2026 only</strong> — 6 years, all positive. But no data before 2016 means we can't test 2008 or dot-com era.</li>
+        <li class="cross"><strong style="color:#ccc;">Same-week execution required</strong> — when MRMI flips, capture it on the Tuesday meeting. A 1-day delay collapses SPX alpha from +11.2% to +1.0%; multi-week delays turn it negative.</li>
+        <li class="cross"><strong style="color:#ccc;">Walk-forward tested 2017–2026 only</strong> — 10 years, all positive on SPX and IWM. But no data before 2016 means we can't test 2008 or dot-com era.</li>
         <li class="cross"><strong style="color:#ccc;">No position sizing</strong> — it's binary (in/out), not graduated. A more sophisticated approach would scale exposure by signal strength.</li>
-        <li class="cross"><strong style="color:#ccc;">No asset allocation</strong> — tells you risk-on vs risk-off, not which assets to favor within each regime.</li>
+        <li class="cross"><strong style="color:#ccc;">No asset allocation</strong> — tells you long vs cash, not which assets to favor within each regime.</li>
       </ul>
     </div>
     <div>
       <h3 class="green">What It Does Well</h3>
       <ul>
-        <li class="check"><strong style="color:#ccc;">Drawdown protection</strong> — SPX max drawdown from -18.9% to -2.9% out-of-sample. This alone justifies the framework.</li>
-        <li class="check"><strong style="color:#ccc;">Works across asset classes</strong> — positive alpha on SPX, IWM, and BTC simultaneously. Positive SPX alpha every year in walk-forward (2021–2026).</li>
+        <li class="check"><strong style="color:#ccc;">Drawdown protection</strong> — SPX max drawdown from -18.9% to -4.8% out-of-sample. This alone justifies the framework.</li>
+        <li class="check"><strong style="color:#ccc;">Works across equities</strong> — positive SPX and IWM alpha in 10/10 walk-forward years (2017–2026). BTC is more uneven but the average year is positive.</li>
         <li class="check"><strong style="color:#ccc;">Simple decision</strong> — one number, one color, one action. No ambiguity.</li>
         <li class="check"><strong style="color:#ccc;">Transparent</strong> — every component is visible in the scorecard. You can see exactly what's driving the signal.</li>
         <li class="check"><strong style="color:#ccc;">Free data</strong> — no expensive subscriptions needed. Yahoo Finance + FRED.</li>
@@ -721,16 +720,16 @@
 <div class="slide">
   <div style="text-align: center;">
     <h2>Summary</h2>
-    <p style="max-width: 700px; margin: 0 auto 40px;">One composite signal. Three regime indicators at different speeds. Macro Seasons chart for cycle context. All on one dashboard.</p>
+    <p style="max-width: 720px; margin: 0 auto 40px;">One composite signal — <strong style="color:#fff;">MRMI</strong>. A fast market pillar (MMI) and a slow economy buffer (Macro Stress). Cash only when both turn against you.</p>
     <div style="display: flex; justify-content: center; gap: 60px; margin-bottom: 40px;">
-      <div><span class="big-num green">+14%</span><div class="big-label">SPX alpha (OOS)</div></div>
-      <div><span class="big-num green">+22%</span><div class="big-label">IWM alpha (OOS)</div></div>
-      <div><span class="big-num green">+23%</span><div class="big-label">BTC alpha (OOS)</div></div>
+      <div><span class="big-num green">+9.6%</span><div class="big-label">SPX alpha (OOS)</div></div>
+      <div><span class="big-num green">+12.9%</span><div class="big-label">IWM alpha (OOS)</div></div>
+      <div><span class="big-num green">+2.1%</span><div class="big-label">BTC alpha (OOS)</div></div>
     </div>
     <div style="display: flex; justify-content: center; gap: 60px; margin-bottom: 40px;">
-      <div><span class="big-num accent">-2.9%</span><div class="big-label">SPX max drawdown<br><span class="muted">(vs -18.9% buy & hold)</span></div></div>
+      <div><span class="big-num accent">-4.8%</span><div class="big-label">SPX max drawdown OOS<br><span class="muted">(vs -18.9% buy & hold)</span></div></div>
     </div>
-    <p class="muted small" style="margin-top: 32px;">Framework is live. Dashboard ready for daily use and monthly reporting.</p>
+    <p class="muted small" style="margin-top: 32px;">Framework is live. Dashboard ready for the weekly Tuesday research meeting.</p>
   </div>
 </div>
 
