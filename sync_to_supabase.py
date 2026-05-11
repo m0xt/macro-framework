@@ -96,3 +96,50 @@ def load_credentials() -> tuple[str, str]:
         )
         sys.exit(1)
     return url, key
+
+
+import json
+from pathlib import Path
+from supabase import create_client, Client
+
+
+SNAPSHOT_DIR = Path(__file__).parent / ".cache" / "snapshots"
+
+
+def _supabase_client() -> Client:
+    url, key = load_credentials()
+    return create_client(url, key)
+
+
+def _latest_snapshot_path() -> Path:
+    if not SNAPSHOT_DIR.exists():
+        print(
+            f"error: no snapshot directory at {SNAPSHOT_DIR}.\n"
+            f"Run `.venv/bin/python build.py` first to produce a snapshot.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    snapshots = sorted(SNAPSHOT_DIR.glob("*.json"))
+    if not snapshots:
+        print(
+            f"error: no snapshot JSON files in {SNAPSHOT_DIR}.\n"
+            f"Run `.venv/bin/python build.py` first.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return snapshots[-1]
+
+
+def cmd_latest() -> None:
+    path = _latest_snapshot_path()
+    print(f"Reading {path.name}...")
+    with open(path) as f:
+        snapshot = json.load(f)
+    row = row_from_snapshot(snapshot)
+    client = _supabase_client()
+    print(f"Upserting row for {row['date']}...")
+    resp = client.table("macro_snapshots").upsert(row, on_conflict="date").execute()
+    if not resp.data:
+        print(f"error: upsert returned empty response: {resp}", file=sys.stderr)
+        sys.exit(1)
+    print(f"OK ({len(resp.data)} row)")
