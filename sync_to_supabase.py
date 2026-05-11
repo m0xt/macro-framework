@@ -131,12 +131,12 @@ def _latest_snapshot_path() -> Path:
 
 
 def cmd_latest() -> None:
+    client = _supabase_client()      # fail-fast on missing creds
     path = _latest_snapshot_path()
     print(f"Reading {path.name}...")
     with open(path) as f:
         snapshot = json.load(f)
     row = row_from_snapshot(snapshot)
-    client = _supabase_client()
     print(f"Upserting row for {row['date']}...")
     resp = client.table("macro_snapshots").upsert(row, on_conflict="date").execute()
     if not resp.data:
@@ -152,6 +152,15 @@ _CHUNK_SIZE = 500
 
 
 def cmd_backfill() -> None:
+    if not build.DATA_CACHE.exists():
+        print(
+            f"error: {build.DATA_CACHE} not found.\n"
+            f"Run `.venv/bin/python build.py` first to populate the cache.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    client = _supabase_client()  # fail-fast on missing creds before heavy compute
+
     print("Loading raw data + recomputing indicators...")
     data = build.fetch_all_data(use_cache=True)
     gii = build.calc_growth_impulse(data)
@@ -176,7 +185,6 @@ def cmd_backfill() -> None:
     rows = rows_from_backfill_series(series)
     print(f"Prepared {len(rows)} rows for backfill.")
 
-    client = _supabase_client()
     total = 0
     for i in range(0, len(rows), _CHUNK_SIZE):
         chunk = rows[i:i + _CHUNK_SIZE]
