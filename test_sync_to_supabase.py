@@ -99,3 +99,34 @@ def test_rows_from_backfill_series_skips_nan_rows():
     rows = rows_from_backfill_series(series)
     assert len(rows) == 1
     assert rows[0]["date"] == "2024-01-02"
+
+
+from sync_to_supabase import load_credentials
+
+
+def test_load_credentials_returns_values(monkeypatch):
+    monkeypatch.setenv("SUPABASE_URL", "https://abc.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_KEY", "eyJtest")
+    url, key = load_credentials()
+    assert url == "https://abc.supabase.co"
+    assert key == "eyJtest"
+
+
+def test_load_credentials_missing_url_exits(monkeypatch, capsys):
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.setenv("SUPABASE_SERVICE_KEY", "eyJtest")
+    with pytest.raises(SystemExit) as exc:
+        load_credentials()
+    assert exc.value.code == 1
+    captured = capsys.readouterr()
+    assert "SUPABASE_URL" in captured.err
+
+
+def test_load_credentials_missing_key_exits(monkeypatch, capsys):
+    monkeypatch.setenv("SUPABASE_URL", "https://abc.supabase.co")
+    monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
+    with pytest.raises(SystemExit) as exc:
+        load_credentials()
+    assert exc.value.code == 1
+    captured = capsys.readouterr()
+    assert "SUPABASE_SERVICE_KEY" in captured.err

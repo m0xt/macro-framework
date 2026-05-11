@@ -72,3 +72,27 @@ def rows_from_backfill_series(series: dict[str, pd.Series]) -> list[dict[str, An
             row[col] = None if (isinstance(cell, float) and math.isnan(cell)) else float(cell)
         rows.append(row)
     return rows
+
+
+import os
+import sys
+from dotenv import load_dotenv
+
+
+def load_credentials() -> tuple[str, str]:
+    """Load Supabase URL + service key from .env or environment.
+
+    Exits with code 1 and a clear error message if either is missing.
+    """
+    load_dotenv()  # silently no-op if .env absent
+    url = os.environ.get("SUPABASE_URL", "").strip()
+    key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
+    missing = [name for name, val in (("SUPABASE_URL", url), ("SUPABASE_SERVICE_KEY", key)) if not val]
+    if missing:
+        print(
+            f"error: missing required env var(s): {', '.join(missing)}\n"
+            f"Set them in .env (copy .env.example) or export them in your shell.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return url, key
