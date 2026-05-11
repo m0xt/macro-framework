@@ -143,3 +143,49 @@ def cmd_latest() -> None:
         print(f"error: upsert returned empty response: {resp}", file=sys.stderr)
         sys.exit(1)
     print(f"OK ({len(resp.data)} row)")
+
+
+import build  # reuses fetch + compute pipeline
+
+
+_CHUNK_SIZE = 500
+
+
+def cmd_backfill() -> None:
+    print("Loading raw data + recomputing indicators...")
+    data = build.fetch_all_data(use_cache=True)
+    gii = build.calc_growth_impulse(data)
+    fincon = build.calc_financial_conditions(data)
+    breadth = build.calc_sector_breadth(data)
+    composite = build.calc_composite(gii, fincon, breadth)  # MMI series
+    macro_ctx = build.calc_macro_context(data)
+    mrmi_combined = build.calc_milk_road_macro_index(composite, macro_ctx)
+
+    series = {
+        "mrmi":             mrmi_combined["mrmi"],
+        "mmi":              composite,
+        "stress_intensity": mrmi_combined["stress_intensity"],
+        "macro_buffer":     mrmi_combined["macro_buffer"],
+        "real_economy":     macro_ctx["real_economy_score"],
+        "inflation_dir_pp": macro_ctx["inflation_dir_pp"],
+        "core_cpi_yoy_pct": macro_ctx["core_cpi_yoy_pct"],
+        "gii_fast":         gii["fast"],
+        "breadth":          breadth["composite"],
+        "fincon":           fincon["composite"],
+    }
+    rows = rows_from_backfill_series(series)
+    print(f"Prepared {len(rows)} rows for backfill.")
+
+    client = _supabase_client()
+    total = 0
+    for i in range(0, len(rows), _CHUNK_SIZE):
+        chunk = rows[i:i + _CHUNK_SIZE]
+        try:
+            resp = client.table("macro_snapshots").upsert(chunk, on_conflict="date").execute()
+            total += len(resp.data) if resp.data else 0
+            print(f"  Upserted {i + len(chunk)}/{len(rows)} rows...")
+        except Exception as e:
+            first = chunk[0]["date"]
+            last = chunk[-1]["date"]
+            print(f"  WARN: chunk {first}..{last} failed: {e}", file=sys.stderr)
+    print(f"Backfill complete. {total} rows confirmed.")
