@@ -189,3 +189,26 @@ def cmd_backfill() -> None:
             last = chunk[-1]["date"]
             print(f"  WARN: chunk {first}..{last} failed: {e}", file=sys.stderr)
     print(f"Backfill complete. {total} rows confirmed.")
+
+
+import argparse
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="sync_to_supabase",
+        description="Sync computed macro indicators to Supabase.",
+    )
+    sub = parser.add_subparsers(dest="cmd")
+    sub.add_parser("latest", help="Upsert today's snapshot (default).")
+    sub.add_parser("backfill", help="Recompute and upsert full daily history.")
+    args = parser.parse_args()
+
+    if args.cmd == "backfill":
+        cmd_backfill()
+    else:
+        cmd_latest()
+
+
+if __name__ == "__main__":
+    main()
