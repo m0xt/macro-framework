@@ -177,3 +177,32 @@ briefs/
   presentation.html         # Framework presentation
   snapshots/                # Daily JSON state snapshots
 ```
+
+## Supabase Sync (optional)
+
+Mirror computed indicators to a Supabase project for reuse in other apps.
+
+### One-time setup
+
+1. Apply `supabase_schema.sql` in your Supabase project's SQL Editor.
+2. Copy `.env.example` to `.env` and fill in `SUPABASE_URL` + `SUPABASE_SERVICE_KEY`.
+3. Backfill history: `.venv/bin/python sync_to_supabase.py backfill`
+
+### Daily sync
+
+After each dashboard build:
+```
+.venv/bin/python build_v2.py && .venv/bin/python sync_to_supabase.py latest
+```
+
+### Downstream usage (any other project)
+
+```python
+from supabase import create_client
+client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+latest = (client.table('macro_snapshots')
+                 .select('date,mrmi,mrmi_state,mmi,real_economy')
+                 .order('date', desc=True).limit(1).execute()).data[0]
+```
+
+The anon key is safe to embed in browser bundles — RLS permits read only.
