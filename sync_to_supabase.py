@@ -37,3 +37,38 @@ def row_from_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
         "fincon": components["fincon"],
         "snapshot": snapshot,
     }
+
+
+import math
+import pandas as pd
+
+
+_HOT_COLUMNS = (
+    "mrmi", "mmi", "stress_intensity", "macro_buffer",
+    "real_economy", "inflation_dir_pp", "core_cpi_yoy_pct",
+    "gii_fast", "breadth", "fincon",
+)
+
+
+def rows_from_backfill_series(series: dict[str, pd.Series]) -> list[dict[str, Any]]:
+    """Build macro_snapshots rows from per-column daily series.
+
+    Skips rows where mrmi is NaN (pre-warmup dates). Derives mrmi_state
+    from mrmi sign: LONG if mrmi > 0 else CASH.
+    """
+    mrmi = series["mrmi"]
+    rows: list[dict[str, Any]] = []
+    for date in mrmi.index:
+        v = mrmi.loc[date]
+        if v is None or (isinstance(v, float) and math.isnan(v)):
+            continue
+        row: dict[str, Any] = {
+            "date": pd.Timestamp(date).strftime("%Y-%m-%d"),
+            "mrmi_state": "LONG" if v > 0 else "CASH",
+            "snapshot": None,
+        }
+        for col in _HOT_COLUMNS:
+            cell = series[col].loc[date]
+            row[col] = None if (isinstance(cell, float) and math.isnan(cell)) else float(cell)
+        rows.append(row)
+    return rows

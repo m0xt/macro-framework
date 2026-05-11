@@ -49,3 +49,53 @@ def test_row_from_snapshot_embeds_full_blob():
     row = row_from_snapshot(SAMPLE_SNAPSHOT)
     assert row["snapshot"] == SAMPLE_SNAPSHOT
     assert row["snapshot"]["underliers"]["^GSPC"] == 5000.0
+
+
+import pandas as pd
+import numpy as np
+from sync_to_supabase import rows_from_backfill_series
+
+
+def test_rows_from_backfill_series_basic():
+    idx = pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03"])
+    series = {
+        "mrmi":             pd.Series([0.5, -0.1, 1.2], index=idx),
+        "mmi":              pd.Series([0.3, -0.2, 0.7], index=idx),
+        "stress_intensity": pd.Series([0.0, 0.4, 0.0], index=idx),
+        "macro_buffer":     pd.Series([1.0, 0.6, 1.0], index=idx),
+        "real_economy":     pd.Series([-0.1, -0.5, 0.1], index=idx),
+        "inflation_dir_pp": pd.Series([0.0, 1.0, -0.2], index=idx),
+        "core_cpi_yoy_pct": pd.Series([3.0, 3.1, 2.9], index=idx),
+        "gii_fast":         pd.Series([0.1, 0.0, 0.2], index=idx),
+        "breadth":          pd.Series([0.5, 0.4, 0.6], index=idx),
+        "fincon":           pd.Series([0.4, 0.3, 0.5], index=idx),
+    }
+    rows = rows_from_backfill_series(series)
+
+    assert len(rows) == 3
+    assert rows[0]["date"] == "2024-01-01"
+    assert rows[0]["mrmi"] == 0.5
+    assert rows[0]["mrmi_state"] == "LONG"      # mrmi > 0
+    assert rows[1]["mrmi_state"] == "CASH"      # mrmi <= 0
+    assert rows[2]["mrmi_state"] == "LONG"
+    assert rows[0]["snapshot"] is None          # backfill rows have no JSONB blob
+
+
+def test_rows_from_backfill_series_skips_nan_rows():
+    """Rows where mrmi is NaN (e.g. pre-warmup dates) must be skipped."""
+    idx = pd.to_datetime(["2024-01-01", "2024-01-02"])
+    series = {
+        "mrmi":             pd.Series([np.nan, 0.5], index=idx),
+        "mmi":              pd.Series([np.nan, 0.3], index=idx),
+        "stress_intensity": pd.Series([np.nan, 0.0], index=idx),
+        "macro_buffer":     pd.Series([np.nan, 1.0], index=idx),
+        "real_economy":     pd.Series([np.nan, -0.1], index=idx),
+        "inflation_dir_pp": pd.Series([np.nan, 0.0], index=idx),
+        "core_cpi_yoy_pct": pd.Series([np.nan, 3.0], index=idx),
+        "gii_fast":         pd.Series([np.nan, 0.1], index=idx),
+        "breadth":          pd.Series([np.nan, 0.5], index=idx),
+        "fincon":           pd.Series([np.nan, 0.4], index=idx),
+    }
+    rows = rows_from_backfill_series(series)
+    assert len(rows) == 1
+    assert rows[0]["date"] == "2024-01-02"
