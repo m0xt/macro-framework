@@ -10,10 +10,12 @@ __pycache__/
 .cache/dashboard.html
 .cache/brief.html
 .cache/daily_refresh.log
-.cache/snapshots/
 .cache/charts/
 .cache/macro_update_*.html
 .cache/macro_update_*.md
 .cache/presentation.html
-.cache/dashboard_v2*.html
 .cache/*.csv
+.cache/launchd-refresh.log
+# Ignore timestamped/fresh variants of the v2 dashboard, but track the
+# canonical .cache/dashboard_v2.html (Mac mini commits it every Tuesday).
+.cache/dashboard_v2_*.html
