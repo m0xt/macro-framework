@@ -8,7 +8,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>__REPO__/scripts/tuesday.sh</string>
+        <string>__REPO__/scripts/refresh.sh</string>
     </array>
 
     <key>WorkingDirectory</key>

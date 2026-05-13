@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# One-shot Mac mini bootstrap for the macro-framework Tuesday refresh.
+# One-shot Mac mini bootstrap for the macro-framework refresh jobs.
+#
+# Installs two LaunchAgents:
+#   · com.milkroad.macro-refresh         — Tuesday 11:00 Prague (pre-meeting briefs)
+#   · com.milkroad.macro-refresh-daily   — Mon–Fri 22:30 Prague (end-of-US-close)
 #
 # Run this from inside the repo on the Mac mini:
 #   cd /path/to/macro-framework && git pull && bash scripts/setup-mac-mini.sh
@@ -33,14 +37,16 @@ fi
 .venv/bin/pip install -q --upgrade pip
 .venv/bin/pip install -q -r requirements.txt
 
-echo "==> 4. LaunchAgent (substituting __REPO__ + __HOME__)"
+echo "==> 4. LaunchAgents (substituting __REPO__ + __HOME__)"
 mkdir -p "$LA_DIR" .cache
-name="com.milkroad.macro-refresh"
-src="scripts/${name}.plist"
-dst="$LA_DIR/${name}.plist"
-sed -e "s|__REPO__|$REPO|g" -e "s|__HOME__|$HOME|g" "$src" > "$dst"
-launchctl unload "$dst" 2>/dev/null || true
-launchctl load "$dst"
+for src in scripts/com.milkroad.macro-refresh*.plist; do
+  name=$(basename "$src" .plist)
+  dst="$LA_DIR/${name}.plist"
+  sed -e "s|__REPO__|$REPO|g" -e "s|__HOME__|$HOME|g" "$src" > "$dst"
+  launchctl unload "$dst" 2>/dev/null || true
+  launchctl load "$dst"
+  echo "  Loaded: $name"
+done
 
 echo "==> 5. Sanity checks"
 command -v claude >/dev/null \
@@ -53,8 +59,9 @@ if [[ ! -f .env ]] || ! grep -q SUPABASE_URL .env 2>/dev/null; then
 fi
 
 echo
-echo "Done. Schedule: every Tuesday 11:00 Prague time."
-echo "Logs: $REPO/.cache/launchd-refresh.log"
+echo "Done."
+echo "  Tuesday 11:00 Prague (pre-meeting):   .cache/launchd-refresh.log"
+echo "  Mon–Fri 22:30 Prague (end of US close): .cache/launchd-refresh-daily.log"
 echo
-echo "To test the script manually without waiting for Tuesday:"
-echo "  bash scripts/tuesday.sh"
+echo "To test the script manually without waiting for the schedule:"
+echo "  bash scripts/refresh.sh"
