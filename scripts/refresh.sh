@@ -15,11 +15,49 @@
 #   3. build_v2.py (renders the v2 dashboard from the fresh snapshot)
 #   4. sync_to_supabase.py latest (push today's snapshot to the website DB)
 #   5. git commit + push the new outputs (briefs/, dashboard_v2.html, snapshots/)
+#   6. emit .cache/status.json and hand off to the Operator agent (~/ops)
+#      via an EXIT trap so we always report, even when set -e aborts above.
 
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
+
+LAUNCHD_LOG="$REPO/.cache/launchd-refresh-daily.log"
+STATUS_FILE="$REPO/.cache/status.json"
+
+START_EPOCH=$(date +%s)
+START_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+emit_status_and_handoff() {
+    local exit_code=$?
+    set +e
+    local duration=$(( $(date +%s) - START_EPOCH ))
+    local ws="$HOME/ops/lib/write_status.py"
+    if [[ ! -x "$ws" ]]; then
+        echo "WARN: $ws not found; skipping operator handoff"
+        return
+    fi
+    mkdir -p "$(dirname "$STATUS_FILE")"
+    if [[ $exit_code -eq 0 ]]; then
+        python3 "$ws" \
+            --project macro-framework --out "$STATUS_FILE" \
+            --start-ts "$START_TS" --duration-sec "$duration" \
+            --status ok \
+            --summary "refresh ok (build + build_v2 + supabase sync)"
+    else
+        python3 "$ws" \
+            --project macro-framework --out "$STATUS_FILE" \
+            --start-ts "$START_TS" --duration-sec "$duration" \
+            --status fail \
+            --summary "refresh script exited $exit_code" \
+            --error-type "script-nonzero-exit" \
+            --error-message "scripts/refresh.sh exited with code $exit_code" \
+            --error-tail-file "$LAUNCHD_LOG"
+    fi
+    "$HOME/ops/bin/operator-check" macro-framework || true
+}
+trap emit_status_and_handoff EXIT
 
 echo "=== refresh: $(date -u +%FT%TZ) ==="
 
