@@ -8,8 +8,11 @@ import base64
 import re
 from pathlib import Path
 
-CACHE_DIR = Path(__file__).parent / ".cache"
+ROOT = Path(__file__).parent
+CACHE_DIR = ROOT / ".cache"
 CHARTS_DIR = CACHE_DIR / "charts"
+REPORTS_DIR = ROOT / "reports"
+REPORTS_DIR.mkdir(exist_ok=True)
 
 
 def md_to_html_basic(md: str) -> str:
@@ -242,19 +245,25 @@ def build_html(content: str, title: str) -> str:
 
 
 def main():
-    md_file = CACHE_DIR / "macro_update_2026_04.md"
-    if not md_file.exists():
-        print(f"Markdown file not found: {md_file}")
+    # Pick up the most recent macro_update_YYYY_MM.md in .cache/
+    candidates = sorted(CACHE_DIR.glob("macro_update_*.md"))
+    if not candidates:
+        print(f"No macro_update_*.md found in {CACHE_DIR}")
         return
+    md_file = candidates[-1]
+    stem = md_file.stem  # e.g. macro_update_2026_05
+    yyyy, mm = stem.split("_")[-2], stem.split("_")[-1]
+    month_name = ["January","February","March","April","May","June","July","August","September","October","November","December"][int(mm)-1]
+    title = f"Macro Update — {month_name} {yyyy}"
 
     with open(md_file) as f:
         md = f.read()
 
-    print("Converting markdown to HTML with embedded charts...")
+    print(f"Converting {md_file.name} to HTML...")
     content = md_to_html_basic(md)
-    html = build_html(content, "Macro Update — April 2026")
+    html = build_html(content, title)
 
-    output = CACHE_DIR / "macro_update_2026_04.html"
+    output = REPORTS_DIR / f"{stem}.html"
     with open(output, "w") as f:
         f.write(html)
 

@@ -175,7 +175,69 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- SLIDE 4: Pillar 1 — MMI (Market Momentum Index) -->
+<!-- SLIDE 4: MRMI — The Headline Signal -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<div class="slide" style="padding: 40px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">The Headline Number</p>
+  <h2 style="margin-bottom: 10px;">MRMI — Milk Road Macro Index</h2>
+  <p style="font-size: 17px; margin-bottom: 14px;">One number you read off the top of the dashboard. <strong style="color:#fff;">Above zero → stay long. Below zero → step aside.</strong> Built from two parts: how markets are behaving (MMI) and a default buffer the economy provides — which only erodes when growth and inflation both turn against us.</p>
+
+  <div style="margin-top: 8px; padding: 16px 20px; background: #111; border-left: 3px solid #f59e0b; border-radius: 4px;">
+    <p style="color: #ccc; font-size: 16px; margin: 0 0 6px;"><strong style="color: #f59e0b;">The formula:</strong></p>
+    <p class="mono" style="color:#fff; font-size: 22px; margin: 0;">MRMI &nbsp;=&nbsp; <span style="color:#4CAF50;">MMI</span> &nbsp;+&nbsp; <span style="color:#cdaa6a;">(1 − Stress)</span> &nbsp;−&nbsp; <span style="color:#888;">0.5</span></p>
+    <p class="small" style="color:#888; font-size: 13px; margin: 8px 0 0;"><span style="color:#4CAF50;">MMI</span>: the market pillar, roughly −3 to +3 (a z-score composite). &nbsp;·&nbsp; <span style="color:#cdaa6a;">(1 − Stress)</span>: the "buffer," a free +1 when the economy is benign, falling toward 0 as stagflation builds. &nbsp;·&nbsp; <span style="color:#888;">−0.5</span>: the threshold, baked in so zero is always the LONG/CASH line.</p>
+  </div>
+
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-top: 18px; margin-bottom: 8px;">The scale · what each zone means on the dashboard's bar</p>
+  <table style="margin: 0;">
+    <thead>
+      <tr><th>Reading</th><th>What it means</th><th>Typical setup</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono" style="color:#4CAF50; font-weight:700;">+1.5 to +5</td>
+        <td>Strong long — buffer intact, markets confirming</td>
+        <td class="muted small">Bull regime with breadth + benign credit</td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:#4CAF50; font-weight:600;">+0.5 to +1.5</td>
+        <td>Healthy long — the default state</td>
+        <td class="muted small">MMI near neutral, stress off, buffer carrying us <span class="accent">(today: +0.90)</span></td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:#cdaa6a;">0 to +0.5</td>
+        <td>Borderline — buffer eroding or MMI flipping negative</td>
+        <td class="muted small">Watch closely; one more bad data point can cross zero</td>
+      </tr>
+      <tr style="background: #E84B5A08;">
+        <td class="mono" style="color:#E84B5A; font-weight:700;">below 0</td>
+        <td><strong style="color:#E84B5A;">CASH</strong> — both pillars against you</td>
+        <td class="muted small">Requires MMI weak <em>and</em> Macro Stress firing — rare by design</td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:#E84B5A;">−1.5 to −3</td>
+        <td>Deep stress regime</td>
+        <td class="muted small">Sustained drawdown territory (e.g. 2008, 2022)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="two-col" style="margin-top: 14px; gap: 30px;">
+    <div style="padding: 14px 18px; background: #111; border-left: 3px solid #4DA8DA; border-radius: 4px;">
+      <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">Worked example · today</p>
+      <p class="mono small" style="color:#ccc; font-size: 14px; line-height: 1.7; margin: 0;">MMI &nbsp;=&nbsp; <span style="color:#4CAF50;">+0.40</span> &nbsp;(mildly positive)<br>Stress intensity &nbsp;=&nbsp; <span style="color:#4CAF50;">0.00</span> &nbsp;(off)<br>Buffer = 1 − 0.00 &nbsp;=&nbsp; <span style="color:#cdaa6a;">+1.00</span><br>Threshold &nbsp;=&nbsp; <span style="color:#888;">−0.50</span><br><span style="color:#fff;">────────────────</span><br>MRMI = 0.40 + 1.00 − 0.50 &nbsp;=&nbsp; <span class="accent" style="font-size: 17px; font-weight: 700;">+0.90 → LONG</span></p>
+    </div>
+    <div>
+      <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">Why the scale is asymmetric (−3 to +5)</h3>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">The dashboard scale runs −3 on the downside and +5 on the upside. In normal times the buffer adds a built-in +0.5, biasing MRMI positive — so most of the time we live in the +0.5 to +2 band. Extreme bull moves push MMI z-scores past +3, giving headroom up to ~+4 or higher. Downside is rarer and capped earlier by the cash trigger.</p>
+      <h3 style="font-size: 16px; color: #ccc; margin: 12px 0 6px;">Why 0 is the trigger</h3>
+      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">The <span class="mono">−0.5</span> in the formula is the threshold baked into the value — so the rule is just "is MRMI positive or negative." No threshold lookup, no second number to remember.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5: Pillar 1 — MMI (Market Momentum Index) -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 <div class="slide" style="padding: 40px 80px;">
   <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Pillar 1 — Market</p>
@@ -355,46 +417,44 @@
 <!-- ══════════════════════════════════════════════════════════════ -->
 <!-- SLIDE: Pillar 2 — Macro Stress -->
 <!-- ══════════════════════════════════════════════════════════════ -->
-<div class="slide" style="padding: 36px 80px;">
-  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">Pillar 2 — Economy</p>
-  <h2 style="margin-bottom: 10px;">Macro Stress</h2>
-  <p style="font-size: 18px; margin-bottom: 14px;">A slow-moving economy-derived layer that answers <strong style="color:#fff;">"Is the economy confirming the market signal?"</strong> One score, in [0, 1], capturing how deep we are inside the stagflation pocket — the only macro condition that pulls MRMI toward CASH.</p>
+<div class="slide" style="padding: 28px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px;">Pillar 2 — Economy</p>
+  <h2 style="margin-bottom: 8px;">Macro Stress</h2>
+  <p style="font-size: 16px; margin-bottom: 10px;">A slow-moving layer that answers <strong style="color:#fff;">"Is the economy confirming the market signal?"</strong> Two axes that only matter when they turn against us simultaneously — the stagflation pocket. The result is a single <strong style="color:#fff;">stress intensity score</strong> on a 0 to 1 scale.</p>
 
-  <table style="margin-top: 8px;">
+  <table style="margin-top: 6px;">
     <thead>
-      <tr><th>Axis</th><th>What It Measures</th><th>Inputs</th><th>Reading</th></tr>
+      <tr><th style="padding: 8px 16px;">Axis</th><th style="padding: 8px 16px;">Unit</th><th style="padding: 8px 16px;">What "today's reading" means in plain English</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td style="color:#fff; font-weight:600;">Real Economy Score</td>
-        <td>Strength of real-economy activity</td>
-        <td><span class="small">PCE YoY · Sahm Rule (inv) · Real Income YoY · Atlanta Fed GDPNow, equal-weighted z-score over 3y</span></td>
-        <td class="muted small">Above 0 = healthy · Below 0 = weakening</td>
+        <td style="color:#fff; font-weight:600; padding: 8px 16px; font-size: 15px;">Real Economy Score</td>
+        <td class="mono small" style="color:#4DA8DA; padding: 8px 16px; font-size: 13px;">z-score (3y window)</td>
+        <td class="small" style="padding: 8px 16px; font-size: 13px; line-height: 1.45;">Strength of growth in std-dev units vs. the last 3 years. <span class="mono">+1</span> = a clear standard deviation above typical · <span class="mono">0</span> = average · <span class="mono">−1</span> = clearly below. <span class="accent">Today: −0.88</span> — growth running noticeably below its recent norm.</td>
       </tr>
       <tr>
-        <td style="color:#fff; font-weight:600;">Inflation Direction</td>
-        <td>Trajectory of inflation, not its level</td>
-        <td><span class="small">Δ Core CPI YoY over the last 6 months, in pp</span></td>
-        <td class="muted small">Above 0 = accelerating · Below 0 = decelerating</td>
+        <td style="color:#fff; font-weight:600; padding: 8px 16px; font-size: 15px;">Inflation Direction</td>
+        <td class="mono small" style="color:#4DA8DA; padding: 8px 16px; font-size: 13px;">pp (Δ over 6m)</td>
+        <td class="small" style="padding: 8px 16px; font-size: 13px; line-height: 1.45;">How much Core CPI YoY has moved over the last 6 months, in percentage points. <span class="mono">+0.5pp</span> = inflation YoY is half a point higher than it was 6 months ago (accelerating) · <span class="mono">−0.5pp</span> = decelerating. <span class="accent">Today: −0.42pp</span> — cooling.</td>
+      </tr>
+      <tr>
+        <td style="color:#fff; font-weight:600; padding: 8px 16px; font-size: 15px;">Stress Intensity <span class="muted small">(the output)</span></td>
+        <td class="mono small" style="color:#4DA8DA; padding: 8px 16px; font-size: 13px;">[0, 1]</td>
+        <td class="small" style="padding: 8px 16px; font-size: 13px; line-height: 1.45;">The combined score. <span class="mono">0</span> = no stress (either growth is fine, or inflation is cooling) · <span class="mono">1</span> = peak stagflation. Fires "ON" when it crosses <span class="mono">0.5</span>. <span class="accent">Today: 0.00</span> — disarmed.</td>
       </tr>
     </tbody>
   </table>
 
-  <div style="margin-top: 16px; padding: 14px 18px; background: #111; border-left: 3px solid #cdaa6a; border-radius: 4px;">
-    <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">The AND gate</p>
-    <p style="color:#ccc; font-size: 15px; line-height: 1.55; margin: 0;"><span class="mono">Stress = min(1, max(0, −Real_Economy) × max(0, Inflation_Direction))</span></p>
-    <p class="small" style="color:#888; line-height: 1.5; font-size: 13px; margin-top: 8px; margin-bottom: 0;">Each <span class="mono">max(0, …)</span> means the factor only contributes when it's adversely positioned: weak growth AND rising inflation. The product is non-zero only when <em>both</em> are. Stress fires (ON) when the score crosses 0.5.</p>
+  <div style="margin-top: 12px; padding: 12px 16px; background: #111; border-left: 3px solid #cdaa6a; border-radius: 4px;">
+    <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;">Glossary · the three units we just used</p>
+    <p class="small" style="color:#bbb; font-size: 13px; line-height: 1.55; margin: 0;"><strong style="color:#4DA8DA;">z-score:</strong> deviation from the rolling 3-year average, measured in standard deviations. Converts any unit (dollars, ratios, percentages) to a common comparable scale. &nbsp;·&nbsp; <strong style="color:#4DA8DA;">pp (percentage points):</strong> the difference between two percentages. If Core CPI YoY moved from 3.0% to 2.6%, that's a change of <span class="mono">−0.4pp</span> (not "−0.4%", which would be a tiny relative change). &nbsp;·&nbsp; <strong style="color:#4DA8DA;">Δ6m:</strong> "delta over six months" — the change since the reading from 6 months ago.</p>
   </div>
 
-  <div class="two-col" style="margin-top: 14px; gap: 40px;">
-    <div>
-      <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">Why an AND gate</h3>
-      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">Inflation alone or weakness alone is normal — neither warrants stepping out of risk assets on its own. Stagflation is the asymmetric scenario where the Fed can't ease and the economy is rolling. Requiring both filters out the false alarms market vol would otherwise produce.</p>
-    </div>
-    <div>
-      <h3 style="font-size: 16px; color: #ccc; margin-bottom: 6px;">Why it changes slowly</h3>
-      <p class="small" style="color:#888; line-height: 1.5; font-size: 13px;">Real-economy data is reported monthly with publication lags. Macro Stress moves on weeks-to-quarters, not days. That's a feature: when the score is rising, it's a real condition, not noise. Fast pivots on macro data are almost always wrong.</p>
-    </div>
+  <div style="margin-top: 10px; padding: 12px 16px; background: #111; border-left: 3px solid #cdaa6a; border-radius: 4px;">
+    <p class="muted small" style="text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;">The AND gate · why it stays at zero most of the time</p>
+    <p class="mono" style="color:#fff; font-size: 15px; margin: 0 0 6px;">Stress &nbsp;=&nbsp; min(1, &nbsp;max(0, −Real_Economy) &nbsp;×&nbsp; max(0, Inflation_Direction))</p>
+    <p class="small" style="color:#888; font-size: 12px; line-height: 1.5; margin: 0;">Each <span class="mono">max(0, …)</span> clamps the factor to zero when it's <em>not</em> adversely positioned. If growth is fine OR inflation is cooling, one factor is zero, so the product is zero. The score only rises when growth is weak <em>and</em> inflation is rising at the same time.</p>
+    <p class="small" style="color:#bbb; font-size: 12px; line-height: 1.5; margin: 6px 0 0;"><strong style="color:#cdaa6a;">Today's math:</strong> <span class="mono">max(0, −(−0.88)) = 0.88</span> · <span class="mono">max(0, −0.42) = 0</span> · product = <span class="mono">0.88 × 0 = 0</span>. Inflation is cooling, so stress is off regardless of how weak growth is.</p>
   </div>
 </div>
 
