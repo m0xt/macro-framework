@@ -4,6 +4,10 @@ __pycache__/
 .venv/
 .claude/
 .env
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.pyright/
 
 # Generated cache — rebuilt on demand, not for version control
 .cache/raw_data.pkl

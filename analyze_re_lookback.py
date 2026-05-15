@@ -12,13 +12,17 @@ conditioning backtest and shows:
 
 import sys
 from pathlib import Path
+
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
 from build import (
+    calc_composite,
+    calc_financial_conditions,
+    calc_growth_impulse,
+    calc_macro_context,
+    calc_sector_breadth,
     fetch_all_data,
-    calc_growth_impulse, calc_financial_conditions, calc_sector_breadth,
-    calc_composite, calc_macro_context,
 )
 
 
@@ -81,7 +85,7 @@ def main():
         bucket_hits = {}
         bucket_ns = {}
 
-        print(f"  GREEN flips:")
+        print("  GREEN flips:")
         print(f"  {'RE / Inf':<32} {'N':>3}  {'SPX 30d':>9} {'SPX 90d':>9} {'SPX 180d':>9}  {'hit 90d':>8}")
         print("  " + "─" * 80)
         for qname, mask_fn in quadrants:

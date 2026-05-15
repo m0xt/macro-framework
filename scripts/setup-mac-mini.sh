@@ -30,12 +30,13 @@ fi
 echo "==> 2. Pull latest code"
 git pull --ff-only
 
-echo "==> 3. Python venv"
-if [[ ! -x .venv/bin/python ]]; then
-  python3 -m venv .venv
+echo "==> 3. Python env"
+if ! command -v uv >/dev/null 2>&1; then
+  brew install uv
 fi
-.venv/bin/pip install -q --upgrade pip
-.venv/bin/pip install -q -r requirements.txt
+uv sync --extra dev
+# Transition fallback if uv is temporarily unavailable:
+#   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 echo "==> 4. LaunchAgents (substituting __REPO__ + __HOME__)"
 mkdir -p "$LA_DIR" .cache

@@ -19,11 +19,11 @@ the read evolved over time.
 """
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 from datetime import date, datetime, timedelta
 from pathlib import Path
-import json
 
 ROOT = Path(__file__).parent
 CACHE_DIR = ROOT / ".cache"
@@ -280,9 +280,9 @@ def _economy_context(latest: dict, prior_7d: dict | None) -> str:
         "",
         "=== UNDERLYING AXES (collapsible 'Underlying components' on dashboard) ===",
         f"Real Economy Score (z): {_fmt(re_score)}" + diff7(re_score, "macro", "real_economy_score"),
-        f"  · Above 0 = healthy growth; below 0 = weakening",
+        "  · Above 0 = healthy growth; below 0 = weakening",
         f"Inflation Direction (Δ6m, pp): {_fmt(inf_dir)}" + diff7(inf_dir, "macro", "inflation_dir_pp"),
-        f"  · Above 0 = inflation accelerating; below 0 = decelerating",
+        "  · Above 0 = inflation accelerating; below 0 = decelerating",
         f"  · Latest Core CPI YoY level: {core_cpi:.2f}%" if isinstance(core_cpi, (int, float)) else "",
         "",
         "=== REAL ECONOMY SUB-COMPONENTS (drivers section, collapsed) ===",

@@ -7,9 +7,10 @@ Robustness tests for the macro composite signal.
 4. Equal vs alpha weights
 """
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
 
 CACHE_DIR = Path(__file__).parent / ".cache"
 

@@ -9,14 +9,17 @@ Compare to buy & hold across SPX, IWM, BTC.
 
 import sys
 from pathlib import Path
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
 from build import (
-    fetch_all_data,
-    calc_growth_impulse, calc_financial_conditions, calc_sector_breadth,
     calc_composite,
+    calc_financial_conditions,
+    calc_growth_impulse,
+    calc_sector_breadth,
+    fetch_all_data,
 )
 
 

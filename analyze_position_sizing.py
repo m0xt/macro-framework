@@ -19,14 +19,18 @@ sample and reports cumulative return, max drawdown, Sharpe-ish ratio.
 
 import sys
 from pathlib import Path
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
 from build import (
+    calc_composite,
+    calc_financial_conditions,
+    calc_growth_impulse,
+    calc_macro_context,
+    calc_sector_breadth,
     fetch_all_data,
-    calc_growth_impulse, calc_financial_conditions, calc_sector_breadth,
-    calc_composite, calc_macro_context,
 )
 
 

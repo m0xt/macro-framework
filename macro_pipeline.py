@@ -6,19 +6,13 @@ snapshot-writing logic that both the dashboard and analytics scripts use.
 It intentionally contains no HTML dashboard renderer.
 """
 import json
-
-from datetime import datetime, timezone
-
+from datetime import UTC, datetime
 from io import StringIO
-
 from pathlib import Path
 
 import numpy as np
-
 import pandas as pd
-
 import requests
-
 import yfinance as yf
 
 CACHE_DIR = Path(__file__).parent / ".cache"
@@ -918,8 +912,8 @@ def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, ma
     # Latest composite / drivers (from our z-scored signals)
     composite_v = _latest(composite)
     snapshot = {
-        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        "build_time_utc": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+        "date": datetime.now(UTC).strftime("%Y-%m-%d"),
+        "build_time_utc": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
         "mrmi": {
             "composite": composite_v,
             "state": ("green" if (composite_v is not None and composite_v > 0)

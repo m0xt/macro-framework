@@ -40,8 +40,8 @@ def row_from_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
 
 
 import math
-import pandas as pd
 
+import pandas as pd
 
 _HOT_COLUMNS = (
     "mrmi", "mmi", "stress_intensity", "macro_buffer",
@@ -76,6 +76,7 @@ def rows_from_backfill_series(series: dict[str, pd.Series]) -> list[dict[str, An
 
 import os
 import sys
+
 from dotenv import load_dotenv
 
 
@@ -100,8 +101,8 @@ def load_credentials() -> tuple[str, str]:
 
 import json
 from pathlib import Path
-from supabase import create_client, Client
 
+from supabase import Client, create_client
 
 SNAPSHOT_DIR = Path(__file__).parent / ".cache" / "snapshots"
 
@@ -146,7 +147,6 @@ def cmd_latest() -> None:
 
 
 import build  # reuses fetch + compute pipeline
-
 
 _CHUNK_SIZE = 500
 

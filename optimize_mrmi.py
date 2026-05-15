@@ -20,17 +20,18 @@ For each combo:
      (we want SOME activity, not just always-long)
 """
 
+import itertools
 import sys
 from pathlib import Path
+
 import pandas as pd
-import numpy as np
-import itertools
 
 sys.path.insert(0, str(Path(__file__).parent))
 from build import (
+    _zscore,
+    calc_macro_context,
+    clip_series,
     fetch_all_data,
-    calc_financial_conditions, calc_sector_breadth,
-    calc_macro_context, _zscore, clip_series,
 )
 
 

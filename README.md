@@ -7,8 +7,11 @@ A macro regime indicator system that signals when to be invested (LONG) vs in ca
 ```bash
 git clone https://github.com/your-org/macro-framework
 cd macro-framework
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+brew install uv  # if uv is not already installed
+uv sync --extra dev
+
+# Fallback during the transition if uv is temporarily unavailable:
+# python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ```
 
 ## Quick Start
@@ -159,7 +162,10 @@ weekly_briefs.py            # Three-tier weekly briefs via `claude` CLI
 optimize.py                 # Parameter grid search and backtesting
 robustness.py               # Walk-forward and benchmark robustness tests
 build_report.py             # Markdown-to-HTML report builder
-requirements.txt            # Python dependencies
+pyproject.toml              # Python dependency/tooling config
+uv.lock                     # Locked uv environment
+requirements.txt            # Legacy pip fallback dependencies
+tests/test_smoke.py         # Import, entry-point, and MRMI invariant smoke tests
 README.md                   # This file
 GUIDE.md                    # Complete framework explanation
 CLAUDE.md                   # Context for Claude Code sessions

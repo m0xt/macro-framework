@@ -15,16 +15,19 @@ Search space:
   - Threshold: 0, +0.5 (more aggressive de-risking)
 """
 
+import itertools
 import sys
 from pathlib import Path
+
 import pandas as pd
-import numpy as np
-import itertools
 
 sys.path.insert(0, str(Path(__file__).parent))
-from build import fetch_all_data, calc_macro_context
+from build import calc_macro_context, fetch_all_data
 from optimize_mrmi import (
-    calc_gii_custom, calc_breadth_custom, calc_fincon_custom, calc_combined_mrmi,
+    calc_breadth_custom,
+    calc_combined_mrmi,
+    calc_fincon_custom,
+    calc_gii_custom,
 )
 
 
