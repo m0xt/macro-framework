@@ -44,7 +44,7 @@ build.py  →  .cache/raw_data.pkl        (Yahoo + FRED, 12h TTL)
         Downstream apps (anon key + RLS)
 ```
 
-`build.py`, `build_v2.py`, and `generate_commentary.py` are not modified.
+`build.py`, `macro_pipeline.py`, and `weekly_briefs.py` own the dashboard/brief pipeline; Supabase sync remains separate from dashboard rendering.
 The sync is a separate script with no coupling to the dashboard build —
 a Supabase outage cannot break the dashboard.
 
@@ -148,7 +148,7 @@ This avoids drift between dashboard and Supabase values.
 
 Optional chain into existing build flow:
 ```
-.venv/bin/python build_v2.py && .venv/bin/python sync_to_supabase.py latest
+.venv/bin/python build.py && .venv/bin/python sync_to_supabase.py latest
 ```
 
 ## Auth & access control
@@ -222,7 +222,7 @@ Changed:
 - `.gitignore` — add `.env`.
 - `requirements.txt` — add `supabase` and `python-dotenv`.
 
-Untouched: `build.py`, `build_v2.py`, `generate_commentary.py`,
+Untouched by sync-only changes: `build.py`, `macro_pipeline.py`, `weekly_briefs.py`,
 `optimize.py`, all `analyze_*.py`, all `briefs/`.
 
 ## Testing

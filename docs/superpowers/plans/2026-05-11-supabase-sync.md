@@ -20,7 +20,7 @@
 - **Create:** `test_sync_to_supabase.py` — unit tests at repo root, matches flat layout (`analyze_*.py`, `optimize_*.py`).
 - **Modify:** `requirements.txt` — append `supabase` and `python-dotenv`.
 - **No change:** `.gitignore` already excludes `.env`.
-- **No change:** `build.py`, `build_v2.py`, `generate_commentary.py`.
+- **No change:** dashboard/brief pipeline (`build.py`, `macro_pipeline.py`, `weekly_briefs.py`).
 
 Each file has one responsibility. Sync logic stays in one focused module (~200 lines). Schema lives in SQL so it can be applied via Supabase SQL editor or `psql`.
 
@@ -739,7 +739,7 @@ Mirror computed indicators to a Supabase project for reuse in other apps.
 
 After each dashboard build:
 ```
-.venv/bin/python build_v2.py && .venv/bin/python sync_to_supabase.py latest
+.venv/bin/python build.py && .venv/bin/python sync_to_supabase.py latest
 ```
 
 ### Downstream usage (any other project)
@@ -772,5 +772,5 @@ git commit -m "Document Supabase sync setup + downstream reader example"
 - Latest sync produces a row with non-null hot columns + populated `snapshot` JSONB
 - Backfill produces ~3,500 rows with null `snapshot`
 - Re-running `latest` is idempotent (same row, `updated_at` advances)
-- `build.py`, `build_v2.py`, `generate_commentary.py` unchanged
+- `build.py`, `macro_pipeline.py`, `weekly_briefs.py` unchanged by the original Supabase sync work
 - README has the Supabase Sync section
