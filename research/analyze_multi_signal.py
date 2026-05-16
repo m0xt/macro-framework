@@ -35,7 +35,7 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
-from build import (
+from macro_framework.build import (
     _sahm_rule,
     calc_composite,
     calc_financial_conditions,

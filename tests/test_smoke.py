@@ -1,4 +1,4 @@
-"""Smoke tests for macro-framework's flat module layout and MRMI invariants.
+"""Smoke tests for macro-framework's src/macro_framework package layout and MRMI invariants.
 
 This intentionally does not fix the known doc/code drift or retired research
 scripts. Known-broken Macro Seasons research imports are xfailed so the suite is
@@ -19,7 +19,15 @@ import pandas as pd
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-PRODUCTION_MODULES = ["build", "macro_pipeline", "weekly_briefs", "sync_to_supabase"]
+SRC = ROOT / "src"
+PACKAGE_DIR = SRC / "macro_framework"
+PRODUCTION_MODULES = [
+    "macro_framework.backtest_production",
+    "macro_framework.build",
+    "macro_framework.macro_pipeline",
+    "macro_framework.weekly_briefs",
+    "macro_framework.sync_to_supabase",
+]
 ANALYZE_MODULES = sorted(
     [f"research.{p.stem}" for p in (ROOT / "research").glob("analyze_*.py")]
     + [f"research.archive.{p.stem}" for p in (ROOT / "research" / "archive").glob("analyze_*.py")]
@@ -30,12 +38,15 @@ BROKEN_ANALYZE_MODULES = {
     "research.analyze_alpha_strategies": "research import drift surfaced by smoke baseline",
     "research.analyze_multi_signal": "research import drift surfaced by smoke baseline",
 }
-ENTRYPOINT_MODULES = ["build", "weekly_briefs", "sync_to_supabase"]
+ENTRYPOINT_MODULES = ["build", "weekly_briefs", "sync_to_supabase", "backtest_production"]
 
 
 def _import_module(name: str) -> ModuleType:
-    if str(ROOT) not in sys.path:
-        sys.path.insert(0, str(ROOT))
+    # Production code should resolve through the installed src package; top-level
+    # research scripts remain import-smoked as loose repo-root modules.
+    for path in (ROOT, SRC):
+        if str(path) not in sys.path:
+            sys.path.insert(0, str(path))
     return importlib.import_module(name)
 
 
@@ -68,20 +79,20 @@ def test_analyze_modules_import_or_known_xfail(module_name: str) -> None:
 # ── (b) entry-point dry-run ─────────────────────────────────────────────────
 
 def test_entrypoint_scripts_have_main_guard() -> None:
-    missing = [name for name in ENTRYPOINT_MODULES if not _has_main_guard(ROOT / f"{name}.py")]
+    missing = [name for name in ENTRYPOINT_MODULES if not _has_main_guard(PACKAGE_DIR / f"{name}.py")]
     assert missing == []
 
 
 def test_sync_to_supabase_help_does_not_touch_network(monkeypatch: pytest.MonkeyPatch) -> None:
-    sync_to_supabase = _import_module("sync_to_supabase")
-    monkeypatch.setattr(sys, "argv", ["sync_to_supabase.py", "--help"])
+    sync_to_supabase = _import_module("macro_framework.sync_to_supabase")
+    monkeypatch.setattr(sys, "argv", ["python -m macro_framework.sync_to_supabase", "--help"])
     with pytest.raises(SystemExit) as exc:
         sync_to_supabase.main()
     assert exc.value.code == 0
 
 
 def test_weekly_briefs_dry_run_without_claude(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    weekly_briefs = _import_module("weekly_briefs")
+    weekly_briefs = _import_module("macro_framework.weekly_briefs")
     monkeypatch.setattr(weekly_briefs, "SNAPSHOT_DIR", tmp_path / "snapshots")
     monkeypatch.setattr(weekly_briefs, "BRIEFS_DIR", tmp_path / "briefs")
     monkeypatch.setattr(weekly_briefs.shutil, "which", lambda name: "/usr/bin/claude")
@@ -94,7 +105,7 @@ def test_weekly_briefs_dry_run_without_claude(tmp_path: Path, monkeypatch: pytes
 # ── (c) MRMI formula invariants ─────────────────────────────────────────────
 
 def test_mrmi_formula_matches_documented_equation() -> None:
-    macro_pipeline = _import_module("macro_pipeline")
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
     idx = pd.date_range("2026-01-01", periods=4, freq="D")
     momentum = pd.Series([0.2, -0.1, 0.8, 0.0], index=idx)
     re_score = pd.Series([0.5, -0.5, -2.0, -0.25], index=idx)
@@ -119,7 +130,7 @@ def test_mrmi_formula_matches_documented_equation() -> None:
 
 
 def test_stress_intensity_is_clipped_to_zero_one() -> None:
-    macro_pipeline = _import_module("macro_pipeline")
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
     idx = pd.date_range("2026-01-01", periods=5, freq="D")
     momentum = pd.Series(np.zeros(len(idx)), index=idx)
     re_score = pd.Series([10.0, -10.0, -0.5, 0.0, -2.0], index=idx)
@@ -138,7 +149,7 @@ def test_stress_intensity_is_clipped_to_zero_one() -> None:
 
 
 def test_prepare_chart_data_uses_release_lagged_macro_values() -> None:
-    macro_pipeline = _import_module("macro_pipeline")
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
     idx = pd.date_range("2025-01-01", periods=430, freq="D")
     data = pd.DataFrame({
         "PCEC96": np.linspace(100.0, 140.0, len(idx)),
@@ -177,7 +188,7 @@ def test_prepare_chart_data_uses_release_lagged_macro_values() -> None:
 
 
 def test_save_snapshot_schema_uses_actual_current_keys(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    macro_pipeline = _import_module("macro_pipeline")
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
     idx = pd.date_range("2026-01-01", periods=3, freq="D")
     monkeypatch.setattr(macro_pipeline, "SNAPSHOT_DIR", tmp_path)
 
@@ -236,7 +247,7 @@ def _function_source(module_text: str, name: str, next_name: str) -> str:
 
 
 def test_breadth_lookback_docs_match_code() -> None:
-    source = (ROOT / "macro_pipeline.py").read_text()
+    source = (PACKAGE_DIR / "macro_pipeline.py").read_text()
     calc_sector_src = _function_source(source, "calc_sector_breadth", "calc_business_cycle")
     code_lookback = int(calc_sector_src.split("LOOKBACK =", 1)[1].split("#", 1)[0].strip())
 
@@ -247,7 +258,7 @@ def test_breadth_lookback_docs_match_code() -> None:
 
 
 def test_documented_mrmi_parameters_are_locked_to_code() -> None:
-    source = (ROOT / "macro_pipeline.py").read_text()
+    source = (PACKAGE_DIR / "macro_pipeline.py").read_text()
     mrmi_src = _function_source(source, "calc_milk_road_macro_index", "calc_macro_context")
     assert "buffer_size: float = 1.0" in mrmi_src
     assert "threshold: float = 0.5" in mrmi_src
@@ -260,7 +271,7 @@ def test_documented_mrmi_parameters_are_locked_to_code() -> None:
 
 
 def test_documented_release_lags_are_locked_to_code() -> None:
-    macro_pipeline = _import_module("macro_pipeline")
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
     assert macro_pipeline.RELEASE_LAGS_DAYS == {
         "PCEC96": 60,
         "UNRATE": 35,

@@ -6,7 +6,7 @@
 
 | Name | Required for | Notes |
 |---|---|---|
-| `SUPABASE_URL` | `sync_to_supabase.py doctor/latest/backfill` | Project URL, e.g. `https://<ref>.supabase.co`. |
+| `SUPABASE_URL` | `python -m macro_framework.sync_to_supabase doctor/latest/backfill` | Project URL, e.g. `https://<ref>.supabase.co`. |
 | `SUPABASE_SERVICE_KEY` | Supabase writes/backfills | Service-role key. Treat as sensitive; never expose to browser bundles or commit. |
 
 ## Location
@@ -19,7 +19,7 @@ Target skeleton location:
 
 Current state:
 
-- `sync_to_supabase.py` calls `load_dotenv()` and therefore reads project-root `.env` plus process environment.
+- `src/macro_framework/sync_to_supabase.py` calls `load_dotenv()` and therefore reads project-root `.env` plus process environment.
 - `.env.example` is committed as the template.
 - Real `.env` is ignored and must not be committed.
 - Migration to `~/ops/secrets/macro-framework/.env` under git-crypt is pending; do not move live secrets unless that dispatch explicitly asks for it.
@@ -33,13 +33,13 @@ SUPABASE_SERVICE_KEY=...
 
 ## Missing or bad secrets
 
-If env vars are missing, `sync_to_supabase.py` exits with code `20` and prints `error[supabase-auth]`.
+If env vars are missing, `src/macro_framework/sync_to_supabase.py` exits with code `20` and prints `error[supabase-auth]`.
 
 Manual check:
 
 ```bash
 cd ~/projects/macro-framework
-uv run python sync_to_supabase.py doctor
+uv run python -m macro_framework.sync_to_supabase doctor
 ```
 
 `scripts/refresh.sh` treats Supabase auth failures as sync-only failures after a successful local dashboard build: local dashboard/snapshot outputs can still commit, and status will say `refresh ok, supabase sync failed (supabase-auth)`.
@@ -54,8 +54,8 @@ uv run python sync_to_supabase.py doctor
 4. Run:
    ```bash
    cd ~/projects/macro-framework
-   uv run python sync_to_supabase.py doctor
-   uv run python sync_to_supabase.py latest
+   uv run python -m macro_framework.sync_to_supabase doctor
+   uv run python -m macro_framework.sync_to_supabase latest
    ```
 5. If `doctor` fails with schema drift after rotation, the key is probably valid but the remote schema still needs `supabase_schema.sql` applied.
 6. If `doctor` fails with auth, verify the key type and project URL match.
@@ -66,7 +66,7 @@ When the dedicated migration happens:
 
 1. Create `~/ops/secrets/macro-framework/.env` under the encrypted ops-secret workflow.
 2. Move the real values there.
-3. Update `sync_to_supabase.py` or the launchd environment so the file is loaded explicitly.
+3. Update `src/macro_framework/sync_to_supabase.py` or the launchd environment so the file is loaded explicitly.
 4. Keep `.env.example` in this repo.
 5. Run tests plus Supabase doctor/latest.
 6. Document the change in `DECISIONS.md`.

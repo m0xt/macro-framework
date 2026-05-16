@@ -705,7 +705,7 @@ wheels = [
 [[package]]
 name = "macro-framework"
 version = "0.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },

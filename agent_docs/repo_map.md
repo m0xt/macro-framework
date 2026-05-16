@@ -1,6 +1,6 @@
 # Repo map
 
-This is the agent-facing ownership map for `macro-framework`. The active production path is `scripts/refresh.sh` → `build.py --no-cache` → `sync_to_supabase.py latest` → commit `briefs/`, `outputs/dashboard.html`, and `snapshots/`.
+This is the agent-facing ownership map for `macro-framework`. The active production path is `scripts/refresh.sh` → `python -m macro_framework.build --no-cache` → `python -m macro_framework.sync_to_supabase latest` → commit `briefs/`, `outputs/dashboard.html`, and `snapshots/`.
 
 ## Active production files
 
@@ -10,10 +10,10 @@ This is the agent-facing ownership map for `macro-framework`. The active product
 | `CLAUDE.md` | active | One-line `@AGENTS.md` import. |
 | `README.md` | active | Human front door only. |
 | `DECISIONS.md` | active | Append-only why-log for skeleton deviations and parameter decisions. |
-| `build.py` | active | Main dashboard build entry point. Fetches data, computes indicators, writes snapshot, renders `outputs/dashboard.html`, refreshes stale briefs. |
-| `macro_pipeline.py` | active | Production Yahoo/FRED fetch, indicator math, MRMI formula, chart payload, snapshot schema. |
-| `weekly_briefs.py` | active | Claude CLI market/economy/top weekly brief generation. |
-| `sync_to_supabase.py` | active | Supabase doctor/latest/backfill sync; owns schema preflight and error taxonomy. |
+| `src/macro_framework/build.py` | active | Main dashboard build entry point. Fetches data, computes indicators, writes snapshot, renders `outputs/dashboard.html`, refreshes stale briefs. |
+| `src/macro_framework/macro_pipeline.py` | active | Production Yahoo/FRED fetch, indicator math, MRMI formula, chart payload, snapshot schema. |
+| `src/macro_framework/weekly_briefs.py` | active | Claude CLI market/economy/top weekly brief generation. |
+| `src/macro_framework/sync_to_supabase.py` | active | Supabase doctor/latest/backfill sync; owns schema preflight and error taxonomy. |
 | `scripts/refresh.sh` | active | LaunchAgent cron path and ops-wrapper integration. |
 | `scripts/com.milkroad.macro-refresh.plist` | active | Tuesday 11:00 Prague pre-meeting refresh template. |
 | `scripts/com.milkroad.macro-refresh-daily.plist` | active | Mon-Fri 22:30 Prague after-close refresh template. |
@@ -33,7 +33,7 @@ This is the agent-facing ownership map for `macro-framework`. The active product
 |---|---|---|
 | `tests/test_smoke.py` | active | Production imports, entrypoint guards, weekly-brief dry run, MRMI formula/parameter/release-lag locks, snapshot schema. |
 | `tests/test_supabase_sync.py` | active | Supabase preflight, schema drift, missing columns, and refresh fail-soft behavior. |
-| `test_sync_to_supabase.py` | compatibility | Legacy/root Supabase tests retained for now; can be consolidated later. |
+| `tests/test_sync_to_supabase.py` | compatibility | Legacy Supabase row-builder tests retained under pytest; can be consolidated later. |
 
 ## Human docs and durable artifacts
 
@@ -63,7 +63,7 @@ This is the agent-facing ownership map for `macro-framework`. The active product
 
 ## Monthly report tools
 
-Supported manual flow, not on the cron path. `scripts/refresh.sh`, `build.py`, and `macro_pipeline.py` do not call these files.
+Supported manual flow, not on the cron path. `scripts/refresh.sh`, `src/macro_framework/build.py`, and `src/macro_framework/macro_pipeline.py` do not call these files.
 
 | Path | Status | Notes |
 |---|---|---|
@@ -76,7 +76,7 @@ Supported manual flow, not on the cron path. `scripts/refresh.sh`, `build.py`, a
 
 | Path | Status | Notes |
 |---|---|---|
-| `backtest_production.py` | manual / supported | Produces PRESENTATION/report backtest numbers; kept at root because it directly supports `docs/PRESENTATION.html`. |
+| `src/macro_framework/backtest_production.py` | manual / supported | Produces PRESENTATION/report backtest numbers; packaged with production/support code; directly supports `docs/PRESENTATION.html`. |
 | `research/optimization/optimize.py` | research / provenance | Parameter grid search and backtesting CLI. |
 | `research/optimization/optimize_drawdown.py` | research / provenance | Drawdown-focused optimization history. |
 | `research/optimization/optimize_mrmi.py` | research / provenance | MRMI optimization history. |
@@ -86,7 +86,7 @@ Supported manual flow, not on the cron path. `scripts/refresh.sh`, `build.py`, a
 
 ## `analyze_*.py` triage
 
-No `analyze_*.py` file is part of the active cron/dashboard path: none are called by `scripts/refresh.sh`, `build.py`, or `macro_pipeline.py`; all are standalone research scripts. Reproducible/stale-keep scripts live in `research/`; broken retired Macro Seasons scripts live in `research/archive/` and are kept for history only.
+No `analyze_*.py` file is part of the active cron/dashboard path: none are called by `scripts/refresh.sh`, `src/macro_framework/build.py`, or `src/macro_framework/macro_pipeline.py`; all are standalone research scripts. They may import production helpers through `macro_framework.*`, but cron does not import them. Reproducible/stale-keep scripts live in `research/`; broken retired Macro Seasons scripts live in `research/archive/` and are kept for history only.
 
 | File | Status | Notes |
 |---|---|---|

@@ -11,10 +11,11 @@ from typing import Any
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
-import sync_to_supabase  # noqa: E402
+import macro_framework.sync_to_supabase as sync_to_supabase  # noqa: E402
 
 
 class FakeQuery:
@@ -110,9 +111,9 @@ trap 'mkdir -p "$(dirname "$STATUS_FILE")"; printf "{\\\"status\\\":\\\"ok\\\",\
         """#!/usr/bin/env bash
 set -euo pipefail
 echo "$*" >> "$TEST_LOG"
-case "$1" in
-  build.py) exit 0 ;;
-  sync_to_supabase.py) echo 'schema mismatch' >&2; exit 22 ;;
+case "$*" in
+  "-m macro_framework.build --no-cache") exit 0 ;;
+  "-m macro_framework.sync_to_supabase latest") echo 'schema mismatch' >&2; exit 22 ;;
   *) exit 99 ;;
 esac
 """
@@ -139,8 +140,8 @@ esac
 
     assert proc.returncode == 0, proc.stderr
     log = log_path.read_text()
-    assert "build.py --no-cache" in log
-    assert "sync_to_supabase.py latest" in log
+    assert "-m macro_framework.build --no-cache" in log
+    assert "-m macro_framework.sync_to_supabase latest" in log
     assert "commit_outputs" in log
     assert "supabase-schema-drift" in proc.stderr
     status = json.loads(status_path.read_text())

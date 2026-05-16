@@ -26,7 +26,8 @@ from supabase import Client, create_client
 
 EXPECTED_SCHEMA_VERSION = 1
 SCHEMA_VERSION_KEY = "schema_version"
-SNAPSHOT_DIR = Path(__file__).parent / "snapshots"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SNAPSHOT_DIR = REPO_ROOT / "snapshots"
 _CHUNK_SIZE = 500
 
 EXIT_AUTH = 20
@@ -233,7 +234,7 @@ def _latest_snapshot_path() -> Path:
     if not SNAPSHOT_DIR.exists():
         print(
             f"error: no snapshot directory at {SNAPSHOT_DIR}.\n"
-            f"Run `.venv/bin/python build.py` first to produce a snapshot.",
+            f"Run `uv run python -m macro_framework.build` first to produce a snapshot.",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -241,7 +242,7 @@ def _latest_snapshot_path() -> Path:
     if not snapshots:
         print(
             f"error: no snapshot JSON files in {SNAPSHOT_DIR}.\n"
-            f"Run `.venv/bin/python build.py` first.",
+            f"Run `uv run python -m macro_framework.build` first.",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -275,12 +276,12 @@ def cmd_latest() -> None:
 
 
 def cmd_backfill() -> None:
-    import build  # reuses fetch + compute pipeline
+    from macro_framework import build  # reuses fetch + compute pipeline
 
     if not build.DATA_CACHE.exists():
         print(
             f"error: {build.DATA_CACHE} not found.\n"
-            f"Run `.venv/bin/python build.py` first to populate the cache.",
+            f"Run `uv run python -m macro_framework.build` first to populate the cache.",
             file=sys.stderr,
         )
         sys.exit(1)

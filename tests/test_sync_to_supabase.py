@@ -1,6 +1,6 @@
 import pytest
 
-from sync_to_supabase import row_from_snapshot
+from macro_framework.sync_to_supabase import row_from_snapshot
 
 SAMPLE_SNAPSHOT = {
     "date": "2026-05-11",
@@ -54,7 +54,7 @@ def test_row_from_snapshot_embeds_full_blob():
 import numpy as np
 import pandas as pd
 
-from sync_to_supabase import rows_from_backfill_series
+from macro_framework.sync_to_supabase import rows_from_backfill_series
 
 
 def test_rows_from_backfill_series_basic():
@@ -102,7 +102,7 @@ def test_rows_from_backfill_series_skips_nan_rows():
     assert rows[0]["date"] == "2024-01-02"
 
 
-from sync_to_supabase import load_credentials
+from macro_framework.sync_to_supabase import load_credentials
 
 
 def test_load_credentials_returns_values(monkeypatch):
@@ -114,7 +114,7 @@ def test_load_credentials_returns_values(monkeypatch):
 
 
 def test_load_credentials_missing_url_exits(monkeypatch, capsys):
-    import sync_to_supabase
+    import macro_framework.sync_to_supabase as sync_to_supabase
 
     monkeypatch.setattr(sync_to_supabase, "load_dotenv", lambda: None)
     monkeypatch.delenv("SUPABASE_URL", raising=False)
@@ -127,7 +127,7 @@ def test_load_credentials_missing_url_exits(monkeypatch, capsys):
 
 
 def test_load_credentials_missing_key_exits(monkeypatch, capsys):
-    import sync_to_supabase
+    import macro_framework.sync_to_supabase as sync_to_supabase
 
     monkeypatch.setattr(sync_to_supabase, "load_dotenv", lambda: None)
     monkeypatch.setenv("SUPABASE_URL", "https://abc.supabase.co")

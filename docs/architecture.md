@@ -19,7 +19,7 @@ MRMI < 0 -> CASH
 - `Real_Economy` is an equal-weighted z-score of real PCE YoY, Sahm Rule inverted, real personal income YoY, and Atlanta Fed GDPNow.
 - `Inflation_Direction` is the 6-month change in core CPI YoY, in percentage points.
 - `stress_intensity` is clipped to `[0, 1]`; the dashboard `stress_on` flag fires when intensity is above 0.5.
-- The default `buffer_size=1.0` and `threshold=0.5` live in `macro_pipeline.py` and are locked by `tests/test_smoke.py`.
+- The default `buffer_size=1.0` and `threshold=0.5` live in `src/macro_framework/macro_pipeline.py` and are locked by `tests/test_smoke.py`.
 
 The buffer is intentionally pro-risk by default: MMI weakness alone is not enough to trigger CASH unless macro stress also builds. This is why MMI standalone can outperform MRMI in calm periods; the buffer is insurance against false market alarms and stagflation-style drawdowns.
 
@@ -29,13 +29,13 @@ The buffer is intentionally pro-risk by default: MMI weakness alone is not enoug
 - Financial Conditions uses a 252-day lookback across VIX, MOVE, and high-yield spreads.
 - GII uses `fast_roc=21`, `slow_roc=126`, `z_len=504`, fast-composite mode.
 - Macro context applies release lags by default: PCE/RPI 60d, unemployment 35d, Core CPI 45d, GDPNow 0d.
-- `research/analyze_walkforward.py`, `research/analyze_re_lookback.py`, `research/analyze_inflation_window.py`, `research/optimization/optimize.py`, and `backtest_production.py` preserve the research trail behind the current parameter set. They are not cron entry points.
+- `research/analyze_walkforward.py`, `research/analyze_re_lookback.py`, `research/analyze_inflation_window.py`, `research/optimization/optimize.py`, and `src/macro_framework/backtest_production.py` preserve the research trail behind the current parameter set. They are not cron entry points.
 
 ## Indicator pipeline
 
-1. `build.py` calls `macro_pipeline.fetch_all_data()`.
+1. `src/macro_framework/build.py` calls `macro_framework.macro_pipeline.fetch_all_data()`.
 2. `fetch_all_data()` downloads Yahoo Finance series and FRED CSV series, then writes/reads `.cache/raw_data.pkl` for the 12-hour cache window unless `--no-cache` is used.
-3. `macro_pipeline.py` computes:
+3. `src/macro_framework/macro_pipeline.py` computes:
    - `calc_growth_impulse()` for GII.
    - `calc_financial_conditions()` for FinCon.
    - `calc_sector_breadth()` for cyclical sector breadth.
@@ -43,9 +43,9 @@ The buffer is intentionally pro-risk by default: MMI weakness alone is not enoug
    - `calc_macro_context()` for release-lagged real economy and inflation context.
    - `calc_milk_road_macro_index()` for MRMI, macro buffer, and stress intensity.
 4. `save_snapshot()` writes `snapshots/YYYY-MM-DD.json` with the current MRMI, components, macro fields, underliers, and full nested snapshot.
-5. `prepare_chart_data()` serializes dashboard chart payloads for `build.py`.
-6. `build.py` embeds the payload and briefs into `outputs/dashboard.html`.
-7. `sync_to_supabase.py latest` converts the newest snapshot into one `macro_snapshots` row for downstream apps.
+5. `prepare_chart_data()` serializes dashboard chart payloads for `src/macro_framework/build.py`.
+6. `src/macro_framework/build.py` embeds the payload and briefs into `outputs/dashboard.html`.
+7. `python -m macro_framework.sync_to_supabase latest` converts the newest snapshot into one `macro_snapshots` row for downstream apps.
 
 ## Dashboard structure
 
@@ -70,14 +70,14 @@ The retired Macro Seasons/Spring/Summer/Fall/Winter model should not be reintrod
 
 1. Source `~/ops/lib/cron-wrapper.sh`.
 2. `cron_wrapper_pull` to fast-forward the repo.
-3. Run `build.py --no-cache`.
-4. Run `sync_to_supabase.py latest`.
+3. Run `python -m macro_framework.build --no-cache`.
+4. Run `python -m macro_framework.sync_to_supabase latest`.
 5. Commit tracked outputs: `briefs/`, `outputs/dashboard.html`, and `snapshots/`.
 6. Write `.cache/status.json` through the ops wrapper.
 
 Supabase failures are fail-soft: if the local dashboard build succeeds but sync fails with `supabase-auth`, `supabase-network`, or `supabase-schema-drift`, `refresh.sh` still commits local deliverables and records `refresh ok, supabase sync failed (<type>)`.
 
-Weekly briefs are not strict “only Tuesdays.” `weekly_briefs.py` implements lazy Tuesday freshness: a brief is stale if the latest dated archive containing that brief is older than the most recent Tuesday on or before today. Therefore the first successful build on or after Tuesday regenerates the week’s briefs; later builds skip until the next Tuesday cutoff unless forced.
+Weekly briefs are not strict “only Tuesdays.” `src/macro_framework/weekly_briefs.py` implements lazy Tuesday freshness: a brief is stale if the latest dated archive containing that brief is older than the most recent Tuesday on or before today. Therefore the first successful build on or after Tuesday regenerates the week’s briefs; later builds skip until the next Tuesday cutoff unless forced.
 
 ## External integrations
 
@@ -87,7 +87,7 @@ Yahoo Finance supplies market/ETF/commodity/volatility inputs through `yfinance`
 
 ### Supabase
 
-`sync_to_supabase.py` requires `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`. Before writing, it validates:
+`src/macro_framework/sync_to_supabase.py` requires `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`. Before writing, it validates:
 
 - `macro_meta` contains the expected schema sentinel.
 - Remote version matches `EXPECTED_SCHEMA_VERSION`.
@@ -97,4 +97,4 @@ Yahoo Finance supplies market/ETF/commodity/volatility inputs through `yfinance`
 
 ### Claude CLI
 
-`weekly_briefs.py` subprocess-calls the `claude` CLI. It uses the Claude Code subscription; there is no Anthropic SDK dependency and no `ANTHROPIC_API_KEY` requirement. Missing CLI/auth or timeouts affect brief generation, not raw indicator math.
+`src/macro_framework/weekly_briefs.py` subprocess-calls the `claude` CLI. It uses the Claude Code subscription; there is no Anthropic SDK dependency and no `ANTHROPIC_API_KEY` requirement. Missing CLI/auth or timeouts affect brief generation, not raw indicator math.

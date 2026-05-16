@@ -368,11 +368,11 @@ def optimize_gii(data: pd.DataFrame, target: str = "spx"):
       - fast > 0 (responsive)
       - both > 0 (conservative)
     """
-    from build import chg as bchg
-    from build import clip_series
-    from build import ema as bema
-    from build import roc as broc
-    from build import zscore as bz
+    from macro_framework.build import chg as bchg
+    from macro_framework.build import clip_series
+    from macro_framework.build import ema as bema
+    from macro_framework.build import roc as broc
+    from macro_framework.build import zscore as bz
 
     asset_rets = {
         "spx": data["^GSPC"].pct_change(),
@@ -712,7 +712,11 @@ def optimize_composite(data: pd.DataFrame, target: str = "spx"):
     Test different ways to combine the 3 working indicators into one signal.
     Uses the already-optimized parameters for each individual indicator.
     """
-    from build import calc_financial_conditions, calc_growth_impulse, calc_sector_breadth
+    from macro_framework.build import (
+        calc_financial_conditions,
+        calc_growth_impulse,
+        calc_sector_breadth,
+    )
 
     asset_rets = {
         "spx": data["^GSPC"].pct_change(),
@@ -849,9 +853,9 @@ def optimize_liquidity(data: pd.DataFrame, target: str = "spx"):
     Grid search over liquidity indicator parameters.
     Tests: net liquidity ROC z-score, level z-score, and combinations.
     """
-    from build import ema as bema
-    from build import roc as broc
-    from build import zscore as bz
+    from macro_framework.build import ema as bema
+    from macro_framework.build import roc as broc
+    from macro_framework.build import zscore as bz
 
     asset_rets = {
         "spx": data["^GSPC"].pct_change(),
@@ -954,8 +958,8 @@ def optimize_gei(data: pd.DataFrame, target: str = "spx"):
     Backtest the Global Economy Index with different lookbacks and smoothing.
     GEI is weekly-calibrated but we compute on daily data.
     """
-    from build import ema as bema
-    from build import zscore as bz
+    from macro_framework.build import ema as bema
+    from macro_framework.build import zscore as bz
 
     asset_rets = {
         "spx": data["^GSPC"].pct_change(),
@@ -1050,8 +1054,8 @@ def optimize_mktcycle(data: pd.DataFrame, target: str = "spx"):
     """
     Backtest the Market-Derived Business Cycle Index with different lookbacks and smoothing.
     """
-    from build import ema as bema
-    from build import zscore as bz
+    from macro_framework.build import ema as bema
+    from macro_framework.build import zscore as bz
 
     asset_rets = {
         "spx": data["^GSPC"].pct_change(),
@@ -1210,7 +1214,7 @@ def print_results(results, tested, name):
 
 def main():
     if not DATA_CACHE.exists():
-        print("No cached data. Run build.py first.")
+        print("No cached data. Run python -m macro_framework.build first.")
         sys.exit(1)
 
     data = pd.read_pickle(DATA_CACHE)

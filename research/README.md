@@ -1,6 +1,6 @@
 # Research scripts
 
-These scripts are standalone research/provenance tools. They are **not** imported by the cron path (`scripts/refresh.sh` → `build.py` → `macro_pipeline.py`). Run from the repo root with `uv run python research/<script>.py` unless a script says otherwise.
+These scripts are standalone research/provenance tools. They are **not** imported by the cron path (`scripts/refresh.sh` → `src/macro_framework/build.py` → `src/macro_framework/macro_pipeline.py`). Run from the repo root with `uv run python research/<script>.py` unless a script says otherwise.
 
 | File | Status | Notes |
 |---|---|---|

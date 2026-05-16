@@ -99,7 +99,7 @@ Each component is converted to a 21-day rate of change, z-scored over 504 days, 
 
 ### Sector Breadth — ⅓ weight
 
-**What it measures**: The z-score (over 90 days) of 7 cyclical sector ETFs. Provenance: `macro_pipeline.py` has used `LOOKBACK = 90` since commit `9f124cf` ("optimized for drawdown: was 63"); docs were reconciled to production on 2026-05-15 without changing math.
+**What it measures**: The z-score (over 90 days) of 7 cyclical sector ETFs. Provenance: `src/macro_framework/macro_pipeline.py` has used `LOOKBACK = 90` since commit `9f124cf` ("optimized for drawdown: was 63"); docs were reconciled to production on 2026-05-15 without changing math.
 - SMH — semiconductors (the AI/cycle barometer)
 - IWM — small-cap stocks (most economically sensitive)
 - IYT — transports (Dow Theory: transports lead the broader market)
@@ -223,7 +223,7 @@ Cadence is **lazy weekly Tuesday**: a brief is stale if its archive date is olde
 
 **Tuesday morning, before the macro-research meeting:**
 
-1. Run `.venv/bin/python build.py` to refresh data, write the snapshot, and render the dashboard. Brief generation triggers automatically if any are stale.
+1. Run `.venv/bin/python -m macro_framework.build` to refresh data, write the snapshot, and render the dashboard. Brief generation triggers automatically if any are stale.
 2. Open `outputs/dashboard.html`. Skim the hero (number, state, this week's read).
 4. Click into Step 1 to see how the regime has evolved over the chosen lookback.
 5. Read the market pillar brief (Step 2) and economy pillar brief (Step 3) before the meeting.

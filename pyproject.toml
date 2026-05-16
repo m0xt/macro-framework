@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "macro-framework"
 version = "0.0.0"
@@ -20,8 +24,17 @@ dev = [
     "pyright>=1.1",
 ]
 
+[project.scripts]
+macro-build = "macro_framework.build:main"
+macro-sync-supabase = "macro_framework.sync_to_supabase:main"
+macro-weekly-briefs = "macro_framework.weekly_briefs:main"
+macro-backtest-production = "macro_framework.backtest_production:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.uv]
-package = false
+package = true
 
 [tool.ruff]
 line-length = 100
@@ -37,13 +50,13 @@ ignore = ["E501"]
 "research/optimization/optimize*.py" = ["B007", "E701", "F841", "SIM108", "SIM401"]
 "research/optimization/robustness.py" = ["E701"]
 "research/optimization/validate_optimized.py" = ["E701"]
-"build.py" = ["E701", "E731", "F403", "F405", "F841", "SIM401"]
+"src/macro_framework/build.py" = ["E701", "E731", "F403", "F405", "F841", "SIM401"]
 "report/build_report.py" = ["B007"]
 "report/generate_report_charts.py" = ["B905", "E402"]
-"macro_pipeline.py" = ["B905", "E701", "SIM108"]
-"sync_to_supabase.py" = ["E402"]
-"test_sync_to_supabase.py" = ["E402"]
-"weekly_briefs.py" = ["E731", "E741"]
+"src/macro_framework/macro_pipeline.py" = ["B905", "E701", "SIM108"]
+"src/macro_framework/sync_to_supabase.py" = ["E402"]
+"tests/test_sync_to_supabase.py" = ["E402"]
+"src/macro_framework/weekly_briefs.py" = ["E731", "E741"]
 
 [tool.pyright]
 typeCheckingMode = "basic"

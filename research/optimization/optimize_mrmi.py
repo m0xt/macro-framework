@@ -27,7 +27,7 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
-from build import (
+from macro_framework.build import (
     _zscore,
     calc_macro_context,
     clip_series,

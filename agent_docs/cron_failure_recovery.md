@@ -15,7 +15,7 @@ uv run ruff check .
 
 ## Supabase sync failure
 
-`scripts/refresh.sh` builds the local dashboard/snapshot first, then runs `sync_to_supabase.py latest`. Supabase-only failures are isolated: local deliverables still commit and `.cache/status.json` reports `refresh ok, supabase sync failed (<type>)`.
+`scripts/refresh.sh` builds the local dashboard/snapshot first, then runs `python -m macro_framework.sync_to_supabase latest`. Supabase-only failures are isolated: local deliverables still commit and `.cache/status.json` reports `refresh ok, supabase sync failed (<type>)`.
 
 Failure types:
 - `supabase-schema-drift` — remote schema/version no longer matches `supabase_schema.sql` + `EXPECTED_SCHEMA_VERSION`.
@@ -23,28 +23,28 @@ Failure types:
 - `supabase-network` — timeout, DNS, connection, or unknown transient Supabase/PostgREST failure.
 
 Diagnose:
-1. Run `uv run python sync_to_supabase.py doctor`.
+1. Run `uv run python -m macro_framework.sync_to_supabase doctor`.
 2. If it reports schema drift, compare:
    - local `supabase_schema.sql` (`-- VERSION: N`)
-   - local `sync_to_supabase.py` (`EXPECTED_SCHEMA_VERSION = N`)
+   - local `src/macro_framework/sync_to_supabase.py` (`EXPECTED_SCHEMA_VERSION = N`)
    - remote `select * from macro_meta where key = 'schema_version';`
 3. If columns are missing, inspect `macro_snapshots` in the Supabase SQL editor and compare with `REQUIRED_MACRO_SNAPSHOTS_COLUMNS`.
 4. If auth fails, verify `.env` / launchd environment has `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` and that the key is a service-role key.
 
 Intentional schema change procedure:
 1. Update `supabase_schema.sql` with the DDL/migration and bump `-- VERSION: N` plus the `macro_meta` sentinel value.
-2. Update `EXPECTED_SCHEMA_VERSION` in `sync_to_supabase.py` to the same integer.
+2. Update `EXPECTED_SCHEMA_VERSION` in `src/macro_framework/sync_to_supabase.py` to the same integer.
 3. Update `REQUIRED_MACRO_SNAPSHOTS_COLUMNS` if columns changed.
 4. Apply the SQL in Supabase.
-5. Run `uv run python sync_to_supabase.py doctor` until it passes.
+5. Run `uv run python -m macro_framework.sync_to_supabase doctor` until it passes.
 6. Run tests: `uv run pytest` and `uv run ruff check .`.
 
 Manual retry after fixing:
 
 ```bash
 cd ~/projects/macro-framework
-uv run python sync_to_supabase.py doctor
-uv run python sync_to_supabase.py latest
+uv run python -m macro_framework.sync_to_supabase doctor
+uv run python -m macro_framework.sync_to_supabase latest
 ```
 
 If the local dashboard build succeeded earlier, do not rerun the full refresh unless data freshness matters; the latest snapshot is already on disk.
@@ -52,14 +52,14 @@ If the local dashboard build succeeded earlier, do not rerun the full refresh un
 ## Yahoo/FRED transient failures
 
 Symptoms:
-- `build.py --no-cache` fails before `outputs/dashboard.html` is updated.
+- `python -m macro_framework.build --no-cache` fails before `outputs/dashboard.html` is updated.
 - Stack traces from `yfinance`, `requests`, FRED CSV reads, DNS, TLS, rate limits, or empty data frames.
 - `.cache/status.json` reports a refresh/build failure rather than Supabase partial success.
 
 Recovery:
 1. Check whether `.cache/raw_data.pkl` exists and whether the failure only happens with `--no-cache`.
 2. Retry once after a short interval; Yahoo/FRED failures are often transient.
-3. If cached data is acceptable for the dispatch, run `uv run python build.py` without `--no-cache` and clearly record that the build used cache.
+3. If cached data is acceptable for the dispatch, run `uv run python -m macro_framework.build` without `--no-cache` and clearly record that the build used cache.
 4. Do not commit a dashboard generated from suspicious partial data. Inspect `outputs/dashboard.html` timestamp and the newest `snapshots/*.json` first.
 5. If a source changed its schema/ticker, patch `macro_pipeline.fetch_all_data()` or the relevant calculator, then add/update a smoke test.
 
@@ -77,7 +77,7 @@ Recovery:
    ```
 2. If the failure is a timeout or transient model/tool issue, rerun:
    ```bash
-   uv run python weekly_briefs.py --force
+   uv run python -m macro_framework.weekly_briefs --force
    ```
 3. If only one brief is missing or stale, inspect the dated folder and rerun the full generator rather than hand-editing the hierarchy.
 4. If Claude is unavailable but the dashboard/snapshot is valid, decide with Bob whether to commit local data without refreshed briefs. Do not fabricate brief text.
@@ -104,7 +104,14 @@ Recovery:
    ```
 2. Confirm the substituted plist paths point at the current repo.
 3. Manually run `bash scripts/refresh.sh` once to verify the environment.
-4. If the plist is loaded but not firing, check macOS sleep/power settings and launchd logs outside the repo.
+4. After plist or entrypoint changes, reload both jobs when safe:
+   ```bash
+   launchctl unload ~/Library/LaunchAgents/com.milkroad.macro-refresh.plist
+   launchctl load ~/Library/LaunchAgents/com.milkroad.macro-refresh.plist
+   launchctl unload ~/Library/LaunchAgents/com.milkroad.macro-refresh-daily.plist
+   launchctl load ~/Library/LaunchAgents/com.milkroad.macro-refresh-daily.plist
+   ```
+5. If the plist is loaded but not firing, check macOS sleep/power settings and launchd logs outside the repo.
 
 ## Escalation rules
 

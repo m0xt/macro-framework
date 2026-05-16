@@ -28,12 +28,12 @@ import pandas as pd
 # Re-export the shared indicator pipeline so existing research/analysis scripts
 # that import from `build` continue to work after the v2 dashboard became the
 # default build entry point.
-from macro_pipeline import *
+from macro_framework.macro_pipeline import *
 
-ROOT = Path(__file__).parent
+REPO_ROOT = Path(__file__).resolve().parents[2]
 RAW_DATA_PKL = CACHE_DIR / "raw_data.pkl"
-OUTPUT = ROOT / "outputs" / "dashboard.html"
-BRIEFS_DIR = ROOT / "briefs"
+OUTPUT = REPO_ROOT / "outputs" / "dashboard.html"
+BRIEFS_DIR = REPO_ROOT / "briefs"
 
 
 def _md_to_html(text: str) -> str:
@@ -50,7 +50,7 @@ def _md_to_html(text: str) -> str:
 def _refresh_all_briefs():
     """Lazy-regenerate (pillar briefs first, then top) on weekly Tuesday cadence."""
     try:
-        from weekly_briefs import generate_all_briefs
+        from macro_framework.weekly_briefs import generate_all_briefs
         generate_all_briefs()
     except Exception as e:
         print(f"  Warning: brief refresh failed: {e}")
@@ -94,7 +94,7 @@ def _load_brief_html(filename, snap_date):
 def latest_snapshot():
     files = sorted(glob.glob(str(SNAPSHOT_DIR / "*.json")))
     if not files:
-        raise SystemExit("No snapshot found. Run build.py first.")
+        raise SystemExit("No snapshot found. Run python -m macro_framework.build first.")
     return json.load(open(files[-1]))
 
 

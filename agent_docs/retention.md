@@ -91,4 +91,4 @@ Archive is intentionally manual until the retention compactor is implemented.
 
 - Never compact or delete the current 90-day window.
 - Never compact during an unrelated math, Supabase, or docs dispatch.
-- If `sync_to_supabase.py backfill` needs older daily granularity, postpone deletion and document the blocker.
+- If `python -m macro_framework.sync_to_supabase backfill` needs older daily granularity, postpone deletion and document the blocker.

@@ -25,10 +25,10 @@ import subprocess
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-ROOT = Path(__file__).parent
-CACHE_DIR = ROOT / ".cache"
-SNAPSHOT_DIR = ROOT / "snapshots"
-BRIEFS_DIR = ROOT / "briefs"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+CACHE_DIR = REPO_ROOT / ".cache"
+SNAPSHOT_DIR = REPO_ROOT / "snapshots"
+BRIEFS_DIR = REPO_ROOT / "briefs"
 
 FILE_TOP     = "top.md"
 FILE_MARKET  = "market.md"
@@ -492,7 +492,12 @@ def generate_all_briefs(force: bool = False) -> bool:
 
 
 
-if __name__ == "__main__":
+def main() -> None:
     import sys
+
     force = "--force" in sys.argv
     generate_all_briefs(force=force)
+
+
+if __name__ == "__main__":
+    main()

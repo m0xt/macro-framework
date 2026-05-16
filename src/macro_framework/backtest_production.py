@@ -17,14 +17,14 @@ Reports:
   5. Transaction-cost & execution-delay sensitivity
   6. Weight-sensitivity (equal, alpha, GII-heavy, drop-one)
 
-Run with:  .venv/bin/python backtest_production.py
+Run with:  uv run python -m macro_framework.backtest_production
 """
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 
-from build import (
+from macro_framework.build import (
     calc_composite,
     calc_financial_conditions,
     calc_growth_impulse,

@@ -1,11 +1,11 @@
 # Decisions
 
 ## 2026-05-15 — MRMI parameter reconciliation follows production code
-Reason: `macro_pipeline.py` has used Sector Breadth `LOOKBACK = 90` since commit `9f124cf` with the inline provenance "optimized for drawdown: was 63 (originally 252)." README/CLAUDE/GUIDE still said 63, and no newer reproducible research result supported reverting production math. We kept the production value, updated docs only, and locked the documented parameters in tests.
+Reason: `src/macro_framework/macro_pipeline.py` has used Sector Breadth `LOOKBACK = 90` since commit `9f124cf` with the inline provenance "optimized for drawdown: was 63 (originally 252)." README/CLAUDE/GUIDE still said 63, and no newer reproducible research result supported reverting production math. We kept the production value, updated docs only, and locked the documented parameters in tests.
 
-## 2026-05-16 — Flat layout (no src/) for now
-Reason: pytest/ruff tooling and smoke coverage just landed; `src/` migration is a separate later dispatch with regression risk across root entry points, launchd scripts, research utilities, and tests.
-Status: deferred to skeleton P2.
+## 2026-05-16 — Flat layout migrated to `src/macro_framework/`
+Reason: pytest/ruff tooling and smoke coverage landed first, then the dedicated layout dispatch removed root-module import shadowing risk.
+Status: RESOLVED 2026-05-16 — production modules moved to `src/macro_framework/`, package discovery and console scripts are configured in `pyproject.toml`, and cron/runtime entry points use `python -m macro_framework.<module>`. Research/report scripts remain top-level workflows but import production code through the package.
 
 ## 2026-05-16 — Top-level presentation.html moved to docs/PRESENTATION.html
 Reason: skeleton compliance; the existing presentation is the shareable artifact Martin liked and is now in the durable docs location. A top-level tombstone remains temporarily for compatibility.
@@ -13,7 +13,7 @@ Status: stable.
 
 ## 2026-05-16 — Research/optimization scripts split out of root
 Reason: `analyze_*.py`, `optimize*.py`, robustness, validation, and backtest utilities are standalone research/provenance scripts, not production cron code.
-Status: RESOLVED 2026-05-16 — reproducible/stale-keep `analyze_*.py` scripts moved to `research/`, broken retired Macro Seasons scripts moved to `research/archive/`, and optimization helpers moved to `research/optimization/`. `backtest_production.py` stays at root as a supported manual presentation-input tool.
+Status: RESOLVED 2026-05-16 — reproducible/stale-keep `analyze_*.py` scripts moved to `research/`, broken retired Macro Seasons scripts moved to `research/archive/`, and optimization helpers moved to `research/optimization/`. `src/macro_framework/backtest_production.py` moved under `src/macro_framework/` with the rest of production/support code but remains a supported manual presentation-input tool.
 
 ## 2026-05-16 — Tracked snapshots moved out of `.cache/`
 Reason: dashboard history and Supabase backfill read point-in-time JSON snapshots, but `.cache/` must stay local/rebuildable under the skeleton output contract.

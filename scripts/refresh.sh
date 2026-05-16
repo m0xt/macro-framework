@@ -27,10 +27,10 @@ SYNC_LOG="${SYNC_LOG:-$PWD/.cache/supabase-sync.log}"
 source "$HOME/ops/lib/cron-wrapper.sh"
 
 cron_wrapper_pull
-"$PYTHON_BIN" build.py --no-cache
+"$PYTHON_BIN" -m macro_framework.build --no-cache
 
 SUPABASE_SYNC_STATUS=0
-"$PYTHON_BIN" sync_to_supabase.py latest >"$SYNC_LOG" 2>&1 || SUPABASE_SYNC_STATUS=$?
+"$PYTHON_BIN" -m macro_framework.sync_to_supabase latest >"$SYNC_LOG" 2>&1 || SUPABASE_SYNC_STATUS=$?
 if [[ $SUPABASE_SYNC_STATUS -ne 0 ]]; then
     case "$SUPABASE_SYNC_STATUS" in
         20) SUPABASE_FAILURE_TYPE="supabase-auth" ;;

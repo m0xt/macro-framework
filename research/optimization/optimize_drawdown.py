@@ -29,7 +29,7 @@ from optimize_mrmi import (
     calc_gii_custom,
 )
 
-from build import calc_macro_context, fetch_all_data
+from macro_framework.build import calc_macro_context, fetch_all_data
 
 
 def stats_full(asset_returns, signal, threshold=0):

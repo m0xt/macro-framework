@@ -10,7 +10,7 @@ Use this when Bob dispatches a focused task in `~/projects/macro-framework`. Kee
    tail -200 .cache/launchd-refresh-daily.log 2>/dev/null || true
    tail -200 .cache/launchd-refresh.log 2>/dev/null || true
    cat .cache/status.json 2>/dev/null || true
-   uv run python sync_to_supabase.py doctor
+   uv run python -m macro_framework.sync_to_supabase doctor
    ```
 2. Classify the failure:
    - Data/build failure: Yahoo/FRED/cache/build problem before local dashboard completed.
@@ -27,9 +27,9 @@ Use this when Bob dispatches a focused task in `~/projects/macro-framework`. Kee
 
 ## Bob dispatched me to update an indicator parameter
 
-1. Find the production constant/function in `macro_pipeline.py`.
+1. Find the production constant/function in `src/macro_framework/macro_pipeline.py`.
 2. Confirm the requested change is intentional and not stale-doc drift.
-3. Update the math in `macro_pipeline.py` only where required.
+3. Update the math in `src/macro_framework/macro_pipeline.py` only where required.
 4. Update documentation/provenance:
    - `docs/architecture.md`
    - `DECISIONS.md` if the change affects project policy or parameter rationale
@@ -48,7 +48,7 @@ Normal build path handles stale briefs automatically:
 
 ```bash
 cd ~/projects/macro-framework
-uv run python build.py
+uv run python -m macro_framework.build
 ```
 
 Cadence semantics: briefs regenerate if the latest archive containing each brief is older than the most recent Tuesday on or before today. This means the first successful build on/after Tuesday refreshes them; later builds skip until the next Tuesday cutoff.
@@ -56,7 +56,7 @@ Cadence semantics: briefs regenerate if the latest archive containing each brief
 Force refresh only if requested:
 
 ```bash
-uv run python weekly_briefs.py --force
+uv run python -m macro_framework.weekly_briefs --force
 ```
 
 After a brief refresh, inspect `briefs/YYYY-MM-DD/{market,economy,top}.md`, then run tests/lint if code changed. Brief-only output commits do not require changing MRMI docs.
@@ -64,15 +64,15 @@ After a brief refresh, inspect `briefs/YYYY-MM-DD/{market,economy,top}.md`, then
 ## Bob dispatched me to add a new indicator
 
 1. Add data retrieval to `macro_pipeline.fetch_all_data()` if the source is new.
-2. Add indicator math to `macro_pipeline.py`; keep transformations deterministic and documented in code.
+2. Add indicator math to `src/macro_framework/macro_pipeline.py`; keep transformations deterministic and documented in code.
 3. Add chart payload fields in `prepare_chart_data()`.
 4. Add snapshot fields in `save_snapshot()` if downstream systems need the value.
-5. Bind dashboard UI/rendering in `build.py`.
+5. Bind dashboard UI/rendering in `src/macro_framework/build.py`.
 6. If Supabase needs the field, update:
    - `supabase_schema.sql` and schema version sentinel
    - `EXPECTED_SCHEMA_VERSION`
    - `REQUIRED_MACRO_SNAPSHOTS_COLUMNS`
-   - row-building logic in `sync_to_supabase.py`
+   - row-building logic in `src/macro_framework/sync_to_supabase.py`
    - Supabase tests
 7. Add/extend a lock or smoke test in `tests/test_smoke.py`.
 8. Update `docs/architecture.md` and `agent_docs/repo_map.md` if ownership changed.
@@ -87,5 +87,5 @@ After a brief refresh, inspect `briefs/YYYY-MM-DD/{market,economy,top}.md`, then
 1. Treat `supabase_schema.sql` as the contract.
 2. If schema changes, bump `-- VERSION: N`, the `macro_meta` sentinel insert/update, and `EXPECTED_SCHEMA_VERSION` together.
 3. Keep `doctor` meaningful: preflight should fail before writes if the remote is stale.
-4. Run `uv run pytest` locally. If remote access is available, run `uv run python sync_to_supabase.py doctor` after applying SQL.
+4. Run `uv run pytest` locally. If remote access is available, run `uv run python -m macro_framework.sync_to_supabase doctor` after applying SQL.
 5. If remote SQL cannot be applied from this session, mark the operational step blocked rather than weakening preflight.
