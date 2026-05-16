@@ -106,9 +106,14 @@ Force-refresh: `.venv/bin/python weekly_briefs.py --force`.
 - **GII** — fast_roc=21, slow_roc=126, z_len=504, fast-only mode.
   10 components: HYG, HY spread (inv), XLY/XLP, XLI/XLU, SPHB/SPLV, copper,
   VIX (inv), 10Y-2Y curve, WEI, BDRY.
-- **Breadth** — lookback=63, 7 cyclical ETFs (SMH, IWM, IYT, IBB,
-  XHB, KBE, XRT), SLX dropped.
+- **Breadth** — lookback=90, 7 cyclical ETFs (SMH, IWM, IYT, IBB,
+  XHB, KBE, XRT), SLX dropped. Provenance: production value from
+  `macro_pipeline.py` commit `9f124cf` ("optimized for drawdown: was 63");
+  docs reconciled 2026-05-15 without changing math.
 - **FinCon** — lookback=252, VIX + MOVE + HY (no IG).
+- **MRMI defaults** — `buffer_size=1.0`, `threshold=0.5`; stress clipped to
+  `[0, 1]`, dashboard stress fires above 0.5. Macro context applies release
+  lags by default: PCE/RPI 60d, unemployment 35d, Core CPI 45d, GDPNow 0d.
 
 Production MRMI OOS alpha (last 30%, ~4.2 yr): SPX +9.6%, IWM +12.9%,
 BTC +2.1%. SPX max drawdown −18.9% → −4.8%. Active ~85% of OOS window.

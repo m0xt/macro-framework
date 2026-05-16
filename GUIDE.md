@@ -99,7 +99,7 @@ Each component is converted to a 21-day rate of change, z-scored over 504 days, 
 
 ### Sector Breadth — ⅓ weight
 
-**What it measures**: The z-score (over 63 days) of 7 cyclical sector ETFs:
+**What it measures**: The z-score (over 90 days) of 7 cyclical sector ETFs. Provenance: `macro_pipeline.py` has used `LOOKBACK = 90` since commit `9f124cf` ("optimized for drawdown: was 63"); docs were reconciled to production on 2026-05-15 without changing math.
 - SMH — semiconductors (the AI/cycle barometer)
 - IWM — small-cap stocks (most economically sensitive)
 - IYT — transports (Dow Theory: transports lead the broader market)
@@ -129,7 +129,7 @@ Equal-weighted z-score average.
 
 ### Why these three together
 
-The three indicators are calibrated to different speeds (21d / 63d / 252d) and capture different forces:
+The three indicators are calibrated to different speeds (21d / 90d / 252d) and capture different forces:
 - **GII** = economic momentum (real economy + market signals)
 - **Breadth** = market participation
 - **FinCon** = financial stress
@@ -167,6 +167,8 @@ Macro Stress is a 0–1 score capturing how deep we are inside the stagflation p
 ```
 Stress_intensity = min(1, max(0, −Real_Economy) × max(0, Inflation_Direction))
 ```
+
+Production locks: stress is clipped to `[0, 1]`; dashboard `stress_on` fires above 0.5; MRMI defaults are `buffer_size=1.0` and `threshold=0.5`; macro release lags are PCE/RPI 60d, unemployment 35d, Core CPI 45d, GDPNow 0d.
 
 The two `max(0, …)` clips mean each factor only contributes when it's adversely positioned: weak growth (RE < 0) and rising inflation (Inf_Dir > 0). The product is non-zero only when *both* are adverse — that's the stagflation pocket. This is the one macro condition that overrides the buffer and pulls MRMI toward CASH.
 

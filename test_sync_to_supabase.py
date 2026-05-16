@@ -114,20 +114,26 @@ def test_load_credentials_returns_values(monkeypatch):
 
 
 def test_load_credentials_missing_url_exits(monkeypatch, capsys):
+    import sync_to_supabase
+
+    monkeypatch.setattr(sync_to_supabase, "load_dotenv", lambda: None)
     monkeypatch.delenv("SUPABASE_URL", raising=False)
     monkeypatch.setenv("SUPABASE_SERVICE_KEY", "eyJtest")
     with pytest.raises(SystemExit) as exc:
         load_credentials()
-    assert exc.value.code == 1
+    assert exc.value.code == 20
     captured = capsys.readouterr()
     assert "SUPABASE_URL" in captured.err
 
 
 def test_load_credentials_missing_key_exits(monkeypatch, capsys):
+    import sync_to_supabase
+
+    monkeypatch.setattr(sync_to_supabase, "load_dotenv", lambda: None)
     monkeypatch.setenv("SUPABASE_URL", "https://abc.supabase.co")
     monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
     with pytest.raises(SystemExit) as exc:
         load_credentials()
-    assert exc.value.code == 1
+    assert exc.value.code == 20
     captured = capsys.readouterr()
     assert "SUPABASE_SERVICE_KEY" in captured.err

@@ -21,12 +21,30 @@ LAUNCHD_LOG="$PWD/.cache/launchd-refresh-daily.log"   # matches both plists' Sta
 COMMIT_AUTHOR_NAME="Mac mini refresh"
 COMMIT_AUTHOR_EMAIL="refresh@macro-framework.local"
 SUCCESS_SUMMARY="refresh ok (build + supabase sync)"
+PYTHON_BIN="${PYTHON_BIN:-.venv/bin/python}"
+SYNC_LOG="${SYNC_LOG:-$PWD/.cache/supabase-sync.log}"
 
 source "$HOME/ops/lib/cron-wrapper.sh"
 
 cron_wrapper_pull
-.venv/bin/python build.py --no-cache
-.venv/bin/python sync_to_supabase.py latest
+"$PYTHON_BIN" build.py --no-cache
+
+SUPABASE_SYNC_STATUS=0
+"$PYTHON_BIN" sync_to_supabase.py latest >"$SYNC_LOG" 2>&1 || SUPABASE_SYNC_STATUS=$?
+if [[ $SUPABASE_SYNC_STATUS -ne 0 ]]; then
+    case "$SUPABASE_SYNC_STATUS" in
+        20) SUPABASE_FAILURE_TYPE="supabase-auth" ;;
+        21) SUPABASE_FAILURE_TYPE="supabase-network" ;;
+        22) SUPABASE_FAILURE_TYPE="supabase-schema-drift" ;;
+        *)  SUPABASE_FAILURE_TYPE="supabase-network" ;;
+    esac
+    echo "WARN: supabase sync failed ($SUPABASE_FAILURE_TYPE); local dashboard/snapshot commit will continue" >&2
+    tail -50 "$SYNC_LOG" >&2 || true
+    SUCCESS_SUMMARY="refresh ok, supabase sync failed ($SUPABASE_FAILURE_TYPE)"
+else
+    cat "$SYNC_LOG"
+fi
+
 cron_wrapper_commit_outputs \
     briefs/ \
     .cache/dashboard.html \

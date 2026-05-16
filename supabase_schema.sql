@@ -1,5 +1,16 @@
 -- macro_snapshots: daily computed indicators from Macro Framework.
+-- VERSION: 1
 -- Apply via Supabase SQL editor or `psql`. Idempotent for fresh projects only.
+
+create table if not exists macro_meta (
+  key        text primary key,
+  value      text not null,
+  updated_at timestamptz default now()
+);
+
+insert into macro_meta (key, value)
+values ('schema_version', '1')
+on conflict (key) do update set value = excluded.value, updated_at = now();
 
 create table if not exists macro_snapshots (
   date              date primary key,
@@ -40,7 +51,12 @@ for each row execute function set_updated_at();
 
 -- RLS: public read, no public write.
 alter table macro_snapshots enable row level security;
+alter table macro_meta enable row level security;
 
 drop policy if exists "anon read" on macro_snapshots;
 create policy "anon read" on macro_snapshots
+  for select to anon using (true);
+
+drop policy if exists "anon read" on macro_meta;
+create policy "anon read" on macro_meta
   for select to anon using (true);

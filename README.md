@@ -67,7 +67,7 @@ MRMI history chart. White line = MRMI value over time; green shading = LONG regi
 | Driver | What it measures | Speed | Weight |
 |--------|------------------|-------|--------|
 | GII (Growth Impulses Index) | 10-component economic momentum | Fast (21d ROC) | ⅓ |
-| Sector Breadth | 7 cyclical sector ETFs | Medium (63d lookback) | ⅓ |
+| Sector Breadth | 7 cyclical sector ETFs | Medium (90d lookback; production value reconciled 2026-05-15 from `macro_pipeline.py`/commit `9f124cf`) | ⅓ |
 | Financial Conditions | VIX + MOVE + HY spread | Slow (252d lookback) | ⅓ |
 
 Equal weights (1/1/1) — switched from prior alpha-weighting (37/35/28) per the drawdown-optimization grid search; equal weights deliver stronger Calmar ratios across SPX/IWM/BTC and survive OOS validation better.
@@ -127,12 +127,12 @@ Grid-search optimized with 70/30 in-sample/out-of-sample split (2016–2023 / 20
 - `lookback=252`, components: VIX + MOVE + HY spread (IG dropped)
 
 ### Sector Breadth
-- `lookback=63`, 7 ETFs (SMH, IWM, IYT, IBB, XHB, KBE, XRT), SLX dropped
+- `lookback=90`, 7 ETFs (SMH, IWM, IYT, IBB, XHB, KBE, XRT), SLX dropped. Provenance: production has used 90 since commit `9f124cf` ("optimized for drawdown: was 63"); docs reconciled 2026-05-15 without changing math.
 
 ### Macro Stress
 - Real Economy Score: equal-weighted z-score (3y window) of Real PCE YoY, Sahm Rule (inverted), Real Personal Income YoY, Atlanta Fed GDPNow
 - Inflation Direction: Δ Core CPI YoY over the last 6 months, in pp
-- Stress fires when intensity > 0.5; threshold + buffer_size optimized for Calmar ratio
+- Stress intensity is clipped to `[0, 1]`; dashboard `stress_on` fires when intensity > 0.5. MRMI uses `buffer_size=1.0`, `threshold=0.5`; these are production defaults in `macro_pipeline.py` and locked by tests. Release lags are applied by default: PCE/RPI 60d, unemployment 35d, Core CPI 45d, GDPNow 0d.
 
 ## Data Sources
 
@@ -194,10 +194,13 @@ Mirror computed indicators to a Supabase project for reuse in other apps.
 
 ### Daily sync
 
-After each dashboard build:
+After each dashboard build, run the schema preflight and sync:
 ```
+.venv/bin/python sync_to_supabase.py doctor
 .venv/bin/python build.py && .venv/bin/python sync_to_supabase.py latest
 ```
+
+`sync_to_supabase.py` expects remote `macro_meta.schema_version = 1` (`EXPECTED_SCHEMA_VERSION = 1`) and the checked-in `macro_snapshots` columns from `supabase_schema.sql`. `scripts/refresh.sh` treats Supabase-only failures as partial success: local dashboard/snapshots still commit, while `.cache/status.json` says `refresh ok, supabase sync failed (...)`.
 
 ### Downstream usage (any other project)
 

@@ -228,11 +228,44 @@ def test_save_snapshot_schema_uses_actual_current_keys(tmp_path: Path, monkeypat
     ].keys()
 
 
-@pytest.mark.xfail(reason="README/CLAUDE document breadth lookback=63 while code uses 90", strict=False)
+def _function_source(module_text: str, name: str, next_name: str) -> str:
+    return module_text.split(f"def {name}", 1)[1].split(f"def {next_name}", 1)[0]
+
+
 def test_breadth_lookback_docs_match_code() -> None:
     source = (ROOT / "macro_pipeline.py").read_text()
-    calc_sector_src = source.split("def calc_sector_breadth", 1)[1].split("def calc_business_cycle", 1)[0]
+    calc_sector_src = _function_source(source, "calc_sector_breadth", "calc_business_cycle")
     code_lookback = int(calc_sector_src.split("LOOKBACK =", 1)[1].split("#", 1)[0].strip())
 
-    docs = (ROOT / "README.md").read_text() + "\n" + (ROOT / "CLAUDE.md").read_text()
+    docs = "\n".join((ROOT / name).read_text() for name in ("README.md", "CLAUDE.md", "GUIDE.md"))
+    assert code_lookback == 90
     assert f"lookback={code_lookback}" in docs or f"lookback = {code_lookback}" in docs
+    assert "over 90 days" in docs
+
+
+def test_documented_mrmi_parameters_are_locked_to_code() -> None:
+    source = (ROOT / "macro_pipeline.py").read_text()
+    mrmi_src = _function_source(source, "calc_milk_road_macro_index", "calc_macro_context")
+    assert "buffer_size: float = 1.0" in mrmi_src
+    assert "threshold: float = 0.5" in mrmi_src
+    assert "stress_intensity = stress_raw.clip(upper=1.0)" in mrmi_src
+
+    docs = "\n".join((ROOT / name).read_text() for name in ("README.md", "CLAUDE.md", "GUIDE.md"))
+    assert "buffer_size=1.0" in docs or "buffer_size = 1.0" in docs
+    assert "threshold=0.5" in docs or "threshold = 0.5" in docs
+    assert "[0, 1]" in docs
+
+
+def test_documented_release_lags_are_locked_to_code() -> None:
+    macro_pipeline = _import_module("macro_pipeline")
+    assert macro_pipeline.RELEASE_LAGS_DAYS == {
+        "PCEC96": 60,
+        "UNRATE": 35,
+        "RPI": 60,
+        "GDPNOW": 0,
+        "CPILFESL": 45,
+    }
+
+    docs = "\n".join((ROOT / name).read_text() for name in ("README.md", "CLAUDE.md", "GUIDE.md"))
+    for snippet in ("PCE/RPI 60d", "unemployment 35d", "Core CPI 45d", "GDPNow 0d"):
+        assert snippet in docs
