@@ -1,6 +1,6 @@
 """Comprehensive backtest of the production MRMI framework.
 
-Produces every number used in presentation.html so the slides can be updated
+Produces every number used in docs/PRESENTATION.html so the slides can be updated
 with accurate, current results. Uses the production-level signal:
 
     MMI    = equal-weighted (GII, Breadth, FinCon)
@@ -343,7 +343,7 @@ def main():
     test_weights(data, asset_rets_aligned, split_idx)
 
     print("\n" + "=" * 90)
-    print("DONE. Use these numbers to update presentation.html.")
+    print("DONE. Use these numbers to update docs/PRESENTATION.html.")
     print("=" * 90)
 
 

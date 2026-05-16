@@ -3,11 +3,11 @@
 #
 # Runs twice on weekdays — see scripts/com.milkroad.macro-refresh{,-daily}.plist:
 #   · Tuesday 11:00 Prague — weekly run timed before the 15:00 macro meeting.
-#     Triggers fresh AI brief generation (the freshness check in
-#     weekly_briefs.py only regenerates on Tuesdays).
+#     Normally triggers fresh AI brief generation.
 #   · Mon–Fri 22:30 Prague — daily end-of-US-close run. Refreshes data + snapshot
-#     + Supabase row + dashboard; the brief freshness check skips regen on
-#     non-Tuesdays, so this is purely data refresh.
+#     + Supabase row + dashboard. Briefs use lazy Tuesday freshness: the first
+#     successful build on/after Tuesday regenerates stale weekly briefs, then
+#     later builds skip until the next Tuesday cutoff.
 #
 # Delegates boilerplate to ~/ops/lib/cron-wrapper.sh:
 #   - git pull, status.json emission, commit/push, operator/engineer handoff.
