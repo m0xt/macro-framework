@@ -8,7 +8,7 @@ import base64
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parents[1]
 CACHE_DIR = ROOT / ".cache"
 CHARTS_DIR = CACHE_DIR / "charts"
 REPORTS_DIR = ROOT / "reports"

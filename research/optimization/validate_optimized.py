@@ -7,13 +7,14 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent))
-from build import calc_macro_context, fetch_all_data
 from optimize_mrmi import (
     calc_breadth_custom,
     calc_combined_mrmi,
     calc_fincon_custom,
     calc_gii_custom,
 )
+
+from build import calc_macro_context, fetch_all_data
 
 
 def stats_period(asset_returns, mrmi, start, end, threshold=0.0):

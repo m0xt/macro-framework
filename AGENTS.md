@@ -24,10 +24,11 @@
 | `docs/PRESENTATION.html` | Shareable human explainer; moved from top-level `presentation.html`. |
 | `docs/architecture.md` | Human technical narrative and MRMI provenance. |
 | `agent_docs/` | Agent-facing runbooks, repo map, cron recovery, secrets contract. |
-| `analyze_*.py` | Standalone research/provenance scripts; full triage in `agent_docs/repo_map.md`. |
-| `optimize*.py`, `robustness.py`, `validate_optimized.py` | Manual optimization/backtest utilities, not cron path. |
-| `backtest_production.py` | Manual backtest numbers used by presentation/report docs. |
-| `build_report.py`, `generate_report_charts.py` | Monthly report tooling, not cron path. |
+| `research/analyze_*.py` | Standalone research/provenance scripts; full triage in `agent_docs/repo_map.md`. |
+| `research/archive/` | Broken retired Macro Seasons research kept for history. |
+| `research/optimization/` | Manual optimization/provenance utilities, not cron path. |
+| `backtest_production.py` | Manual supported backtest numbers used by presentation/report docs. |
+| `report/` | Supported manual monthly-report tooling, not cron path. |
 | `reports/` | Tracked monthly report artifact; output-home decision deferred. |
 | `GUIDE.md`, `MACRO_FRAMEWORK_ROADMAP.md` | Long-form guide and future ideas. |
 

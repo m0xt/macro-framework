@@ -23,7 +23,7 @@ This is the agent-facing ownership map for `macro-framework`. The active product
 | `pyproject.toml` | active | uv project metadata plus pytest/ruff/pyright config. |
 | `uv.lock` | active | Locked uv dependency graph. |
 | `requirements.txt` | compatibility | pip/venv fallback while uv is the primary path. |
-| `.gitignore` | active | Keeps local caches/secrets out, while intentionally tracking selected output history. |
+| `.gitignore` | active | Fully ignores local `.cache/`; durable outputs live outside cache. |
 | `.claudeignore` | active | Context-filter hints for Claude-style tooling. |
 | `LICENSE` | active | Project license. |
 
@@ -59,46 +59,53 @@ This is the agent-facing ownership map for `macro-framework`. The active product
 | `agent_docs/dispatch_runbook.md` | active | Common Bob dispatch workflows. |
 | `agent_docs/cron_failure_recovery.md` | active | Failure taxonomy and recovery steps. |
 | `agent_docs/secrets.md` | active | Supabase secret contract and rotation runbook. |
+| `agent_docs/retention.md` | active | Snapshot retention/compaction runbook. |
 
 ## Monthly report tools
 
+Supported manual flow, not on the cron path. `scripts/refresh.sh`, `build.py`, and `macro_pipeline.py` do not call these files.
+
 | Path | Status | Notes |
 |---|---|---|
-| `build_report.py` | utility | Markdown-to-HTML monthly report builder; not cron path. |
-| `generate_report_charts.py` | utility | Report chart generation; not cron path. |
+| `report/README.md` | active docs | How to run the manual monthly report flow. |
+| `report/build_report.py` | supported manual | Converts newest `.cache/macro_update_*.md` into `reports/macro_update_*.html`. |
+| `report/generate_report_charts.py` | supported manual | Generates report PNGs under `.cache/charts/` for embedding. |
+| `reports/macro_update_2026_05.html` | active artifact | Shareable monthly report kept tracked; see `DECISIONS.md`. |
 
 ## Backtest / optimization utilities
 
 | Path | Status | Notes |
 |---|---|---|
-| `backtest_production.py` | utility | Produces presentation/report backtest numbers; manual only. |
-| `optimize.py` | utility | Parameter grid search and backtesting CLI. |
-| `optimize_drawdown.py` | research | Drawdown-focused optimization history. |
-| `optimize_mrmi.py` | research | MRMI optimization history. |
-| `optimize_stress.py` | research | Macro-stress optimization history. |
-| `robustness.py` | utility | Walk-forward/benchmark robustness checks. |
-| `validate_optimized.py` | utility | Validation helper for optimized parameters. |
+| `backtest_production.py` | manual / supported | Produces PRESENTATION/report backtest numbers; kept at root because it directly supports `docs/PRESENTATION.html`. |
+| `research/optimization/optimize.py` | research / provenance | Parameter grid search and backtesting CLI. |
+| `research/optimization/optimize_drawdown.py` | research / provenance | Drawdown-focused optimization history. |
+| `research/optimization/optimize_mrmi.py` | research / provenance | MRMI optimization history. |
+| `research/optimization/optimize_stress.py` | research / provenance | Macro-stress optimization history. |
+| `research/optimization/robustness.py` | research / provenance | Walk-forward/benchmark robustness checks. |
+| `research/optimization/validate_optimized.py` | research / provenance | Validation helper for optimized parameters. |
 
 ## `analyze_*.py` triage
 
-No `analyze_*.py` file is part of the active cron/dashboard path: none are called by `scripts/refresh.sh`, `build.py`, or `macro_pipeline.py`; all are standalone scripts with `if __name__ == "__main__"` guards. There are 14 current `analyze_*.py` files.
+No `analyze_*.py` file is part of the active cron/dashboard path: none are called by `scripts/refresh.sh`, `build.py`, or `macro_pipeline.py`; all are standalone research scripts. Reproducible/stale-keep scripts live in `research/`; broken retired Macro Seasons scripts live in `research/archive/` and are kept for history only.
 
 | File | Status | Notes |
 |---|---|---|
-| `analyze_alpha_strategies.py` | research / stale-keep | One-off strategy comparison (buy-and-hold, MRMI variants, regime vetoes). Keep as provenance until research archive exists. Currently xfailed in smoke tests because imports drifted. |
-| `analyze_conviction_score.py` | broken / archive-candidate | Imports missing `calc_seasons_axes` and fails to import; tied to retired Macro Seasons APIs. See `~/ops/AUDIT-MACRO-FRAMEWORK.md`. |
-| `analyze_drawdowns.py` | research / stale-keep | MRMI green-flip drawdown analysis by macro context. Useful risk-claim provenance, not active. |
-| `analyze_flip_conviction.py` | research / stale-keep | Tests flip slope/momentum/magnitude. Not active. |
-| `analyze_inflation_window.py` | research / stale-keep | Parameter research for inflation Δ windows. Keep until provenance is folded into docs/tests. |
-| `analyze_lag_check.py` | research / utility candidate | Validates release-lag adjustment; conceptually important, possible future test conversion. |
-| `analyze_mrmi_baseline.py` | research / stale-keep | Pure MRMI binary baseline; historical benchmark. |
-| `analyze_mrmi_unified.py` | research / stale-keep | Validates unified MRMI performance; superseded by production backtest docs. |
-| `analyze_multi_signal.py` | research / stale-keep | Alternative warning-signal strategy research. Currently xfailed in smoke tests because imports drifted. |
-| `analyze_position_sizing.py` | research / stale-keep | Position-sizing experiments. Not active. |
-| `analyze_re_lookback.py` | research / stale-keep | Real Economy lookback parameter research. Keep as parameter provenance. |
-| `analyze_real_economy_conditioning.py` | research / stale-keep | Compares Real Economy + Inflation Direction conditioning vs old seasons. Useful transition history. |
-| `analyze_seasons_conditioning.py` | broken / archive-candidate | Imports missing `calc_seasons_axes`, fails to import, and is tied to retired Spring/Summer/Fall/Winter model. See `~/ops/AUDIT-MACRO-FRAMEWORK.md`. |
-| `analyze_walkforward.py` | research / stale-keep | Walk-forward parameter stability check; cited by `docs/architecture.md` for parameter provenance. |
+| `research/README.md` | active docs | Research lane inventory and run guidance. |
+| `research/archive/README.md` | active docs | Notes that archived scripts are not expected to reproduce. |
+| `research/analyze_alpha_strategies.py` | research / stale-keep | One-off strategy comparison (buy-and-hold, MRMI variants, regime vetoes). Currently xfailed in smoke tests because imports drifted. |
+| `research/analyze_drawdowns.py` | research / stale-keep | MRMI green-flip drawdown analysis by macro context. Useful risk-claim provenance, not active. |
+| `research/analyze_flip_conviction.py` | research / stale-keep | Tests flip slope/momentum/magnitude. Not active. |
+| `research/analyze_inflation_window.py` | research / stale-keep | Parameter research for inflation Δ windows. Keep until provenance is folded into docs/tests. |
+| `research/analyze_lag_check.py` | research / utility candidate | Validates release-lag adjustment; conceptually important, possible future test conversion. |
+| `research/analyze_mrmi_baseline.py` | research / stale-keep | Pure MRMI binary baseline; historical benchmark. |
+| `research/analyze_mrmi_unified.py` | research / stale-keep | Validates unified MRMI performance; superseded by production backtest docs. |
+| `research/analyze_multi_signal.py` | research / stale-keep | Alternative warning-signal strategy research. Currently xfailed in smoke tests because imports drifted. |
+| `research/analyze_position_sizing.py` | research / stale-keep | Position-sizing experiments. Not active. |
+| `research/analyze_re_lookback.py` | research / stale-keep | Real Economy lookback parameter research. Keep as parameter provenance. |
+| `research/analyze_real_economy_conditioning.py` | research / stale-keep | Compares Real Economy + Inflation Direction conditioning vs old seasons. Useful transition history. |
+| `research/analyze_walkforward.py` | research / stale-keep | Walk-forward parameter stability check; cited by `docs/architecture.md` for parameter provenance. |
+| `research/archive/analyze_conviction_score.py` | broken / archive | Imports missing `calc_seasons_axes` and fails to import; tied to retired Macro Seasons APIs. Kept for history, will not reproduce. |
+| `research/archive/analyze_seasons_conditioning.py` | broken / archive | Imports missing `calc_seasons_axes`, fails to import, and is tied to retired Spring/Summer/Fall/Winter model. Kept for history, will not reproduce. |
 
 ## Generated/local-only caches
 

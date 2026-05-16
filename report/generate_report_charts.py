@@ -12,7 +12,12 @@ Current charts (keyed to the v2 dashboard's structure):
   04_real_economy_components.png — Four inputs to Real Economy Score
   05_decomposition.png — Today's MRMI value decomposed: MMI + Buffer − Threshold
 """
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -27,7 +32,7 @@ from build import (
     calc_sector_breadth,
 )
 
-CACHE_DIR = Path(__file__).parent / ".cache"
+CACHE_DIR = ROOT / ".cache"
 CHARTS_DIR = CACHE_DIR / "charts"
 CHARTS_DIR.mkdir(parents=True, exist_ok=True)
 

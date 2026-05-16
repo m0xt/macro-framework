@@ -20,12 +20,15 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PRODUCTION_MODULES = ["build", "macro_pipeline", "weekly_briefs", "sync_to_supabase"]
-ANALYZE_MODULES = sorted(p.stem for p in ROOT.glob("analyze_*.py"))
+ANALYZE_MODULES = sorted(
+    [f"research.{p.stem}" for p in (ROOT / "research").glob("analyze_*.py")]
+    + [f"research.archive.{p.stem}" for p in (ROOT / "research" / "archive").glob("analyze_*.py")]
+)
 BROKEN_ANALYZE_MODULES = {
-    "analyze_conviction_score": "retired Macro Seasons API — see AUDIT-MACRO-FRAMEWORK.md",
-    "analyze_seasons_conditioning": "retired Macro Seasons API — see AUDIT-MACRO-FRAMEWORK.md",
-    "analyze_alpha_strategies": "research import drift surfaced by smoke baseline",
-    "analyze_multi_signal": "research import drift surfaced by smoke baseline",
+    "research.archive.analyze_conviction_score": "retired Macro Seasons API — see AUDIT-MACRO-FRAMEWORK.md",
+    "research.archive.analyze_seasons_conditioning": "retired Macro Seasons API — see AUDIT-MACRO-FRAMEWORK.md",
+    "research.analyze_alpha_strategies": "research import drift surfaced by smoke baseline",
+    "research.analyze_multi_signal": "research import drift surfaced by smoke baseline",
 }
 ENTRYPOINT_MODULES = ["build", "weekly_briefs", "sync_to_supabase"]
 

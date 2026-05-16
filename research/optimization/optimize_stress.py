@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from optimize import evaluate_signal
 
 from build import (
     calc_composite,
@@ -33,7 +34,6 @@ from build import (
     calc_sector_breadth,
     fetch_all_data,
 )
-from optimize import evaluate_signal
 
 # ── stress models ──────────────────────────────────────────────────────────
 

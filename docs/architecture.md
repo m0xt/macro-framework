@@ -29,7 +29,7 @@ The buffer is intentionally pro-risk by default: MMI weakness alone is not enoug
 - Financial Conditions uses a 252-day lookback across VIX, MOVE, and high-yield spreads.
 - GII uses `fast_roc=21`, `slow_roc=126`, `z_len=504`, fast-composite mode.
 - Macro context applies release lags by default: PCE/RPI 60d, unemployment 35d, Core CPI 45d, GDPNow 0d.
-- `analyze_walkforward.py`, `analyze_re_lookback.py`, `analyze_inflation_window.py`, `optimize.py`, and `backtest_production.py` preserve the research trail behind the current parameter set. They are not cron entry points.
+- `research/analyze_walkforward.py`, `research/analyze_re_lookback.py`, `research/analyze_inflation_window.py`, `research/optimization/optimize.py`, and `backtest_production.py` preserve the research trail behind the current parameter set. They are not cron entry points.
 
 ## Indicator pipeline
 
