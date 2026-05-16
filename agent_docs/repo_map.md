@@ -1,6 +1,6 @@
 # Repo map
 
-This is the agent-facing ownership map for `macro-framework`. The active production path is `scripts/refresh.sh` → `build.py --no-cache` → `sync_to_supabase.py latest` → commit `briefs/`, `.cache/dashboard.html`, and `.cache/snapshots/`.
+This is the agent-facing ownership map for `macro-framework`. The active production path is `scripts/refresh.sh` → `build.py --no-cache` → `sync_to_supabase.py latest` → commit `briefs/`, `outputs/dashboard.html`, and `snapshots/`.
 
 ## Active production files
 
@@ -10,7 +10,7 @@ This is the agent-facing ownership map for `macro-framework`. The active product
 | `CLAUDE.md` | active | One-line `@AGENTS.md` import. |
 | `README.md` | active | Human front door only. |
 | `DECISIONS.md` | active | Append-only why-log for skeleton deviations and parameter decisions. |
-| `build.py` | active | Main dashboard build entry point. Fetches data, computes indicators, writes snapshot, renders `.cache/dashboard.html`, refreshes stale briefs. |
+| `build.py` | active | Main dashboard build entry point. Fetches data, computes indicators, writes snapshot, renders `outputs/dashboard.html`, refreshes stale briefs. |
 | `macro_pipeline.py` | active | Production Yahoo/FRED fetch, indicator math, MRMI formula, chart payload, snapshot schema. |
 | `weekly_briefs.py` | active | Claude CLI market/economy/top weekly brief generation. |
 | `sync_to_supabase.py` | active | Supabase doctor/latest/backfill sync; owns schema preflight and error taxonomy. |
@@ -48,8 +48,8 @@ This is the agent-facing ownership map for `macro-framework`. The active product
 | `docs/superpowers/specs/2026-05-11-supabase-sync-design.md` | historical spec | Supabase sync design/provenance. |
 | `reports/macro_update_2026_05.html` | active artifact | Shareable monthly report kept tracked pending output-home decision. |
 | `briefs/YYYY-MM-DD/*.md` | active artifact | Weekly Claude brief archive, intentionally tracked. |
-| `.cache/dashboard.html` | active artifact | Current generated dashboard, intentionally tracked. |
-| `.cache/snapshots/YYYY-MM-DD.json` | active artifact | Point-in-time snapshots, intentionally tracked pending retention/quarantine decision. |
+| `outputs/dashboard.html` | active latest deliverable | Current generated dashboard, intentionally tracked and overwritten each run. |
+| `snapshots/YYYY-MM-DD.json` | active history | Point-in-time snapshots, intentionally tracked with retention policy. |
 
 ## Agent docs
 
@@ -105,6 +105,7 @@ No `analyze_*.py` file is part of the active cron/dashboard path: none are calle
 | Path | Status | Notes |
 |---|---|---|
 | `.cache/raw_data.pkl` | local cache | Data cache, not committed. |
+| `.cache/` | ignored runtime | Fully gitignored local cache/log directory. |
 | `.cache/launchd-refresh*.log` | local logs | Launchd stdout/stderr logs, not committed. |
 | `.cache/status.json` | local status | Refresh status written by ops wrapper. |
 | `.cache/presentation.html` | ignored relic | Local duplicate if present; tracked presentation now lives at `docs/PRESENTATION.html`. |

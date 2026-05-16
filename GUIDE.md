@@ -224,7 +224,7 @@ Cadence is **lazy weekly Tuesday**: a brief is stale if its archive date is olde
 **Tuesday morning, before the macro-research meeting:**
 
 1. Run `.venv/bin/python build.py` to refresh data, write the snapshot, and render the dashboard. Brief generation triggers automatically if any are stale.
-2. Open `.cache/dashboard.html`. Skim the hero (number, state, this week's read).
+2. Open `outputs/dashboard.html`. Skim the hero (number, state, this week's read).
 4. Click into Step 1 to see how the regime has evolved over the chosen lookback.
 5. Read the market pillar brief (Step 2) and economy pillar brief (Step 3) before the meeting.
 6. In the meeting: project the dashboard, walk through the four steps in order. The briefs are pre-meeting prep, not slide content.

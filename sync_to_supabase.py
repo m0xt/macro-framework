@@ -26,7 +26,7 @@ from supabase import Client, create_client
 
 EXPECTED_SCHEMA_VERSION = 1
 SCHEMA_VERSION_KEY = "schema_version"
-SNAPSHOT_DIR = Path(__file__).parent / ".cache" / "snapshots"
+SNAPSHOT_DIR = Path(__file__).parent / "snapshots"
 _CHUNK_SIZE = 500
 
 EXIT_AUTH = 20

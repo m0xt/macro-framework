@@ -11,10 +11,10 @@ Layout (from "How to Use It" slide):
 
 Reads:
   Upstream Yahoo/FRED data via macro_pipeline.py
-  .cache/snapshots/<latest>.json (current values)
+  snapshots/<latest>.json (current values)
 
 Writes:
-  .cache/dashboard.html
+  outputs/dashboard.html
 """
 
 import glob
@@ -32,7 +32,7 @@ from macro_pipeline import *
 
 ROOT = Path(__file__).parent
 RAW_DATA_PKL = CACHE_DIR / "raw_data.pkl"
-OUTPUT = CACHE_DIR / "dashboard.html"
+OUTPUT = ROOT / "outputs" / "dashboard.html"
 BRIEFS_DIR = ROOT / "briefs"
 
 
@@ -92,7 +92,7 @@ def _load_brief_html(filename, snap_date):
 
 
 def latest_snapshot():
-    files = sorted(glob.glob(str(CACHE_DIR / "snapshots" / "*.json")))
+    files = sorted(glob.glob(str(SNAPSHOT_DIR / "*.json")))
     if not files:
         raise SystemExit("No snapshot found. Run build.py first.")
     return json.load(open(files[-1]))
@@ -1965,6 +1965,7 @@ buildStressStripChart();
 def build_dashboard(use_cache: bool = True) -> Path:
     """Fetch data, compute indicators, save snapshot, and render the dashboard."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
 
     data = fetch_all_data(use_cache=use_cache)
 

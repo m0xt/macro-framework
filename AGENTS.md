@@ -19,8 +19,8 @@
 | `tests/test_supabase_sync.py` | Supabase preflight/failure-isolation tests. |
 | `test_sync_to_supabase.py` | Legacy/root Supabase tests kept for compatibility. |
 | `briefs/` | Git-tracked weekly Claude brief archive. |
-| `.cache/dashboard.html` | Current generated dashboard, tracked for review. |
-| `.cache/snapshots/` | Git-tracked point-in-time JSON snapshots; see `DECISIONS.md`. |
+| `outputs/dashboard.html` | Current generated dashboard, latest deliverable overwritten each run. |
+| `snapshots/` | Git-tracked point-in-time JSON snapshots; see `DECISIONS.md` and `agent_docs/retention.md`. |
 | `docs/PRESENTATION.html` | Shareable human explainer; moved from top-level `presentation.html`. |
 | `docs/architecture.md` | Human technical narrative and MRMI provenance. |
 | `agent_docs/` | Agent-facing runbooks, repo map, cron recovery, secrets contract. |

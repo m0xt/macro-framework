@@ -47,6 +47,6 @@ fi
 
 cron_wrapper_commit_outputs \
     briefs/ \
-    .cache/dashboard.html \
-    .cache/snapshots/ \
+    outputs/dashboard.html \
+    snapshots/ \
     -- "refresh $(date -u +%FT%TZ)"

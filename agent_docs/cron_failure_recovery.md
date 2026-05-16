@@ -52,7 +52,7 @@ If the local dashboard build succeeded earlier, do not rerun the full refresh un
 ## Yahoo/FRED transient failures
 
 Symptoms:
-- `build.py --no-cache` fails before `.cache/dashboard.html` is updated.
+- `build.py --no-cache` fails before `outputs/dashboard.html` is updated.
 - Stack traces from `yfinance`, `requests`, FRED CSV reads, DNS, TLS, rate limits, or empty data frames.
 - `.cache/status.json` reports a refresh/build failure rather than Supabase partial success.
 
@@ -60,7 +60,7 @@ Recovery:
 1. Check whether `.cache/raw_data.pkl` exists and whether the failure only happens with `--no-cache`.
 2. Retry once after a short interval; Yahoo/FRED failures are often transient.
 3. If cached data is acceptable for the dispatch, run `uv run python build.py` without `--no-cache` and clearly record that the build used cache.
-4. Do not commit a dashboard generated from suspicious partial data. Inspect `.cache/dashboard.html` timestamp and the newest `.cache/snapshots/*.json` first.
+4. Do not commit a dashboard generated from suspicious partial data. Inspect `outputs/dashboard.html` timestamp and the newest `snapshots/*.json` first.
 5. If a source changed its schema/ticker, patch `macro_pipeline.fetch_all_data()` or the relevant calculator, then add/update a smoke test.
 
 ## Claude CLI timeout or weekly-brief failure

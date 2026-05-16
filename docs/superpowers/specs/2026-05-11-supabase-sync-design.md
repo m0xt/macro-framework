@@ -24,7 +24,7 @@ re-fetching upstream data sources (Yahoo Finance, FRED).
 
 ```
 build.py  →  .cache/raw_data.pkl        (Yahoo + FRED, 12h TTL)
-          →  .cache/snapshots/<date>.json  (point-in-time)
+          →  snapshots/<date>.json  (point-in-time)
                           │
                           ▼
               sync_to_supabase.py
@@ -140,7 +140,7 @@ This avoids drift between dashboard and Supabase values.
 
 `sync_to_supabase.py` (default subcommand `latest`):
 
-1. Find most recent snapshot in `.cache/snapshots/`.
+1. Find most recent snapshot in `snapshots/`.
 2. Read the JSON.
 3. Build one row: pluck the 10 hot scalars, store the entire dict as
    the JSONB `snapshot` value.

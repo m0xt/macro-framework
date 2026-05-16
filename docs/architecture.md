@@ -1,6 +1,6 @@
 # Architecture
 
-`macro-framework` is a macro-regime dashboard and data pipeline. It ingests Yahoo Finance and FRED data, computes market and economy indicators, writes daily JSON snapshots, renders `.cache/dashboard.html`, optionally syncs hot fields to Supabase, and refreshes three Claude-generated weekly briefs on a lazy Tuesday cadence.
+`macro-framework` is a macro-regime dashboard and data pipeline. It ingests Yahoo Finance and FRED data, computes market and economy indicators, writes daily JSON snapshots, renders `outputs/dashboard.html`, optionally syncs hot fields to Supabase, and refreshes three Claude-generated weekly briefs on a lazy Tuesday cadence.
 
 ## MRMI formula
 
@@ -42,9 +42,9 @@ The buffer is intentionally pro-risk by default: MMI weakness alone is not enoug
    - `calc_composite()` for MMI.
    - `calc_macro_context()` for release-lagged real economy and inflation context.
    - `calc_milk_road_macro_index()` for MRMI, macro buffer, and stress intensity.
-4. `save_snapshot()` writes `.cache/snapshots/YYYY-MM-DD.json` with the current MRMI, components, macro fields, underliers, and full nested snapshot.
+4. `save_snapshot()` writes `snapshots/YYYY-MM-DD.json` with the current MRMI, components, macro fields, underliers, and full nested snapshot.
 5. `prepare_chart_data()` serializes dashboard chart payloads for `build.py`.
-6. `build.py` embeds the payload and briefs into `.cache/dashboard.html`.
+6. `build.py` embeds the payload and briefs into `outputs/dashboard.html`.
 7. `sync_to_supabase.py latest` converts the newest snapshot into one `macro_snapshots` row for downstream apps.
 
 ## Dashboard structure
@@ -72,7 +72,7 @@ The retired Macro Seasons/Spring/Summer/Fall/Winter model should not be reintrod
 2. `cron_wrapper_pull` to fast-forward the repo.
 3. Run `build.py --no-cache`.
 4. Run `sync_to_supabase.py latest`.
-5. Commit tracked outputs: `briefs/`, `.cache/dashboard.html`, and `.cache/snapshots/`.
+5. Commit tracked outputs: `briefs/`, `outputs/dashboard.html`, and `snapshots/`.
 6. Write `.cache/status.json` through the ops wrapper.
 
 Supabase failures are fail-soft: if the local dashboard build succeeds but sync fails with `supabase-auth`, `supabase-network`, or `supabase-schema-drift`, `refresh.sh` still commits local deliverables and records `refresh ok, supabase sync failed (<type>)`.

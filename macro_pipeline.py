@@ -15,11 +15,12 @@ import pandas as pd
 import requests
 import yfinance as yf
 
-CACHE_DIR = Path(__file__).parent / ".cache"
+ROOT = Path(__file__).parent
+CACHE_DIR = ROOT / ".cache"
 
 DATA_CACHE = CACHE_DIR / "raw_data.pkl"
 
-SNAPSHOT_DIR = CACHE_DIR / "snapshots"
+SNAPSHOT_DIR = ROOT / "snapshots"
 
 YF_TICKERS = [
     "HYG", "XLY", "XLP", "XLI", "XLU", "SPHB", "SPLV",

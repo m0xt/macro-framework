@@ -10,7 +10,7 @@ uv sync --extra dev
 uv run pytest
 uv run ruff check .
 uv run python build.py
-open .cache/dashboard.html
+open outputs/dashboard.html
 ```
 
 Force fresh data:

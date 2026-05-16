@@ -492,7 +492,7 @@ from pathlib import Path
 from supabase import create_client, Client
 
 
-SNAPSHOT_DIR = Path(__file__).parent / ".cache" / "snapshots"
+SNAPSHOT_DIR = Path(__file__).parent / "snapshots"
 
 
 def _supabase_client() -> Client:

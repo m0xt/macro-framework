@@ -9,17 +9,6 @@ __pycache__/
 .mypy_cache/
 .pyright/
 
-# Generated cache — rebuilt on demand, not for version control
-.cache/raw_data.pkl
-.cache/status.json
-.cache/daily_refresh.log
-.cache/charts/
-.cache/macro_update_*.html
-.cache/macro_update_*.md
-.cache/presentation.html
-.cache/*.csv
-.cache/launchd-refresh.log
-.cache/launchd-refresh-daily.log
-.cache/supabase-sync.log
-# Ignore timestamped/fresh dashboard variants; track the canonical .cache/dashboard.html.
-.cache/dashboard_*.html
+# Rebuildable cache/logs only. No tracked exceptions; durable outputs live in
+# outputs/, snapshots/, snapshots-monthly/, briefs/, and reports/.
+.cache/

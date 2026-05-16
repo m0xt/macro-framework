@@ -27,7 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 CACHE_DIR = ROOT / ".cache"
-SNAPSHOT_DIR = CACHE_DIR / "snapshots"
+SNAPSHOT_DIR = ROOT / "snapshots"
 BRIEFS_DIR = ROOT / "briefs"
 
 FILE_TOP     = "top.md"
