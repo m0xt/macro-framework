@@ -44,6 +44,7 @@
 - Supabase preflight: `uv run python -m macro_framework.sync_to_supabase doctor`
 - Supabase latest sync: `uv run python -m macro_framework.sync_to_supabase latest`
 - Cron path: `scripts/refresh.sh`
+- LAN dashboard serve: `com.milkroad.macro-framework-serve` exposes `outputs/dashboard.html` at `http://Felixs-Mac-mini.local:8001/dashboard.html`.
 
 ## Conventions
 
