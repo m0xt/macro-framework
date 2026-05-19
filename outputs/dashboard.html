@@ -442,6 +442,36 @@
   }
 
 
+  /* Simplified macro-stress readout */
+  .macro-stress-snapshot {
+    background: #111; border: 1px solid #222; border-radius: 10px;
+    padding: 24px 28px; margin-bottom: 18px;
+    border-left: 5px solid;
+  }
+  .macro-stress-eyebrow {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.8px;
+    color: #666; font-weight: 600; margin-bottom: 12px;
+  }
+  .macro-stress-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 10px 18px; border-radius: 999px;
+    font-size: 36px; font-weight: 800; letter-spacing: 0.5px;
+    line-height: 1; border: 1px solid; background: #181818;
+  }
+  .macro-stress-axes {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+    margin-top: 18px; max-width: 720px;
+  }
+  .macro-stress-axis {
+    background: #181818; border: 1px solid #222; border-radius: 8px;
+    padding: 12px 14px; color: #888; font-size: 14px;
+  }
+  .macro-stress-axis strong { color: #e0e0e0; font-weight: 700; }
+  @media (max-width: 720px) {
+    .macro-stress-axes { grid-template-columns: 1fr; }
+    .macro-stress-badge { font-size: 28px; }
+  }
+
   /* Pillar weekly brief (sits between chart and drivers) */
   .pillar-brief {
     margin: 20px 0 24px;
@@ -613,7 +643,7 @@
 
 <div class="meta-bar">
   <span class="brand">MILK ROAD · MACRO DASHBOARD v2</span>
-  <span>2026-05-19 · built 2026-05-19 09:00 UTC</span>
+  <span>2026-05-19 · built 2026-05-19 11:03 UTC</span>
 </div>
 
 <!-- 1 · HERO (single source of truth for the headline value) -->
@@ -743,14 +773,13 @@
 <!-- 5 · MACRO BACKDROP — chart over time + drivers, parallel to MMI -->
 <div class="section-title"><span class="step-num">3</span>What the economy is signaling<span class="pillar-chip economy">Economy pillar</span></div>
 <p class="section-intro"><strong>Macro Stress.</strong> The slow, <em>economy-derived</em> half of MRMI: built entirely from real-economy data — consumer spending, jobs, income, GDP nowcast — and inflation trajectory. The economy moves slowly, so stress takes time to build, but when it does it's grounded in fundamentals rather than market noise. Stress fires only when growth is weak <em>and</em> inflation is rising — that AND condition is what filters out the false alarms the market pillar would otherwise produce on its own.</p>
-<div class="mrmi-chart">
-  <div class="mrmi-chart-header">
-    <h3>Macro Stress Pressure
-      <span class="info-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="4" r="0.9" fill="currentColor"/><line x1="7" y1="6.5" x2="7" y2="10.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the smoothed AND-condition between weak growth and rising inflation, expressed as a z-score against the full historical pressure series. <em>0σ</em> = a typical macro reading; <em>+1σ</em> = stress building above the historical norm (top ~16% of readings); <em>+2σ</em> = unusual; <em>+3σ</em> = extreme. Negative values mean conditions are actively benign vs history.</p><p><strong>How it's built:</strong> <code>sigmoid(−2·Real_Economy) × sigmoid(2·Inflation_Direction)</code>, then z-scored against its own history. Same AND logic as the model's hard-clipped <code>stress_intensity</code> (which still drives MRMI internally) but always informative and self-anchored to history.</p><p><strong>Underlying components:</strong> expand the section below to see the two raw axes — Real Economy Score and Inflation Direction Δ6m — that feed this score.</p></span></span>
-    </h3>
+<div class="macro-stress-snapshot" style="border-left-color:#4CAF50;">
+  <div class="macro-stress-eyebrow">Current macro stress</div>
+  <div class="macro-stress-badge" style="color:#4CAF50; border-color:#4CAF5055; box-shadow: 0 0 0 4px #4CAF5014;">OFF</div>
+  <div class="macro-stress-axes">
+    <div class="macro-stress-axis">Growth: <strong>weak</strong></div>
+    <div class="macro-stress-axis">Inflation: <strong>stable</strong></div>
   </div>
-  <p class="mrmi-chart-subtitle">Stress pressure z-scored against its own history. Above +1σ = stress building above norm; below −1σ = unusually calm.</p>
-  <div class="chart-container" style="height: 240px;"><canvas id="chart-stress-strip"></canvas></div>
 </div>
 <div class="pillar-brief"><div class="pillar-brief-eyebrow">This week’s read · economy pillar</div><p>The macro stress pressure score has climbed sharply this week — the raw reading reached +0.430 against a neutral baseline of ~0.25, a +0.172 move in seven days that pushes the z-score toward the +1σ threshold where stress begins running above the historical norm. The catalyst was unambiguous: <a href="https://www.cnbc.com/2026/05/12/cpi-inflation-april-2026-.html" target="_blank" rel="noopener">April's CPI print</a> released May 12 showed core CPI jumping to 2.8% year-over-year with a 0.4% monthly gain — the hottest monthly reading since January 2025 — which snapped the inflation direction axis from near-flat to positive, and that axis's +0.461 pp seven-day move is the mechanical footprint of the tariff channel beginning to pass through as pre-tariff import inventories run down. Growth is preventing the pressure score from moving higher still: the real economy score at −0.775 is meaningfully below zero, reflecting softening across PCE, the Sahm framework, and real incomes (real average wages fell 0.3% year-over-year per the same CPI release), but GDPNow's positive z-score and <a href="https://www.cnbc.com/2026/05/12/cpi-inflation-april-2026-.html" target="_blank" rel="noopener">three consecutive months of retail sales gains</a> suggest the economy is decelerating rather than contracting — the +0.106 seven-day improvement in the real economy score corroborates that the trajectory has at least stabilized. The divergence that matters is the vector: growth is weakening gradually while inflation is re-accelerating quickly, which is precisely the AND-condition the stress framework is built to penalize. <a href="https://ratings.moodys.com/ratings-news/443154" target="_blank" rel="noopener">Moody's stripping the U.S. sovereign Aaa rating on May 16</a> — the last of the three major agencies to do so — added structural texture to this backdrop, driving the 30-year Treasury yield above 5% and widening the fiscal discount rate precisely when consumer balance sheets are already under strain from delinquency rates approaching post-GFC highs. The hard-clipped stress intensity remains near zero (+0.033) and the MRMI macro buffer is essentially intact at 0.967, but the pressure z-score will cross into genuine +1σ territory and begin threatening the buffer if the May core CPI print sustains a 0.3–0.4% monthly pace, or if labor market data — particularly a Sahm-rule deterioration — pushes the real economy score meaningfully more negative from here.</p><p>Sources:
 - <a href="https://www.cnbc.com/2026/05/12/cpi-inflation-april-2026-.html" target="_blank" rel="noopener">CPI inflation April 2026: Prices rose 3.8% annually – CNBC</a>
@@ -760,18 +789,6 @@
 - <a href="https://ratings.moodys.com/ratings-news/443154" target="_blank" rel="noopener">Moody's Ratings downgrades United States credit rating</a>
 - <a href="https://am.jpmorgan.com/hk/en/asset-management/adv/insights/market-insights/market-updates/on-the-minds-of-investors/what-are-the-implications-of-moodys-downgrade-of-the-us/" target="_blank" rel="noopener">What are the implications of Moody's downgrade of the U.S.? – J.P. Morgan Asset Management</a>
 - <a href="https://www.jpmorgan.com/insights/global-research/current-events/us-tariffs" target="_blank" rel="noopener">US Tariffs: What's the Impact? – J.P. Morgan Global Research</a></p></div>
-<details class="drivers" style="margin-top: 12px;">
-  <summary>
-    <span><span class="state-dot" style="background:#cdaa6a"></span>UNDERLYING COMPONENTS <span class="muted small">· Real Economy Score · Inflation Direction Δ6m — click to expand</span></span>
-  </summary>
-  <div class="drivers-body">
-    <div class="chart-container" style="height: 220px;"><canvas id="chart-macro"></canvas></div>
-    <div class="legend" style="margin-top: 10px;">
-      <span class="legend-item"><span class="legend-dot" style="background:#ffffff"></span>Real Economy Score (z, left axis)</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#cdaa6a"></span>Inflation Direction Δ6m (pp, right axis)</span>
-    </div>
-  </div>
-</details>
 <details class="drivers seasons-drivers">
   <summary>
     <span><span class="state-dot" style="background:#E84B5A"></span>REAL ECONOMY DRIVERS <span class="muted small">· PCE · Sahm · Real Income · GDPNow — click any row to expand</span></span>
@@ -1383,6 +1400,8 @@ function computeStressWindows(stressArr) {
 }
 
 function buildMacroChart() {
+  const canvas = document.getElementById('chart-macro');
+  if (!canvas) return;
   const dates = sliceRecent(CHART_DATA.dates, RANGE_BARS[currentRange]);
   const re_series = sliceRecent((CHART_DATA.macro || {}).real_economy_score || [], RANGE_BARS[currentRange]);
   const inf_series = sliceRecent((CHART_DATA.macro || {}).inflation_dir_pp || [], RANGE_BARS[currentRange]);
@@ -1402,7 +1421,7 @@ function buildMacroChart() {
   });
 
   if (window.macroChart) window.macroChart.destroy();
-  window.macroChart = new Chart(document.getElementById('chart-macro'), {
+  window.macroChart = new Chart(canvas, {
     type: 'line',
     data: {
       labels: dates,

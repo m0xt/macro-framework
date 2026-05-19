@@ -19,3 +19,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Bob 13b webloc delivery after serve verification
+
+## 2026-05-19T11:04:07Z — Macro stress display simplification
+- What: Collapsed the economy pillar macro-stress display to an OFF/BUILDING/ELEVATED badge with plain-English growth and inflation axis labels; rebuilt dashboard from cached data.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-19.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

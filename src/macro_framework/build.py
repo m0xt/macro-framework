@@ -247,6 +247,39 @@ def macro_backdrop(re_score, inf_dir):
     }
 
 
+def stress_bucket(intensity: float) -> str:
+    """Plain-language label for the 0–1 stress intensity."""
+    if intensity < 0.05:
+        return "OFF"
+    if intensity < 0.30:
+        return "BUILDING"
+    return "ELEVATED"
+
+
+def growth_axis_label(re_score):
+    if re_score is None:
+        return "unknown"
+    if re_score > 0.5:
+        return "strong"
+    if re_score >= -0.5:
+        return "typical"
+    if re_score >= -1.5:
+        return "weak"
+    return "very weak"
+
+
+def inflation_axis_label(inf_dir):
+    if inf_dir is None:
+        return "unknown"
+    if inf_dir < -0.2:
+        return "cooling"
+    if inf_dir <= 0.2:
+        return "stable"
+    if inf_dir <= 0.5:
+        return "rising"
+    return "accelerating"
+
+
 def driver_label(value):
     if value > 0.75:  return ("Strong", "#4CAF50")
     if value > 0:     return ("Positive", "#8BC34A")
@@ -419,9 +452,14 @@ def render(snap, chart, raw_data=None):
     mmi_value_str = f"{'+' if (mmi_value or 0) >= 0 else ''}{mmi_value:.2f}" if mmi_value is not None else "—"
 
     # Macro Stress sub-signal coloring
-    stress_on = (stress_intensity or 0) > 0.5
-    stress_color = "#E84B5A" if stress_on else "#4CAF50"
-    stress_label = "ON" if stress_on else "OFF"
+    stress_label = stress_bucket(float(stress_intensity or 0.0))
+    stress_color = {
+        "OFF": "#4CAF50",
+        "BUILDING": "#FF8C00",
+        "ELEVATED": "#E84B5A",
+    }[stress_label]
+    growth_label = growth_axis_label(re_score)
+    inflation_label = inflation_axis_label(inf_dir)
 
     g_label, g_color = driver_label(gii)
     b_label, b_color = driver_label(breadth)
@@ -938,6 +976,36 @@ def render(snap, chart, raw_data=None):
   }}
 
 
+  /* Simplified macro-stress readout */
+  .macro-stress-snapshot {{
+    background: #111; border: 1px solid #222; border-radius: 10px;
+    padding: 24px 28px; margin-bottom: 18px;
+    border-left: 5px solid;
+  }}
+  .macro-stress-eyebrow {{
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.8px;
+    color: #666; font-weight: 600; margin-bottom: 12px;
+  }}
+  .macro-stress-badge {{
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 10px 18px; border-radius: 999px;
+    font-size: 36px; font-weight: 800; letter-spacing: 0.5px;
+    line-height: 1; border: 1px solid; background: #181818;
+  }}
+  .macro-stress-axes {{
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+    margin-top: 18px; max-width: 720px;
+  }}
+  .macro-stress-axis {{
+    background: #181818; border: 1px solid #222; border-radius: 8px;
+    padding: 12px 14px; color: #888; font-size: 14px;
+  }}
+  .macro-stress-axis strong {{ color: #e0e0e0; font-weight: 700; }}
+  @media (max-width: 720px) {{
+    .macro-stress-axes {{ grid-template-columns: 1fr; }}
+    .macro-stress-badge {{ font-size: 28px; }}
+  }}
+
   /* Pillar weekly brief (sits between chart and drivers) */
   .pillar-brief {{
     margin: 20px 0 24px;
@@ -1219,28 +1287,15 @@ def render(snap, chart, raw_data=None):
 <!-- 5 · MACRO BACKDROP — chart over time + drivers, parallel to MMI -->
 <div class="section-title"><span class="step-num">3</span>What the economy is signaling<span class="pillar-chip economy">Economy pillar</span></div>
 <p class="section-intro"><strong>Macro Stress.</strong> The slow, <em>economy-derived</em> half of MRMI: built entirely from real-economy data — consumer spending, jobs, income, GDP nowcast — and inflation trajectory. The economy moves slowly, so stress takes time to build, but when it does it's grounded in fundamentals rather than market noise. Stress fires only when growth is weak <em>and</em> inflation is rising — that AND condition is what filters out the false alarms the market pillar would otherwise produce on its own.</p>
-<div class="mrmi-chart">
-  <div class="mrmi-chart-header">
-    <h3>Macro Stress Pressure
-      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the smoothed AND-condition between weak growth and rising inflation, expressed as a z-score against the full historical pressure series. <em>0σ</em> = a typical macro reading; <em>+1σ</em> = stress building above the historical norm (top ~16% of readings); <em>+2σ</em> = unusual; <em>+3σ</em> = extreme. Negative values mean conditions are actively benign vs history.</p><p><strong>How it's built:</strong> <code>sigmoid(−2·Real_Economy) × sigmoid(2·Inflation_Direction)</code>, then z-scored against its own history. Same AND logic as the model's hard-clipped <code>stress_intensity</code> (which still drives MRMI internally) but always informative and self-anchored to history.</p><p><strong>Underlying components:</strong> expand the section below to see the two raw axes — Real Economy Score and Inflation Direction Δ6m — that feed this score.</p></span></span>
-    </h3>
+<div class="macro-stress-snapshot" style="border-left-color:{stress_color};">
+  <div class="macro-stress-eyebrow">Current macro stress</div>
+  <div class="macro-stress-badge" style="color:{stress_color}; border-color:{stress_color}55; box-shadow: 0 0 0 4px {stress_color}14;">{stress_label}</div>
+  <div class="macro-stress-axes">
+    <div class="macro-stress-axis">Growth: <strong>{growth_label}</strong></div>
+    <div class="macro-stress-axis">Inflation: <strong>{inflation_label}</strong></div>
   </div>
-  <p class="mrmi-chart-subtitle">Stress pressure z-scored against its own history. Above +1σ = stress building above norm; below −1σ = unusually calm.</p>
-  <div class="chart-container" style="height: 240px;"><canvas id="chart-stress-strip"></canvas></div>
 </div>
 {(f'<div class="pillar-brief"><div class="pillar-brief-eyebrow">This week’s read · economy pillar{(" · " + economy_brief_date + " (cached)") if economy_brief_stale else ""}</div>{economy_brief_html}</div>') if economy_brief_html else ''}
-<details class="drivers" style="margin-top: 12px;">
-  <summary>
-    <span><span class="state-dot" style="background:#cdaa6a"></span>UNDERLYING COMPONENTS <span class="muted small">· Real Economy Score · Inflation Direction Δ6m — click to expand</span></span>
-  </summary>
-  <div class="drivers-body">
-    <div class="chart-container" style="height: 220px;"><canvas id="chart-macro"></canvas></div>
-    <div class="legend" style="margin-top: 10px;">
-      <span class="legend-item"><span class="legend-dot" style="background:#ffffff"></span>Real Economy Score (z, left axis)</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#cdaa6a"></span>Inflation Direction Δ6m (pp, right axis)</span>
-    </div>
-  </div>
-</details>
 <details class="drivers seasons-drivers">
   <summary>
     <span><span class="state-dot" style="background:{backdrop['color']}"></span>REAL ECONOMY DRIVERS <span class="muted small">· PCE · Sahm · Real Income · GDPNow — click any row to expand</span></span>
@@ -1791,6 +1846,8 @@ function computeStressWindows(stressArr) {{
 }}
 
 function buildMacroChart() {{
+  const canvas = document.getElementById('chart-macro');
+  if (!canvas) return;
   const dates = sliceRecent(CHART_DATA.dates, RANGE_BARS[currentRange]);
   const re_series = sliceRecent((CHART_DATA.macro || {{}}).real_economy_score || [], RANGE_BARS[currentRange]);
   const inf_series = sliceRecent((CHART_DATA.macro || {{}}).inflation_dir_pp || [], RANGE_BARS[currentRange]);
@@ -1810,7 +1867,7 @@ function buildMacroChart() {{
   }});
 
   if (window.macroChart) window.macroChart.destroy();
-  window.macroChart = new Chart(document.getElementById('chart-macro'), {{
+  window.macroChart = new Chart(canvas, {{
     type: 'line',
     data: {{
       labels: dates,
