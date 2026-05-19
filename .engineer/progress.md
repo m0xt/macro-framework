@@ -40,3 +40,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-19T11:52:40Z — Economy pillar visual parity
+- What: Removed redundant Growth/Inflation text rows and restructured Macro Stress into the same chart-card + drivers-panel pattern as the market pillar, with OFF/BUILDING/ELEVATED chip plus 0–1 intensity retained.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-19.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

@@ -442,59 +442,35 @@
   }
 
 
-  /* Simplified macro-stress readout */
-  .macro-stress-snapshot {
-    background: #111; border: 1px solid #222; border-radius: 10px;
-    padding: 24px 28px; margin-bottom: 18px;
-    border-left: 5px solid;
+  /* Macro-stress pillar: match the market pillar card + drivers structure */
+  .macro-stress-snapshot { margin-bottom: 24px; }
+  .macro-stress-reading {
+    display: inline-flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    justify-content: flex-end;
   }
-  .macro-stress-eyebrow {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 1.8px;
-    color: #666; font-weight: 600; margin-bottom: 12px;
+  .macro-stress-reading-value {
+    font-size: 28px; font-weight: 600; line-height: 1;
+    letter-spacing: -0.5px; color: #e0e0e0;
   }
-  .macro-stress-headline {
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  }
-  .macro-stress-badge {
+  .macro-stress-reading-chip {
     display: inline-flex; align-items: center; justify-content: center;
-    padding: 10px 18px; border-radius: 999px;
-    font-size: 36px; font-weight: 800; letter-spacing: 0.5px;
-    line-height: 1; border: 1px solid; background: #181818;
+    min-width: 44px; padding: 4px 10px; border-radius: 999px;
+    background: #181818; border: 1px solid;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; line-height: 1;
   }
-  .macro-stress-value {
-    font-family: 'SF Mono', Menlo, monospace; font-size: 28px; font-weight: 700;
-    color: #e0e0e0;
+  .macro-stress-reading-label {
+    font-size: 11px; color: #666; font-weight: 600;
+    letter-spacing: 1.2px; text-transform: uppercase;
   }
-  .macro-stress-value span {
-    display: block; margin-top: 4px;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
-    font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
-    color: #666; font-weight: 600;
-  }
-  .macro-stress-axes {
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
-    margin-top: 18px; max-width: 720px;
-  }
-  .macro-stress-axis {
-    background: #181818; border: 1px solid #222; border-radius: 8px;
-    padding: 12px 14px; color: #888; font-size: 14px;
-  }
-  .macro-stress-axis strong { color: #e0e0e0; font-weight: 700; }
-  .macro-stress-chart {
-    margin-top: 22px; padding-top: 18px; border-top: 1px solid #222;
-  }
-  .macro-stress-chart + .macro-stress-chart { margin-top: 18px; }
-  .macro-stress-chart-title {
-    font-size: 12px; text-transform: uppercase; letter-spacing: 1.4px;
-    color: #888; font-weight: 700; margin-bottom: 10px;
-  }
-  .macro-stress-chart-wrap { position: relative; height: 165px; width: 100%; padding: 0 8px; }
-  .macro-stress-mini-legend { font-size: 12px; color: #888; margin: -2px 0 10px; }
+  .macro-stress-inputs-panel .drivers-body { padding-top: 2px; }
+  .macro-stress-mini-legend { font-size: 12px; color: #888; margin: 0 0 10px; }
   .macro-stress-mini-legend span { display: inline-flex; align-items: center; margin-right: 14px; }
   .macro-stress-mini-legend i { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; display: inline-block; }
+  .macro-stress-inputs-wrap { height: 190px; padding: 0 8px; }
   @media (max-width: 720px) {
-    .macro-stress-axes { grid-template-columns: 1fr; }
-    .macro-stress-badge { font-size: 28px; }
+    .macro-stress-reading { justify-content: flex-start; }
+    .macro-stress-reading-value { font-size: 24px; }
   }
 
   /* Pillar weekly brief (sits between chart and drivers) */
@@ -668,7 +644,7 @@
 
 <div class="meta-bar">
   <span class="brand">MILK ROAD · MACRO DASHBOARD v2</span>
-  <span>2026-05-19 · built 2026-05-19 11:34 UTC</span>
+  <span>2026-05-19 · built 2026-05-19 11:50 UTC</span>
 </div>
 
 <!-- 1 · HERO (single source of truth for the headline value) -->
@@ -798,29 +774,32 @@
 <!-- 5 · MACRO BACKDROP — chart over time + drivers, parallel to MMI -->
 <div class="section-title"><span class="step-num">3</span>What the economy is signaling<span class="pillar-chip economy">Economy pillar</span></div>
 <p class="section-intro"><strong>Macro Stress.</strong> The slow, <em>economy-derived</em> half of MRMI: built entirely from real-economy data — consumer spending, jobs, income, GDP nowcast — and inflation trajectory. The economy moves slowly, so stress takes time to build, but when it does it's grounded in fundamentals rather than market noise. Stress fires only when growth is weak <em>and</em> inflation is rising — that AND condition is what filters out the false alarms the market pillar would otherwise produce on its own.</p>
-<div class="macro-stress-snapshot" style="border-left-color:#4CAF50;">
-  <div class="macro-stress-eyebrow">Current macro stress</div>
-  <div class="macro-stress-headline">
-    <div class="macro-stress-badge" style="color:#4CAF50; border-color:#4CAF5055; box-shadow: 0 0 0 4px #4CAF5014;">OFF</div>
-    <div class="macro-stress-value">0.03<span>0–1 intensity</span></div>
+<div class="mrmi-chart macro-stress-snapshot">
+  <div class="mrmi-chart-header">
+    <h3>Macro Stress
+      <span class="info-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="4" r="0.9" fill="currentColor"/><line x1="7" y1="6.5" x2="7" y2="10.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the current economy-pillar stress bucket and 0–1 intensity, followed by stress intensity over time. OFF means macro stress is not eroding the MRMI buffer; BUILDING and ELEVATED show progressively stronger macro pressure.</p><p><strong>Inputs below:</strong> the stress-inputs panel shows the two raw axes visually: Real Economy Score and Inflation Direction Δ6m.</p></span></span>
+    </h3>
+    <div class="macro-stress-reading">
+      <span class="macro-stress-reading-value mono">0.03</span>
+      <span class="macro-stress-reading-chip" style="color:#4CAF50; border-color:#4CAF5055; box-shadow: 0 0 0 3px #4CAF5012;">OFF</span>
+      <span class="macro-stress-reading-label">0–1 intensity</span>
+    </div>
   </div>
-  <div class="macro-stress-axes">
-    <div class="macro-stress-axis">Growth: <strong>weak</strong></div>
-    <div class="macro-stress-axis">Inflation: <strong>stable</strong></div>
-  </div>
-  <div class="macro-stress-chart">
-    <div class="macro-stress-chart-title">Stress intensity</div>
-    <div class="macro-stress-chart-wrap"><canvas id="chart-stress-history"></canvas></div>
-  </div>
-  <div class="macro-stress-chart">
-    <div class="macro-stress-chart-title">Stress inputs</div>
+  <p class="mrmi-chart-subtitle">Economy-pillar stress over time: OFF / BUILDING / ELEVATED pressure derived from growth weakness and inflation direction.</p>
+  <div class="chart-container" style="height: 220px;"><canvas id="chart-stress-history"></canvas></div>
+</div>
+<details class="drivers macro-stress-inputs-panel" open>
+  <summary>
+    <span><span class="state-dot" style="background:#4CAF50"></span>STRESS INPUTS <span class="muted small">· Real Economy Score · Inflation Direction Δ6m</span></span>
+  </summary>
+  <div class="drivers-body">
     <div class="macro-stress-mini-legend">
       <span><i style="background:#4CAF50"></i>Real Economy Score</span>
       <span><i style="background:#cdaa6a"></i>Inflation Direction Δ6m</span>
     </div>
-    <div class="macro-stress-chart-wrap"><canvas id="chart-stress-inputs"></canvas></div>
+    <div class="chart-wrap macro-stress-inputs-wrap"><canvas id="chart-stress-inputs"></canvas></div>
   </div>
-</div>
+</details>
 <div class="pillar-brief"><div class="pillar-brief-eyebrow">This week’s read · economy pillar</div><p>The macro stress pressure score has climbed sharply this week — the raw reading reached +0.430 against a neutral baseline of ~0.25, a +0.172 move in seven days that pushes the z-score toward the +1σ threshold where stress begins running above the historical norm. The catalyst was unambiguous: <a href="https://www.cnbc.com/2026/05/12/cpi-inflation-april-2026-.html" target="_blank" rel="noopener">April's CPI print</a> released May 12 showed core CPI jumping to 2.8% year-over-year with a 0.4% monthly gain — the hottest monthly reading since January 2025 — which snapped the inflation direction axis from near-flat to positive, and that axis's +0.461 pp seven-day move is the mechanical footprint of the tariff channel beginning to pass through as pre-tariff import inventories run down. Growth is preventing the pressure score from moving higher still: the real economy score at −0.775 is meaningfully below zero, reflecting softening across PCE, the Sahm framework, and real incomes (real average wages fell 0.3% year-over-year per the same CPI release), but GDPNow's positive z-score and <a href="https://www.cnbc.com/2026/05/12/cpi-inflation-april-2026-.html" target="_blank" rel="noopener">three consecutive months of retail sales gains</a> suggest the economy is decelerating rather than contracting — the +0.106 seven-day improvement in the real economy score corroborates that the trajectory has at least stabilized. The divergence that matters is the vector: growth is weakening gradually while inflation is re-accelerating quickly, which is precisely the AND-condition the stress framework is built to penalize. <a href="https://ratings.moodys.com/ratings-news/443154" target="_blank" rel="noopener">Moody's stripping the U.S. sovereign Aaa rating on May 16</a> — the last of the three major agencies to do so — added structural texture to this backdrop, driving the 30-year Treasury yield above 5% and widening the fiscal discount rate precisely when consumer balance sheets are already under strain from delinquency rates approaching post-GFC highs. The hard-clipped stress intensity remains near zero (+0.033) and the MRMI macro buffer is essentially intact at 0.967, but the pressure z-score will cross into genuine +1σ territory and begin threatening the buffer if the May core CPI print sustains a 0.3–0.4% monthly pace, or if labor market data — particularly a Sahm-rule deterioration — pushes the real economy score meaningfully more negative from here.</p><p>Sources:
 - <a href="https://www.cnbc.com/2026/05/12/cpi-inflation-april-2026-.html" target="_blank" rel="noopener">CPI inflation April 2026: Prices rose 3.8% annually – CNBC</a>
 - <a href="https://www.cnbc.com/2026/05/12/inflation-breakdown-for-april-2026-cpi-chart.html" target="_blank" rel="noopener">Here's the inflation breakdown for April 2026 – CNBC</a>

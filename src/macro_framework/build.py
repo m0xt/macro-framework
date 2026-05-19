@@ -257,30 +257,6 @@ def stress_bucket(intensity: float) -> str:
     return "ELEVATED"
 
 
-def growth_axis_label(re_score):
-    if re_score is None:
-        return "unknown"
-    if re_score > 0.5:
-        return "strong"
-    if re_score >= -0.5:
-        return "typical"
-    if re_score >= -1.5:
-        return "weak"
-    return "very weak"
-
-
-def inflation_axis_label(inf_dir):
-    if inf_dir is None:
-        return "unknown"
-    if inf_dir < -0.2:
-        return "cooling"
-    if inf_dir <= 0.2:
-        return "stable"
-    if inf_dir <= 0.5:
-        return "rising"
-    return "accelerating"
-
-
 def driver_label(value):
     if value > 0.75:  return ("Strong", "#4CAF50")
     if value > 0:     return ("Positive", "#8BC34A")
@@ -460,8 +436,6 @@ def render(snap, chart, raw_data=None):
         "ELEVATED": "#E84B5A",
     }[stress_label]
     stress_value_str = f"{float(stress_intensity or 0.0):.2f}"
-    growth_label = growth_axis_label(re_score)
-    inflation_label = inflation_axis_label(inf_dir)
 
     g_label, g_color = driver_label(gii)
     b_label, b_color = driver_label(breadth)
@@ -978,59 +952,35 @@ def render(snap, chart, raw_data=None):
   }}
 
 
-  /* Simplified macro-stress readout */
-  .macro-stress-snapshot {{
-    background: #111; border: 1px solid #222; border-radius: 10px;
-    padding: 24px 28px; margin-bottom: 18px;
-    border-left: 5px solid;
+  /* Macro-stress pillar: match the market pillar card + drivers structure */
+  .macro-stress-snapshot {{ margin-bottom: 24px; }}
+  .macro-stress-reading {{
+    display: inline-flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    justify-content: flex-end;
   }}
-  .macro-stress-eyebrow {{
-    font-size: 11px; text-transform: uppercase; letter-spacing: 1.8px;
-    color: #666; font-weight: 600; margin-bottom: 12px;
+  .macro-stress-reading-value {{
+    font-size: 28px; font-weight: 600; line-height: 1;
+    letter-spacing: -0.5px; color: #e0e0e0;
   }}
-  .macro-stress-headline {{
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  }}
-  .macro-stress-badge {{
+  .macro-stress-reading-chip {{
     display: inline-flex; align-items: center; justify-content: center;
-    padding: 10px 18px; border-radius: 999px;
-    font-size: 36px; font-weight: 800; letter-spacing: 0.5px;
-    line-height: 1; border: 1px solid; background: #181818;
+    min-width: 44px; padding: 4px 10px; border-radius: 999px;
+    background: #181818; border: 1px solid;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; line-height: 1;
   }}
-  .macro-stress-value {{
-    font-family: 'SF Mono', Menlo, monospace; font-size: 28px; font-weight: 700;
-    color: #e0e0e0;
+  .macro-stress-reading-label {{
+    font-size: 11px; color: #666; font-weight: 600;
+    letter-spacing: 1.2px; text-transform: uppercase;
   }}
-  .macro-stress-value span {{
-    display: block; margin-top: 4px;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
-    font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
-    color: #666; font-weight: 600;
-  }}
-  .macro-stress-axes {{
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
-    margin-top: 18px; max-width: 720px;
-  }}
-  .macro-stress-axis {{
-    background: #181818; border: 1px solid #222; border-radius: 8px;
-    padding: 12px 14px; color: #888; font-size: 14px;
-  }}
-  .macro-stress-axis strong {{ color: #e0e0e0; font-weight: 700; }}
-  .macro-stress-chart {{
-    margin-top: 22px; padding-top: 18px; border-top: 1px solid #222;
-  }}
-  .macro-stress-chart + .macro-stress-chart {{ margin-top: 18px; }}
-  .macro-stress-chart-title {{
-    font-size: 12px; text-transform: uppercase; letter-spacing: 1.4px;
-    color: #888; font-weight: 700; margin-bottom: 10px;
-  }}
-  .macro-stress-chart-wrap {{ position: relative; height: 165px; width: 100%; padding: 0 8px; }}
-  .macro-stress-mini-legend {{ font-size: 12px; color: #888; margin: -2px 0 10px; }}
+  .macro-stress-inputs-panel .drivers-body {{ padding-top: 2px; }}
+  .macro-stress-mini-legend {{ font-size: 12px; color: #888; margin: 0 0 10px; }}
   .macro-stress-mini-legend span {{ display: inline-flex; align-items: center; margin-right: 14px; }}
   .macro-stress-mini-legend i {{ width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; display: inline-block; }}
+  .macro-stress-inputs-wrap {{ height: 190px; padding: 0 8px; }}
   @media (max-width: 720px) {{
-    .macro-stress-axes {{ grid-template-columns: 1fr; }}
-    .macro-stress-badge {{ font-size: 28px; }}
+    .macro-stress-reading {{ justify-content: flex-start; }}
+    .macro-stress-reading-value {{ font-size: 24px; }}
   }}
 
   /* Pillar weekly brief (sits between chart and drivers) */
@@ -1314,29 +1264,32 @@ def render(snap, chart, raw_data=None):
 <!-- 5 · MACRO BACKDROP — chart over time + drivers, parallel to MMI -->
 <div class="section-title"><span class="step-num">3</span>What the economy is signaling<span class="pillar-chip economy">Economy pillar</span></div>
 <p class="section-intro"><strong>Macro Stress.</strong> The slow, <em>economy-derived</em> half of MRMI: built entirely from real-economy data — consumer spending, jobs, income, GDP nowcast — and inflation trajectory. The economy moves slowly, so stress takes time to build, but when it does it's grounded in fundamentals rather than market noise. Stress fires only when growth is weak <em>and</em> inflation is rising — that AND condition is what filters out the false alarms the market pillar would otherwise produce on its own.</p>
-<div class="macro-stress-snapshot" style="border-left-color:{stress_color};">
-  <div class="macro-stress-eyebrow">Current macro stress</div>
-  <div class="macro-stress-headline">
-    <div class="macro-stress-badge" style="color:{stress_color}; border-color:{stress_color}55; box-shadow: 0 0 0 4px {stress_color}14;">{stress_label}</div>
-    <div class="macro-stress-value">{stress_value_str}<span>0–1 intensity</span></div>
+<div class="mrmi-chart macro-stress-snapshot">
+  <div class="mrmi-chart-header">
+    <h3>Macro Stress
+      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the current economy-pillar stress bucket and 0–1 intensity, followed by stress intensity over time. OFF means macro stress is not eroding the MRMI buffer; BUILDING and ELEVATED show progressively stronger macro pressure.</p><p><strong>Inputs below:</strong> the stress-inputs panel shows the two raw axes visually: Real Economy Score and Inflation Direction Δ6m.</p></span></span>
+    </h3>
+    <div class="macro-stress-reading">
+      <span class="macro-stress-reading-value mono">{stress_value_str}</span>
+      <span class="macro-stress-reading-chip" style="color:{stress_color}; border-color:{stress_color}55; box-shadow: 0 0 0 3px {stress_color}12;">{stress_label}</span>
+      <span class="macro-stress-reading-label">0–1 intensity</span>
+    </div>
   </div>
-  <div class="macro-stress-axes">
-    <div class="macro-stress-axis">Growth: <strong>{growth_label}</strong></div>
-    <div class="macro-stress-axis">Inflation: <strong>{inflation_label}</strong></div>
-  </div>
-  <div class="macro-stress-chart">
-    <div class="macro-stress-chart-title">Stress intensity</div>
-    <div class="macro-stress-chart-wrap"><canvas id="chart-stress-history"></canvas></div>
-  </div>
-  <div class="macro-stress-chart">
-    <div class="macro-stress-chart-title">Stress inputs</div>
+  <p class="mrmi-chart-subtitle">Economy-pillar stress over time: OFF / BUILDING / ELEVATED pressure derived from growth weakness and inflation direction.</p>
+  <div class="chart-container" style="height: 220px;"><canvas id="chart-stress-history"></canvas></div>
+</div>
+<details class="drivers macro-stress-inputs-panel" open>
+  <summary>
+    <span><span class="state-dot" style="background:{stress_color}"></span>STRESS INPUTS <span class="muted small">· Real Economy Score · Inflation Direction Δ6m</span></span>
+  </summary>
+  <div class="drivers-body">
     <div class="macro-stress-mini-legend">
       <span><i style="background:#4CAF50"></i>Real Economy Score</span>
       <span><i style="background:#cdaa6a"></i>Inflation Direction Δ6m</span>
     </div>
-    <div class="macro-stress-chart-wrap"><canvas id="chart-stress-inputs"></canvas></div>
+    <div class="chart-wrap macro-stress-inputs-wrap"><canvas id="chart-stress-inputs"></canvas></div>
   </div>
-</div>
+</details>
 {(f'<div class="pillar-brief"><div class="pillar-brief-eyebrow">This week’s read · economy pillar{(" · " + economy_brief_date + " (cached)") if economy_brief_stale else ""}</div>{economy_brief_html}</div>') if economy_brief_html else ''}
 <details class="drivers seasons-drivers">
   <summary>
