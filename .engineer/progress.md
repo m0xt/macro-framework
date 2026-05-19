@@ -26,3 +26,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-19T11:24:23Z — Macro stress value + trend chart
+- What: Restored the current macro-stress 0–1 intensity beside the OFF/BUILDING/ELEVATED badge and added a 90-day stress-intensity line chart with BUILDING/ELEVATED thresholds from snapshots.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-19.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
