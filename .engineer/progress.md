@@ -33,3 +33,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-19T11:39:54Z — Macro stress chart polish
+- What: Rewired macro-stress intensity to the shared timeframe selector, matched the small-chart styling to the dashboard pattern, and added a separate Stress inputs chart for Real Economy Score + Inflation Direction Δ6m.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-19.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

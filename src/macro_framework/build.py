@@ -21,7 +21,6 @@ import glob
 import json
 import re
 import sys
-from datetime import datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -98,32 +97,6 @@ def latest_snapshot():
         raise SystemExit("No snapshot found. Run python -m macro_framework.build first.")
     return json.load(open(files[-1]))
 
-
-def load_stress_history(days: int = 90) -> dict[str, list]:
-    """Load 0–1 macro stress intensity from daily snapshot files."""
-    points = []
-    for path in sorted(SNAPSHOT_DIR.glob("*.json")):
-        try:
-            snap = json.loads(path.read_text())
-            date_str = snap.get("date") or path.stem
-            date = datetime.strptime(date_str, "%Y-%m-%d").date()
-            value = (snap.get("mrmi_combined") or {}).get("stress_intensity")
-        except (OSError, json.JSONDecodeError, TypeError, ValueError):
-            continue
-        if value is None:
-            continue
-        points.append((date, date_str, float(value)))
-
-    if not points:
-        return {"dates": [], "values": []}
-
-    latest_date = points[-1][0]
-    cutoff = latest_date - timedelta(days=days - 1)
-    recent = [(date_str, value) for date, date_str, value in points if date >= cutoff]
-    return {
-        "dates": [date_str for date_str, _value in recent],
-        "values": [value for _date_str, value in recent],
-    }
 
 
 def load_raw_data():
@@ -536,7 +509,6 @@ def render(snap, chart, raw_data=None):
     }
 
     mrmi_combined_chart = chart.get("mrmi_combined") or {}
-    stress_history = load_stress_history(days=90)
     chart_payload = json.dumps({
         "dates": chart["dates"],
         "composite": chart["composite"]["value"],  # MMI (the underlying momentum)
@@ -557,7 +529,6 @@ def render(snap, chart, raw_data=None):
             "components":         re_components_series,
         },
         "macro_drivers": macro_drivers_meta,
-        "stress_history": stress_history,
         "library": library_payload,
     }, separators=(",", ":"))
 
@@ -1048,11 +1019,15 @@ def render(snap, chart, raw_data=None):
   .macro-stress-chart {{
     margin-top: 22px; padding-top: 18px; border-top: 1px solid #222;
   }}
+  .macro-stress-chart + .macro-stress-chart {{ margin-top: 18px; }}
   .macro-stress-chart-title {{
     font-size: 12px; text-transform: uppercase; letter-spacing: 1.4px;
     color: #888; font-weight: 700; margin-bottom: 10px;
   }}
-  .macro-stress-chart-wrap {{ position: relative; height: 150px; width: 100%; }}
+  .macro-stress-chart-wrap {{ position: relative; height: 165px; width: 100%; padding: 0 8px; }}
+  .macro-stress-mini-legend {{ font-size: 12px; color: #888; margin: -2px 0 10px; }}
+  .macro-stress-mini-legend span {{ display: inline-flex; align-items: center; margin-right: 14px; }}
+  .macro-stress-mini-legend i {{ width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; display: inline-block; }}
   @media (max-width: 720px) {{
     .macro-stress-axes {{ grid-template-columns: 1fr; }}
     .macro-stress-badge {{ font-size: 28px; }}
@@ -1350,8 +1325,16 @@ def render(snap, chart, raw_data=None):
     <div class="macro-stress-axis">Inflation: <strong>{inflation_label}</strong></div>
   </div>
   <div class="macro-stress-chart">
-    <div class="macro-stress-chart-title">Stress over last 90 days</div>
+    <div class="macro-stress-chart-title">Stress intensity</div>
     <div class="macro-stress-chart-wrap"><canvas id="chart-stress-history"></canvas></div>
+  </div>
+  <div class="macro-stress-chart">
+    <div class="macro-stress-chart-title">Stress inputs</div>
+    <div class="macro-stress-mini-legend">
+      <span><i style="background:#4CAF50"></i>Real Economy Score</span>
+      <span><i style="background:#cdaa6a"></i>Inflation Direction Δ6m</span>
+    </div>
+    <div class="macro-stress-chart-wrap"><canvas id="chart-stress-inputs"></canvas></div>
   </div>
 </div>
 {(f'<div class="pillar-brief"><div class="pillar-brief-eyebrow">This week’s read · economy pillar{(" · " + economy_brief_date + " (cached)") if economy_brief_stale else ""}</div>{economy_brief_html}</div>') if economy_brief_html else ''}
@@ -1664,6 +1647,8 @@ document.querySelectorAll('.range-tabs button').forEach(btn => {{
     buildScorecard();
     buildMacroDriversScorecard();
     buildMacroChart();
+    buildStressHistoryChart();
+    buildStressInputsChart();
     buildStressStripChart();
     Object.keys(driverCharts).forEach(k => createDriverChart(k));
     Object.keys(macroDriverCharts).forEach(k => createMacroDriverChart(k));
@@ -1971,17 +1956,20 @@ function buildMacroChart() {{
 function buildStressHistoryChart() {{
   const canvas = document.getElementById('chart-stress-history');
   if (!canvas) return;
-  const stressHistory = CHART_DATA.stress_history || {{ dates: [], values: [] }};
+  const n = RANGE_BARS[currentRange] ?? 252;
+  const dates = sliceRecent(CHART_DATA.dates, n);
+  const stress = sliceRecent((CHART_DATA.mrmi_combined || {{}}).stress_intensity || [], n);
+
   if (window.stressHistoryChart) window.stressHistoryChart.destroy();
   window.stressHistoryChart = new Chart(canvas, {{
     type: 'line',
     data: {{
-      labels: stressHistory.dates || [],
+      labels: dates,
       datasets: [{{
-        label: 'Stress intensity', data: stressHistory.values || [],
-        borderColor: '#ffffff', borderWidth: 1.8,
-        pointRadius: 2, pointHoverRadius: 3, tension: 0.1, spanGaps: true,
-        fill: {{ target: 'origin', above: 'rgba(232,75,90,0.14)' }},
+        label: 'Stress intensity', data: stress,
+        borderColor: '#ffffff', borderWidth: 1.6,
+        pointRadius: 0, pointHoverRadius: 3, tension: 0.1, spanGaps: true,
+        fill: {{ target: 'origin', above: 'rgba(232,75,90,0.18)' }},
       }}],
     }},
     options: {{
@@ -1994,7 +1982,7 @@ function buildStressHistoryChart() {{
           titleColor: '#999', bodyColor: '#e0e0e0',
           titleFont: {{ size: 11 }}, bodyFont: {{ size: 11, family: "'SF Mono', Menlo, monospace" }},
           padding: 8,
-          callbacks: {{ label: ctx => 'Stress: ' + (ctx.parsed.y !== null ? ctx.parsed.y.toFixed(2) : '—') }},
+          callbacks: {{ label: ctx => 'Stress intensity: ' + (ctx.parsed.y !== null ? ctx.parsed.y.toFixed(2) : '—') }},
         }},
         annotation: {{
           annotations: {{
@@ -2006,8 +1994,54 @@ function buildStressHistoryChart() {{
         }},
       }},
       scales: {{
-        x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 8, maxRotation: 0 }}, grid: {{ display: false }} }},
-        y: {{ min: 0, max: 1, ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, stepSize: 0.25, callback: v => Number(v).toFixed(2) }}, grid: {{ color: '#1a1a1a' }} }},
+        x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 10, maxRotation: 0 }}, grid: {{ display: false }} }},
+        y: {{ min: 0, max: 1, ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 5, callback: v => Number(v).toFixed(2) }}, grid: {{ color: '#1a1a1a' }} }},
+      }},
+    }},
+  }});
+}}
+
+function buildStressInputsChart() {{
+  const canvas = document.getElementById('chart-stress-inputs');
+  if (!canvas) return;
+  const n = RANGE_BARS[currentRange] ?? 252;
+  const dates = sliceRecent(CHART_DATA.dates, n);
+  const realEconomy = sliceRecent((CHART_DATA.macro || {{}}).real_economy_score || [], n);
+  const inflationDir = sliceRecent((CHART_DATA.macro || {{}}).inflation_dir_pp || [], n);
+
+  if (window.stressInputsChart) window.stressInputsChart.destroy();
+  window.stressInputsChart = new Chart(canvas, {{
+    type: 'line',
+    data: {{
+      labels: dates,
+      datasets: [
+        {{ label: 'Real Economy Score', data: realEconomy,
+           borderColor: '#4CAF50', borderWidth: 1.6,
+           pointRadius: 0, pointHoverRadius: 3, tension: 0.1, spanGaps: true }},
+        {{ label: 'Inflation Direction Δ6m', data: inflationDir,
+           borderColor: '#cdaa6a', borderWidth: 1.6, borderDash: [4, 3],
+           pointRadius: 0, pointHoverRadius: 3, tension: 0.1, spanGaps: true }},
+      ],
+    }},
+    options: {{
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: {{ mode: 'index', intersect: false }},
+      plugins: {{
+        legend: {{ display: false }},
+        tooltip: {{
+          backgroundColor: '#1a1a1a', borderColor: '#333', borderWidth: 1,
+          titleColor: '#999', bodyColor: '#e0e0e0',
+          titleFont: {{ size: 11 }}, bodyFont: {{ size: 11, family: "'SF Mono', Menlo, monospace" }},
+          padding: 8,
+          callbacks: {{
+            label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? (ctx.parsed.y >= 0 ? '+' : '') + ctx.parsed.y.toFixed(2) : '—'),
+          }},
+        }},
+        annotation: {{ annotations: {{ zero: {{ type: 'line', yMin: 0, yMax: 0, borderColor: '#333', borderWidth: 1, scaleID: 'y' }} }} }},
+      }},
+      scales: {{
+        x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 10, maxRotation: 0 }}, grid: {{ display: false }} }},
+        y: {{ ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 6 }}, grid: {{ color: '#1a1a1a' }} }},
       }},
     }},
   }});
@@ -2114,6 +2148,7 @@ buildScorecard();
 buildMacroDriversScorecard();
 buildMacroChart();
 buildStressHistoryChart();
+buildStressInputsChart();
 buildStressStripChart();
 
 // Driver charts stay collapsed by default — click an individual row to expand it.
