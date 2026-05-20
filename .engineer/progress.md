@@ -54,3 +54,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Martin decision on whether/how to update dashboard backtest card
+
+## 2026-05-20T08:26:51Z — Backtest canonical gate divergence
+- What: Verified production_mrmi against the live build-path MRMI on fresh inputs; latest and overlapping values match, but production_mrmi starts 317 rows earlier because it fills missing macro stress to 0.0 while the build path leaves MRMI NaN until release-lagged macro context exists. Stopped before dashboard/presentation propagation per hard gate.
+- Files touched: reports/backtest-2026-05-20-canonical-check.md; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: blocked
+- Open thread for next dispatch: Martin decision on whether early missing macro stress should be treated as OFF or excluded to match live build-path semantics.
