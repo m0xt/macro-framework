@@ -68,3 +68,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-20T11:15:39Z — Onchain pulse Phase A bootstrap
+- What: Bootstrapped fresh local `~/Projects/onchain-pulse-index/` repo with PROJECT_SKELETON docs/config, salvaged the prototype data-fetch layer into `src/onchain_pulse_index/data.py`, relocated BMP_API_KEY runtime file to ops secrets, and verified fresh fetch/test gates.
+- Files touched: ~/Projects/onchain-pulse-index/*; ~/ops/secrets/onchain-pulse-index/.env; .engineer/progress.md
+- Commit: onchain-pulse-index 758686c; macro progress commit pending
+- Status: partial
+- Open thread for next dispatch: ops git-crypt setup is blocked by current `~/ops/.gitignore` (`secrets/**`) and missing git-crypt command/config; plaintext secret was not force-added.
