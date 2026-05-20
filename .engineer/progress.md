@@ -47,3 +47,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-20T08:12:29Z — Full backtest rerun comparison
+- What: Refreshed inputs with no-cache build, ran canonical production backtest, and wrote a dated report comparing fresh results to dashboard and presentation figures; dashboard backtest card is stale while presentation OOS headline matches within rounding/current-data drift.
+- Files touched: reports/backtest-2026-05-20.txt; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Martin decision on whether/how to update dashboard backtest card

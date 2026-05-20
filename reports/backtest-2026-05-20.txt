@@ -1,0 +1,141 @@
+# Comparison note — 2026-05-20 fresh canonical backtest
+
+Run context:
+- Fresh inputs were populated first via `uv run python -m macro_framework.build --no-cache`.
+- Backtest command: `uv run python -m macro_framework.backtest_production`.
+- Data loaded: 3,774 rows, 2016-01-01 to 2026-05-20; aligned backtest rows: 3,501; split: 70/30 (IS 2,450 bars, OOS 1,051 bars).
+
+Dashboard comparison (`outputs/dashboard.html` backtest card): STALE / inconsistent with fresh canonical run.
+- Dashboard full/10-year card says SPX +2.8% annual alpha, DD −33.9% → −12.3%; fresh full-sample says SPX +11.2% alpha, DD −33.9% → −10.1% (alpha delta +8.4pp; strategy DD 2.2pp less severe fresh).
+- Dashboard says Russell +6.0% alpha, DD −41.1% → −25.2%; fresh says IWM +15.5% alpha, DD −41.1% → −11.8% (alpha delta +9.5pp; strategy DD 13.4pp less severe fresh).
+- Dashboard says Bitcoin +7.0% alpha, DD −83.4% → −70.2%; fresh says BTC +14.1% alpha, DD −83.4% → −68.2% (alpha delta +7.1pp; strategy DD 2.0pp less severe fresh).
+- Dashboard says active ~22% of time; fresh full-sample green/invested is 79.9% (delta +57.9pp). Its OOS prose also does not line up with the canonical 70/30 OOS section.
+
+Presentation comparison (`docs/PRESENTATION.html`): matches fresh canonical OOS within rounding/current-data drift.
+- Presentation OOS: SPX +9.6%, IWM +12.9%, BTC +2.1%, SPX strategy DD −4.8% vs B&H −18.9%.
+- Fresh OOS: SPX +9.5%, IWM +12.7%, BTC +2.1%, SPX strategy DD −4.8% vs B&H −18.9%.
+- Deltas: SPX alpha −0.1pp, IWM alpha −0.2pp, BTC alpha 0.0pp, SPX strategy DD 0.0pp, SPX B&H DD 0.0pp.
+
+Conclusion: `docs/PRESENTATION.html` is essentially current for the canonical OOS headline; the dashboard backtest card is the stale/mixed artifact.
+
+---
+
+# Full stdout
+
+==========================================================================================
+Production Framework Backtest — Comprehensive
+==========================================================================================
+
+  Loading data...
+  Using cached data (0.0h old)
+  Loaded 3774 rows from 2016-01-01 to 2026-05-20
+  Building production MRMI...
+  Aligned 3501 rows. IS = 2450 bars (≈9.7 yr), OOS = 1051 bars (≈4.2 yr).
+
+==========================================================================================
+TEST 1 · HEADLINE BACKTEST (production MRMI)
+==========================================================================================
+
+  In-sample (first 70%)
+    asset     B&H ann  strat ann    alpha    B&H DD   strat DD  green%
+    -------- -------- ---------- -------- --------- ---------- -------
+    SPX         +7.8%     +19.7%   +11.9%    -33.9%     -10.1%   77.6%
+    IWM         +5.6%     +22.3%   +16.7%    -41.1%     -11.8%   77.6%
+    BTC        +49.0%     +69.5%   +20.5%    -83.4%     -68.2%   77.6%
+    flips/yr: 9.5   avg duration: 27d
+
+  Out-of-sample (last 30%)
+    asset     B&H ann  strat ann    alpha    B&H DD   strat DD  green%
+    -------- -------- ---------- -------- --------- ---------- -------
+    SPX        +12.8%     +22.3%    +9.5%    -18.9%      -4.8%   85.3%
+    IWM        +10.3%     +23.0%   +12.7%    -27.5%     -11.1%   85.3%
+    BTC        +24.7%     +26.7%    +2.1%    -49.7%     -46.6%   85.3%
+    flips/yr: 7.2   avg duration: 35d
+
+  Full sample
+    asset     B&H ann  strat ann    alpha    B&H DD   strat DD  green%
+    -------- -------- ---------- -------- --------- ---------- -------
+    SPX         +9.3%     +20.5%   +11.2%    -33.9%     -10.1%   79.9%
+    IWM         +7.0%     +22.5%   +15.5%    -41.1%     -11.8%   79.9%
+    BTC        +41.2%     +55.3%   +14.1%    -83.4%     -68.2%   79.9%
+    flips/yr: 8.8   avg duration: 29d
+
+==========================================================================================
+TEST 2 · INDIVIDUAL INDICATOR STANDALONE ALPHA (out-of-sample)
+==========================================================================================
+
+    indicator         SPX α    IWM α    BTC α   green%  flips/y
+    -------------- -------- -------- -------- -------- --------
+    GII               +6.3%   +11.3%    +9.7%    51.4%    25.4
+    Breadth           +9.5%   +19.4%   +10.5%    68.8%    13.7
+    FinCon            +6.9%    +8.7%    -8.0%    72.6%    10.8
+    MMI (combo)      +12.7%   +20.4%   +13.3%    74.0%    12.7
+    MRMI (prod)       +9.5%   +12.7%    +2.1%    85.3%     7.2
+
+==========================================================================================
+TEST 3 · WALK-FORWARD (year-by-year, production MRMI)
+==========================================================================================
+
+    year      SPX α    IWM α    BTC α   SPX strat DD   SPX B&H DD
+    ------ -------- -------- -------- -------------- ------------
+    2017      +5.9%    +8.4%  -111.0%         -2.3%        -2.8%
+    2018     +21.1%   +21.5%   +24.2%         -2.9%       -19.8%
+    2019      +3.8%    +9.4%   -27.8%         -2.5%        -6.8%
+    2020     +19.6%   +36.0%   +61.6%         -9.6%       -33.9%
+    2021      +8.7%   +12.3%   +33.2%         -4.2%        -5.2%
+    2022     +17.7%   +20.0%   +34.9%        -10.1%       -25.4%
+    2023      +2.8%    +9.9%   -57.2%         -6.6%       -10.3%
+    2024      +7.9%   +12.2%   +27.6%         -4.7%        -8.5%
+    2025     +11.8%   +12.7%    +3.6%         -3.2%       -18.9%
+    2026     +10.0%   +11.4%    +2.6%         -2.6%        -9.1%
+    avg      +10.9%   +15.4%    -0.8%         -4.9%       -14.1%
+
+==========================================================================================
+TEST 4 · BENCHMARK COMPARISON vs SIMPLE ALTERNATIVES (full sample)
+==========================================================================================
+
+    strategy             SPX ann    SPX α    SPX DD    BTC α  flips/y   green%
+    ------------------ --------- -------- --------- -------- -------- --------
+    MRMI (prod)           +20.5%   +11.2%    -10.1%   +14.1%     8.8    79.9%
+    VIX < 20              +19.3%   +10.0%     -7.8%    +3.3%    11.7    67.8%
+    VIX < 25              +16.9%    +7.6%    -10.4%    +9.3%     6.9    85.2%
+    SPX > 200d SMA        +17.5%    +8.2%     -9.6%   +13.9%     6.3    79.7%
+    Buy & Hold             +9.3%     0.0%    -33.9%        —        0   100.0%
+
+==========================================================================================
+TEST 5 · TRANSACTION COSTS & EXECUTION DELAY (SPX, full sample)
+==========================================================================================
+
+    delay     cost/flip    SPX α
+    -------- ---------- --------
+      0d               0   +11.2%
+      0d           10bps   +10.1%
+      0d           20bps    +9.1%
+      0d           50bps    +6.0%
+      1d               0    +1.0%
+      1d           10bps    -0.0%
+      1d           20bps    -1.0%
+      1d           50bps    -3.8%
+      5d               0    -2.4%
+      5d           10bps    -3.3%
+      5d           20bps    -4.2%
+      5d           50bps    -7.0%
+
+==========================================================================================
+TEST 6 · WEIGHT SENSITIVITY (full sample, production buffer/threshold)
+==========================================================================================
+
+    scheme                          SPX α    IWM α    BTC α    SPX DD
+    ---------------------------- -------- -------- -------- ---------
+    Equal weight (1/1/1)           +11.2%   +15.5%   +14.1%    -10.1%
+    Alpha-weighted (37/35/28)      +11.5%   +15.8%   +12.1%    -10.2%
+    GII-heavy (50/25/25)           +10.8%   +14.5%   +13.5%    -10.6%
+    Breadth-heavy (25/50/25)       +11.9%   +16.5%   +13.9%    -11.3%
+    FinCon-heavy (25/25/50)        +10.3%   +15.2%   +17.8%    -10.9%
+    Drop GII                       +10.9%   +15.3%   +15.3%    -12.3%
+    Drop Breadth                   +11.4%   +15.3%   +17.0%    -12.1%
+    Drop FinCon                    +13.4%   +18.2%   +16.1%    -10.4%
+
+==========================================================================================
+DONE. Use these numbers to update docs/PRESENTATION.html.
+==========================================================================================
