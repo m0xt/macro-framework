@@ -1224,16 +1224,17 @@ def render(snap, chart, raw_data=None):
   <div class="chart-container"><canvas id="chart-mrmi"></canvas></div>
 
   <div class="chart-description">
+    <!-- Backtest figures source: reports/backtest-2026-05-20-aligned.txt -->
     <details class="backtest-toggle">
       <summary>How well does this work historically? <span class="muted small">(click)</span></summary>
       <div class="backtest-toggle-body">
-        <p class="muted small" style="margin-bottom: 8px;">10-year backtest (2016–2026), no leverage, vs buy-and-hold:</p>
+        <p class="muted small" style="margin-bottom: 8px;">Full-sample backtest (2017–2026), no leverage, vs buy-and-hold:</p>
         <ul class="backtest-list">
-          <li><span class="bt-asset-inline">SPX</span> +2.8% annual alpha · drawdown cut from −33.9% to −12.3%</li>
-          <li><span class="bt-asset-inline">Russell 2000</span> +6.0% annual alpha · drawdown cut from −41.1% to −25.2%</li>
-          <li><span class="bt-asset-inline">Bitcoin</span> +7.0% annual alpha · drawdown cut from −83.4% to −70.2%</li>
+          <li><span class="bt-asset-inline">SPX</span> +11.5% annual alpha · drawdown cut from −33.9% to −10.1%</li>
+          <li><span class="bt-asset-inline">Russell 2000</span> +15.9% annual alpha · drawdown cut from −41.1% to −11.8%</li>
+          <li><span class="bt-asset-inline">Bitcoin</span> +16.5% annual alpha · drawdown cut from −83.4% to −68.2%</li>
         </ul>
-        <p class="muted small" style="margin-top: 8px;">Active ~22% of the time (cash during stress). OOS (2023–2026, no major stress events): SPX flat, Russell +2.5%, BTC −26% — the cost of de-risking during a bull market without stress events. The framework's value is conditional on stress periods occurring; in calm bull markets it behaves like buy-and-hold.</p>
+        <p class="muted small" style="margin-top: 8px;">Active 78.7% of the time (cash during stress). OOS: SPX +10.1%, Russell +13.5%, BTC +2.2% annual alpha; SPX drawdown cut from −18.9% to −4.7%.</p>
       </div>
     </details>
   </div>

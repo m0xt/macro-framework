@@ -29,6 +29,7 @@ from macro_framework.build import (
     calc_financial_conditions,
     calc_growth_impulse,
     calc_macro_context,
+    calc_milk_road_macro_index,
     calc_sector_breadth,
     fetch_all_data,
 )
@@ -82,18 +83,23 @@ def production_mrmi(data: pd.DataFrame, w_gii=1.0, w_breadth=1.0, w_fincon=1.0,
     breadth = calc_sector_breadth(data)
     macro_ctx = calc_macro_context(data)
 
-    w_total = w_gii + w_breadth + w_fincon
-    mmi = (gii["fast"] * w_gii + breadth["composite"] * w_breadth
-           + fincon["composite"] * w_fincon) / w_total
+    if (w_gii, w_breadth, w_fincon) == (1.0, 1.0, 1.0):
+        mmi = calc_composite(gii, fincon, breadth)
+    else:
+        w_total = w_gii + w_breadth + w_fincon
+        mmi = (
+            gii["fast"] * w_gii
+            + breadth["composite"] * w_breadth
+            + fincon["composite"] * w_fincon
+        ) / w_total
 
-    re = macro_ctx["real_economy_score"].reindex(mmi.index)
-    inf = macro_ctx["inflation_dir_pp"].reindex(mmi.index)
-    re_neg = (-re).clip(lower=0)
-    inf_pos = inf.clip(lower=0)
-    stress = (re_neg * inf_pos).clip(upper=1.0).fillna(0.0)
-    macro_buffer = buffer_size * (1.0 - stress)
-    mrmi = mmi + macro_buffer - threshold
-    return mrmi, mmi
+    mrmi_components = calc_milk_road_macro_index(
+        mmi,
+        macro_ctx,
+        buffer_size=buffer_size,
+        threshold=threshold,
+    )
+    return mrmi_components["mrmi"], mmi
 
 
 # ── reporters ──────────────────────────────────────────────────────────────

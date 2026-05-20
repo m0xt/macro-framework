@@ -61,3 +61,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: blocked
 - Open thread for next dispatch: Martin decision on whether early missing macro stress should be treated as OFF or excluded to match live build-path semantics.
+
+## 2026-05-20T08:37:11Z — Backtest aligned to live MRMI semantics
+- What: Replaced backtest inline MRMI stress math with the live calc_milk_road_macro_index path, verified exact live/backtest series equality, reran aligned canonical backtest, and propagated aligned numbers into the presentation and dashboard card.
+- Files touched: src/macro_framework/backtest_production.py; reports/backtest-2026-05-20-aligned.txt; docs/PRESENTATION.html; src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-20.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
