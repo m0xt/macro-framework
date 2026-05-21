@@ -18,7 +18,7 @@ This is the agent-facing ownership map for `macro-framework`. The active product
 | `scripts/com.milkroad.macro-refresh.plist` | active | Tuesday 11:00 Prague pre-meeting refresh template. |
 | `scripts/com.milkroad.macro-refresh-daily.plist` | active | Mon-Fri 22:30 Prague after-close refresh template. |
 | `scripts/setup-mac-mini.sh` | active | Mac mini launchd bootstrap. |
-| `supabase_schema.sql` | active | Remote Supabase schema contract; version must match `EXPECTED_SCHEMA_VERSION`. |
+| `migrations/` | active | Ordered SQL migrations; remote schema must equal the highest `000N_*.sql` and match `EXPECTED_SCHEMA_VERSION`. |
 | `.env.example` | active | Safe committed env template; never add real secrets. |
 | `pyproject.toml` | active | uv project metadata plus pytest/ruff/pyright config. |
 | `uv.lock` | active | Locked uv dependency graph. |

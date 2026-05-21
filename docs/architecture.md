@@ -93,7 +93,7 @@ Yahoo Finance supplies market/ETF/commodity/volatility inputs through `yfinance`
 - Remote version matches `EXPECTED_SCHEMA_VERSION`.
 - `macro_snapshots` exposes every required hot column.
 
-`supabase_schema.sql` is the checked-in contract. Apply it remotely before running `doctor`, `latest`, or `backfill`. Current known blocker: a remote missing `public.macro_meta` fails `doctor` with `supabase-schema-drift` until the SQL is applied.
+The ordered files under `migrations/` are the checked-in contract: `0001_init_macro_snapshots.sql` creates the table/trigger/RLS, `0002_macro_meta.sql` adds the `macro_meta` sentinel. Apply them in order in the Supabase SQL editor before running `doctor`, `latest`, or `backfill`. Current known blocker: a remote missing `public.macro_meta` fails `doctor` with `supabase-schema-drift` until `0002_macro_meta.sql` is applied.
 
 ### Claude CLI
 

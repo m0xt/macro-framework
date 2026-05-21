@@ -69,7 +69,7 @@ After a brief refresh, inspect `briefs/YYYY-MM-DD/{market,economy,top}.md`, then
 4. Add snapshot fields in `save_snapshot()` if downstream systems need the value.
 5. Bind dashboard UI/rendering in `src/macro_framework/build.py`.
 6. If Supabase needs the field, update:
-   - `supabase_schema.sql` and schema version sentinel
+   - add `migrations/000N_<change>.sql` and bump the `macro_meta` schema_version sentinel inside it
    - `EXPECTED_SCHEMA_VERSION`
    - `REQUIRED_MACRO_SNAPSHOTS_COLUMNS`
    - row-building logic in `src/macro_framework/sync_to_supabase.py`
@@ -84,8 +84,8 @@ After a brief refresh, inspect `briefs/YYYY-MM-DD/{market,economy,top}.md`, then
 
 ## Bob dispatched me to update Supabase sync
 
-1. Treat `supabase_schema.sql` as the contract.
-2. If schema changes, bump `-- VERSION: N`, the `macro_meta` sentinel insert/update, and `EXPECTED_SCHEMA_VERSION` together.
+1. Treat the ordered files under `migrations/` as the contract; the highest `000N_*.sql` file defines the current shape.
+2. If schema changes, add a new `migrations/000(N+1)_<change>.sql` with the DDL and the `macro_meta` sentinel upsert to `N+1`, and bump `EXPECTED_SCHEMA_VERSION` to the same value.
 3. Keep `doctor` meaningful: preflight should fail before writes if the remote is stale.
 4. Run `uv run pytest` locally. If remote access is available, run `uv run python -m macro_framework.sync_to_supabase doctor` after applying SQL.
 5. If remote SQL cannot be applied from this session, mark the operational step blocked rather than weakening preflight.

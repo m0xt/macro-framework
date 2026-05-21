@@ -14,7 +14,7 @@
 | `src/macro_framework/sync_to_supabase.py` | Supabase doctor/latest/backfill sync with schema-version preflight. |
 | `scripts/refresh.sh` | LaunchAgent refresh entry point via `~/ops/lib/cron-wrapper.sh`. |
 | `scripts/com.milkroad.macro-refresh*.plist` | Tuesday pre-meeting and weekday end-of-close launchd jobs. |
-| `supabase_schema.sql` | Remote schema contract; version must match `EXPECTED_SCHEMA_VERSION`. |
+| `migrations/` | Ordered SQL migrations (`000N_*.sql`); remote schema must match the highest file and `EXPECTED_SCHEMA_VERSION`. |
 | `tests/test_smoke.py` | Import/entrypoint smoke tests and MRMI parameter/invariant locks. |
 | `tests/test_supabase_sync.py` | Supabase preflight/failure-isolation tests. |
 | `tests/test_sync_to_supabase.py` | Legacy Supabase row-builder tests retained under pytest. |
@@ -43,6 +43,7 @@
 - Force briefs: `uv run python -m macro_framework.weekly_briefs --force`
 - Supabase preflight: `uv run python -m macro_framework.sync_to_supabase doctor`
 - Supabase latest sync: `uv run python -m macro_framework.sync_to_supabase latest`
+- Apply Supabase schema migrations: see "Supabase migrations" below.
 - Cron path: `scripts/refresh.sh`
 - LAN dashboard serve: `com.milkroad.macro-framework-serve` exposes `outputs/dashboard.html` at `http://Felixs-Mac-mini.local:8001/dashboard.html`.
 
@@ -53,6 +54,46 @@
 - Do not change MRMI math, constants, release lags, or dashboard semantics without updating `docs/architecture.md`, `DECISIONS.md` when relevant, and the lock tests.
 - Brief cadence is lazy weekly Tuesday: the first successful build on/after Tuesday regenerates stale briefs; later builds skip until the next Tuesday cutoff.
 - Supabase failures are isolated from local dashboard/snapshot commits by `scripts/refresh.sh`.
+
+## Supabase migrations
+
+The `migrations/` directory holds ordered SQL files (`0001_*.sql`, `0002_*.sql`, ...) that together define the remote schema contract. The current state of the remote Supabase project must equal the result of applying every migration in numeric order.
+
+There is no automated migration runner. Apply migrations **manually** in the Supabase SQL editor.
+
+### Applying migrations to a fresh project
+
+1. Open the Supabase dashboard → SQL Editor.
+2. For each file under `migrations/`, in ascending numeric order:
+   - Open `migrations/000N_*.sql` locally.
+   - Paste its full contents into a new SQL Editor query.
+   - Run it.
+3. Run `uv run python -m macro_framework.sync_to_supabase doctor` until it reports `Supabase preflight OK (schema version N)` where `N` matches the highest migration number.
+
+### Applying a new migration to an existing project
+
+1. Identify the highest migration number `N` already applied (e.g. `select value from macro_meta where key = 'schema_version';` in the SQL editor, or check the file count under `migrations/` against the remote sentinel).
+2. For each new file `migrations/000M_*.sql` with `M > N`, in order: open it locally, paste into the SQL editor, run.
+3. The new migration must upsert `macro_meta.schema_version` to its own `M` — that bumps the sentinel.
+4. Bump `EXPECTED_SCHEMA_VERSION` in `src/macro_framework/sync_to_supabase.py` to the same `M` and commit alongside the SQL file.
+5. Run `uv run python -m macro_framework.sync_to_supabase doctor` to confirm the remote now reports version `M` and required columns exist.
+
+### Authoring a new migration
+
+1. Pick the next sequential filename: `migrations/000(N+1)_<short_change_description>.sql`.
+2. Write only the delta DDL (the file is `apply once`, not idempotent for re-application against a project that already has it — keep statements forward-only).
+3. At the end of the file, add:
+   ```sql
+   insert into macro_meta (key, value)
+   values ('schema_version', '<N+1>')
+   on conflict (key) do update set value = excluded.value, updated_at = now();
+   ```
+4. Update `EXPECTED_SCHEMA_VERSION` in `src/macro_framework/sync_to_supabase.py` to `N+1`.
+5. Update `REQUIRED_MACRO_SNAPSHOTS_COLUMNS` if columns were added/renamed/removed.
+6. Run `uv run pytest` and `uv run ruff check .` before committing.
+7. Apply the file manually in Supabase (see above) and then run `doctor`.
+
+If you cannot apply the SQL remotely from the current session, commit the migration + version bump and mark the operational apply step as blocked; do not weaken preflight to make `doctor` pass.
 
 ## Testing
 

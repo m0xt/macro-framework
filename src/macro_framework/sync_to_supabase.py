@@ -188,7 +188,7 @@ def remote_schema_version(client: Client) -> int:
     if not data:
         raise SupabaseSyncError(
             "supabase-schema-drift",
-            "macro_meta schema_version row is missing. Apply supabase_schema.sql before syncing.",
+            "macro_meta schema_version row is missing. Apply migrations/ before syncing.",
             EXIT_SCHEMA_DRIFT,
         )
     value = data[0].get("value") if isinstance(data[0], dict) else None
@@ -224,7 +224,7 @@ def preflight(client: Client | None = None) -> None:
         raise SupabaseSyncError(
             "supabase-schema-drift",
             f"remote schema version {actual_version} != expected {EXPECTED_SCHEMA_VERSION}. "
-            "Apply/update supabase_schema.sql and keep EXPECTED_SCHEMA_VERSION in sync.",
+            "Apply/update migrations/ and keep EXPECTED_SCHEMA_VERSION in sync.",
             EXIT_SCHEMA_DRIFT,
         )
     print(f"Supabase preflight OK (schema version {actual_version})")

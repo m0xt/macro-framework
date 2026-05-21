@@ -18,24 +18,24 @@ uv run ruff check .
 `scripts/refresh.sh` builds the local dashboard/snapshot first, then runs `python -m macro_framework.sync_to_supabase latest`. Supabase-only failures are isolated: local deliverables still commit and `.cache/status.json` reports `refresh ok, supabase sync failed (<type>)`.
 
 Failure types:
-- `supabase-schema-drift` — remote schema/version no longer matches `supabase_schema.sql` + `EXPECTED_SCHEMA_VERSION`.
+- `supabase-schema-drift` — remote schema/version no longer matches the `migrations/` directory + `EXPECTED_SCHEMA_VERSION`.
 - `supabase-auth` — missing/invalid `SUPABASE_URL` or `SUPABASE_SERVICE_KEY`, RLS/permission/JWT problem.
 - `supabase-network` — timeout, DNS, connection, or unknown transient Supabase/PostgREST failure.
 
 Diagnose:
 1. Run `uv run python -m macro_framework.sync_to_supabase doctor`.
 2. If it reports schema drift, compare:
-   - local `supabase_schema.sql` (`-- VERSION: N`)
+   - highest local migration number in `migrations/000N_*.sql` (the schema_version sentinel inserted in that file)
    - local `src/macro_framework/sync_to_supabase.py` (`EXPECTED_SCHEMA_VERSION = N`)
    - remote `select * from macro_meta where key = 'schema_version';`
 3. If columns are missing, inspect `macro_snapshots` in the Supabase SQL editor and compare with `REQUIRED_MACRO_SNAPSHOTS_COLUMNS`.
 4. If auth fails, verify `.env` / launchd environment has `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` and that the key is a service-role key.
 
 Intentional schema change procedure:
-1. Update `supabase_schema.sql` with the DDL/migration and bump `-- VERSION: N` plus the `macro_meta` sentinel value.
+1. Add `migrations/000N_<change>.sql` with the DDL. In that same file, upsert the `macro_meta` schema_version sentinel to `N` (the new highest migration number).
 2. Update `EXPECTED_SCHEMA_VERSION` in `src/macro_framework/sync_to_supabase.py` to the same integer.
 3. Update `REQUIRED_MACRO_SNAPSHOTS_COLUMNS` if columns changed.
-4. Apply the SQL in Supabase.
+4. Apply the new migration(s) in Supabase (run in order).
 5. Run `uv run python -m macro_framework.sync_to_supabase doctor` until it passes.
 6. Run tests: `uv run pytest` and `uv run ruff check .`.
 

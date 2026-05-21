@@ -33,7 +33,7 @@ uv run python -m macro_framework.sync_to_supabase doctor
 uv run python -m macro_framework.sync_to_supabase latest
 ```
 
-Remote schema must match `supabase_schema.sql` and `EXPECTED_SCHEMA_VERSION` in `src/macro_framework/sync_to_supabase.py`.
+Remote schema must match the `migrations/` files (highest `000N_*.sql`) and `EXPECTED_SCHEMA_VERSION` in `src/macro_framework/sync_to_supabase.py`.
 
 ## Weekly briefs
 

@@ -57,7 +57,7 @@ uv run python -m macro_framework.sync_to_supabase doctor
    uv run python -m macro_framework.sync_to_supabase doctor
    uv run python -m macro_framework.sync_to_supabase latest
    ```
-5. If `doctor` fails with schema drift after rotation, the key is probably valid but the remote schema still needs `supabase_schema.sql` applied.
+5. If `doctor` fails with schema drift after rotation, the key is probably valid but the remote schema still needs the `migrations/` files applied.
 6. If `doctor` fails with auth, verify the key type and project URL match.
 
 ## Applying the future ops-secret migration
