@@ -450,12 +450,17 @@ RELEASE_LAGS_DAYS = {
 
 STRESS_SCORE_K1 = 1.03
 STRESS_SCORE_K2 = 0.005
+BUCKET_CUTOFF_CALM_WATCH = 5.55
+BUCKET_CUTOFF_WATCH_BUILDING = 6.95
+BUCKET_CUTOFF_BUILDING_ELEV = 7.97
 
+# Fixed 60th/80th/95th percentile cutoffs from the 2017-09-02..2026-05-23
+# cached daily backfill; re-fit annually rather than auto-updating with new data.
 STRESS_SCORE_BUCKETS = {
-    "calm": (0.0, 4.0),
-    "watch": (4.0, 6.0),
-    "building": (6.0, 8.0),
-    "elevated": (8.0, 10.0),
+    "calm": (0.0, BUCKET_CUTOFF_CALM_WATCH),
+    "watch": (BUCKET_CUTOFF_CALM_WATCH, BUCKET_CUTOFF_WATCH_BUILDING),
+    "building": (BUCKET_CUTOFF_WATCH_BUILDING, BUCKET_CUTOFF_BUILDING_ELEV),
+    "elevated": (BUCKET_CUTOFF_BUILDING_ELEV, 10.0),
 }
 
 def _lagged(series: pd.Series, days: int) -> pd.Series:
@@ -468,14 +473,14 @@ def _sigmoid(series: pd.Series) -> pd.Series:
     return 1.0 / (1.0 + np.exp(-series.clip(lower=-709, upper=709)))
 
 def stress_score_bucket(score: float | None) -> str | None:
-    """Bucket a 0–10 continuous stress score."""
+    """Bucket a 0–10 continuous stress score using fixed historical percentiles."""
     if score is None or pd.isna(score):
         return None
-    if score < 4.0:
+    if score < BUCKET_CUTOFF_CALM_WATCH:
         return "calm"
-    if score < 6.0:
+    if score < BUCKET_CUTOFF_WATCH_BUILDING:
         return "watch"
-    if score < 8.0:
+    if score < BUCKET_CUTOFF_BUILDING_ELEV:
         return "building"
     return "elevated"
 

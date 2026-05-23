@@ -1,6 +1,6 @@
 {
   "date": "2026-05-23",
-  "build_time_utc": "2026-05-23 00:45 UTC",
+  "build_time_utc": "2026-05-23 07:07 UTC",
   "mrmi": {
     "composite": 0.389443662761427,
     "state": "green"
@@ -26,7 +26,7 @@
     "stress_score": 7.983134767119067,
     "stress_growth_pressure": 6.639730473357459,
     "stress_inflation_pressure": 9.998241207761478,
-    "stress_score_bucket": "building",
+    "stress_score_bucket": "elevated",
     "macro_buffer": 0.9696765700169476,
     "buffer_size": 1.0
   },

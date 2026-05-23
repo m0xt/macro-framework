@@ -89,3 +89,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: blocked
 - Open thread for next dispatch: Formula structure cannot hit the 60/20/15/5 bucket target with fixed 0.6/0.4 weighting and 0-4/4-6/6-8/8-10 boundaries; Bob/Martin should decide whether to relax weighting, bucket boundaries, or k2 lower bound.
+
+## 2026-05-23T07:07:38Z — Percentile-pegged stress buckets
+- What: Locked stress score bucket cutoffs to historical percentiles: Calm/Watch 5.55, Watch/Building 6.95, Building/Elevated 7.97; achieved distribution Calm 59.95%, Watch 20.03%, Building 15.10%, Elevated 4.93% over 3186 cached daily rows. Today stress_score=7.9831 → elevated. Bucket boundaries are now percentile-pegged against historical distribution; will not auto-update as new data arrives. Re-fit annually.
+- Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; tests/test_smoke.py; outputs/dashboard.html; snapshots/2026-05-23.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Supabase backfill still blocked on manual migrations/0003_macro_stress_score.sql apply; no schema change needed for this bucket cutoff update.
