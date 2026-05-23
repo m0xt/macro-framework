@@ -82,3 +82,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: partial
 - Open thread for next dispatch: Apply migrations/0003_macro_stress_score.sql in Supabase SQL editor, then run doctor + full backfill; current doctor fails because remote macro_snapshots.stress_score column does not exist.
+
+## 2026-05-23T07:01:46Z — Stress score calibration infeasible under fixed formula
+- What: Ran binding k1/k2 optimization over the full cached backfill daily history (3186 rows, 2017-09-02..2026-05-23): coarse log grid 30×30 plus dense linear/log/focused grids within k1 ∈ [0.5, 5.0], k2 ∈ [0.005, 0.5]. Best remains k1=1.03, k2=0.005 with Calm 50.3%, Watch 17.0%, Building 28.1%, Elevated 4.7%; no grid point hit ±2pp, so constants/dashboard were left unchanged. Today: stress_score=7.9831, growth_pressure=6.6397, inflation_pressure=9.9982, bucket=building; legacy stress_intensity=0.0303.
+- Files touched: .engineer/progress.md
+- Commit: pending (this commit)
+- Status: blocked
+- Open thread for next dispatch: Formula structure cannot hit the 60/20/15/5 bucket target with fixed 0.6/0.4 weighting and 0-4/4-6/6-8/8-10 boundaries; Bob/Martin should decide whether to relax weighting, bucket boundaries, or k2 lower bound.
