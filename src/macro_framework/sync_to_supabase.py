@@ -24,7 +24,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
-EXPECTED_SCHEMA_VERSION = 1
+EXPECTED_SCHEMA_VERSION = 3
 SCHEMA_VERSION_KEY = "schema_version"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT_DIR = REPO_ROOT / "snapshots"
@@ -41,6 +41,10 @@ REQUIRED_MACRO_SNAPSHOTS_COLUMNS = (
     "mrmi_state",
     "mmi",
     "stress_intensity",
+    "stress_score",
+    "stress_growth_pressure",
+    "stress_inflation_pressure",
+    "stress_score_bucket",
     "macro_buffer",
     "real_economy",
     "inflation_dir_pp",
@@ -57,6 +61,10 @@ _HOT_COLUMNS = (
     "mrmi",
     "mmi",
     "stress_intensity",
+    "stress_score",
+    "stress_growth_pressure",
+    "stress_inflation_pressure",
+    "stress_score_bucket",
     "macro_buffer",
     "real_economy",
     "inflation_dir_pp",
@@ -94,6 +102,10 @@ def row_from_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
         "mrmi_state": mrmi_c["state"],
         "mmi": mrmi_c["momentum"],
         "stress_intensity": mrmi_c["stress_intensity"],
+        "stress_score": mrmi_c.get("stress_score"),
+        "stress_growth_pressure": mrmi_c.get("stress_growth_pressure"),
+        "stress_inflation_pressure": mrmi_c.get("stress_inflation_pressure"),
+        "stress_score_bucket": mrmi_c.get("stress_score_bucket"),
         "macro_buffer": mrmi_c["macro_buffer"],
         "real_economy": macro["real_economy_score"],
         "inflation_dir_pp": macro["inflation_dir_pp"],
@@ -124,7 +136,12 @@ def rows_from_backfill_series(series: dict[str, pd.Series]) -> list[dict[str, An
         }
         for col in _HOT_COLUMNS:
             cell = series[col].loc[date]
-            row[col] = None if (isinstance(cell, float) and math.isnan(cell)) else float(cell)
+            if isinstance(cell, float) and math.isnan(cell):
+                row[col] = None
+            elif col == "stress_score_bucket":
+                row[col] = str(cell) if cell is not None else None
+            else:
+                row[col] = float(cell)
         rows.append(row)
     return rows
 
@@ -301,6 +318,10 @@ def cmd_backfill() -> None:
         "mrmi": mrmi_combined["mrmi"],
         "mmi": composite,
         "stress_intensity": mrmi_combined["stress_intensity"],
+        "stress_score": mrmi_combined["stress_score"],
+        "stress_growth_pressure": mrmi_combined["stress_growth_pressure"],
+        "stress_inflation_pressure": mrmi_combined["stress_inflation_pressure"],
+        "stress_score_bucket": mrmi_combined["stress_score_bucket"],
         "macro_buffer": mrmi_combined["macro_buffer"],
         "real_economy": macro_ctx["real_economy_score"],
         "inflation_dir_pp": macro_ctx["inflation_dir_pp"],

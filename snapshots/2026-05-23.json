@@ -1,0 +1,75 @@
+{
+  "date": "2026-05-23",
+  "build_time_utc": "2026-05-23 00:45 UTC",
+  "mrmi": {
+    "composite": 0.389443662761427,
+    "state": "green"
+  },
+  "components": {
+    "gii_fast": 0.24853951910925143,
+    "fincon": 0.2994881675445828,
+    "breadth": 0.6203033016304467
+  },
+  "mrci": {
+    "composite": 0.7009050493815873,
+    "real_economy": 0.3675768662503367,
+    "credit_money": -0.32350126001991103,
+    "markets": null,
+    "labor": 1.0342332325128378
+  },
+  "inflation": 0.7875848121725644,
+  "mrmi_combined": {
+    "value": 0.8591202327783747,
+    "state": "LONG",
+    "momentum": 0.389443662761427,
+    "stress_intensity": 0.03032342998305239,
+    "stress_score": 7.983134767119067,
+    "stress_growth_pressure": 6.639730473357459,
+    "stress_inflation_pressure": 9.998241207761478,
+    "stress_score_bucket": "building",
+    "macro_buffer": 0.9696765700169476,
+    "buffer_size": 1.0
+  },
+  "macro": {
+    "real_economy_score": -0.7014816898105024,
+    "real_economy_components": {
+      "pce": -1.1744409492389345,
+      "labor_inv": 0.9313201834824499,
+      "income": -3.449220208836929,
+      "gdpnow": 0.886414215351404
+    },
+    "inflation_dir_pp": 0.04322768565954149,
+    "core_cpi_yoy_pct": 2.7433094309685213,
+    "raw": {
+      "pce_yoy": 2.1237343140179776,
+      "sahm_rule": 0.15777777777777668,
+      "income_yoy": 0.23352655417341328,
+      "gdpnow": 4.2573
+    }
+  },
+  "underliers": {
+    "^GSPC": 7473.47021484375,
+    "IWM": 285.1199951171875,
+    "BTC-USD": 75211.9921875,
+    "^VIX": 16.700000762939453,
+    "^MOVE": 78.4303970336914,
+    "^TNX": 4.558000087738037,
+    "HYG": 79.91000366210938,
+    "HG=F": 6.380499839782715,
+    "GC=F": 4510.5,
+    "DBC": 30.540000915527344,
+    "DGS10": 4.57,
+    "DGS2": 4.08,
+    "DGS3MO": 3.68,
+    "DFII10": 2.18,
+    "BAMLH0A0HYM2": 2.78,
+    "T5YIE": 2.54,
+    "T10YIE": 2.4,
+    "ICSA": 209000.0,
+    "CCSA": 1782000.0,
+    "DTWEXBGS": 119.2825,
+    "WALCL": 6713643.0,
+    "WTREGEN": 781293.0,
+    "RRPONTSYD": 0.965
+  }
+}

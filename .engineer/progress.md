@@ -75,3 +75,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: onchain-pulse-index 758686c; macro progress commit pending
 - Status: partial
 - Open thread for next dispatch: ops git-crypt setup is blocked by current `~/ops/.gitignore` (`secrets/**`) and missing git-crypt command/config; plaintext secret was not force-added.
+
+## 2026-05-23T00:44:45Z — Continuous macro stress score
+- What: Added continuous 0-10 stress_score alongside unchanged 0-1 stress_intensity, wired snapshot/chart/Supabase row builders and dashboard stress panel; calibrated k1=1.03, k2=0.005 on cached full backfill history (3186 rows): Calm 50.3%, Watch 17.0%, Building 28.1%, Elevated 4.7%; today stress_score=7.9831 (Building), stress_intensity=0.0303.
+- Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; src/macro_framework/sync_to_supabase.py; migrations/0003_macro_stress_score.sql; tests/test_smoke.py; tests/test_sync_to_supabase.py; outputs/dashboard.html; snapshots/2026-05-23.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: partial
+- Open thread for next dispatch: Apply migrations/0003_macro_stress_score.sql in Supabase SQL editor, then run doctor + full backfill; current doctor fails because remote macro_snapshots.stress_score column does not exist.

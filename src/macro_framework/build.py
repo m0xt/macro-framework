@@ -309,6 +309,10 @@ def render(snap, chart, raw_data=None):
     mmi_value = mrmi_combined.get("momentum")
     macro_buffer = mrmi_combined.get("macro_buffer")
     stress_intensity = mrmi_combined.get("stress_intensity") or 0.0
+    stress_score = mrmi_combined.get("stress_score")
+    stress_growth_pressure = mrmi_combined.get("stress_growth_pressure")
+    stress_inflation_pressure = mrmi_combined.get("stress_inflation_pressure")
+    stress_score_label = (mrmi_combined.get("stress_score_bucket") or "watch").upper()
 
     # Legacy MMI (formerly called MRMI in old code) — now the underlying momentum signal
     mmi = snap["mrmi"]
@@ -430,12 +434,17 @@ def render(snap, chart, raw_data=None):
 
     # Macro Stress sub-signal coloring
     stress_label = stress_bucket(float(stress_intensity or 0.0))
-    stress_color = {
-        "OFF": "#4CAF50",
+    stress_score_color = {
+        "CALM": "#4CAF50",
+        "WATCH": "#cdaa6a",
         "BUILDING": "#FF8C00",
         "ELEVATED": "#E84B5A",
-    }[stress_label]
-    stress_value_str = f"{float(stress_intensity or 0.0):.2f}"
+    }.get(stress_score_label, "#cdaa6a")
+    stress_color = stress_score_color
+    stress_value_str = f"{float(stress_score):.1f}" if stress_score is not None else "—"
+    stress_intensity_str = f"{float(stress_intensity or 0.0):.2f}"
+    stress_growth_str = f"{float(stress_growth_pressure):.1f}" if stress_growth_pressure is not None else "—"
+    stress_inflation_str = f"{float(stress_inflation_pressure):.1f}" if stress_inflation_pressure is not None else "—"
 
     g_label, g_color = driver_label(gii)
     b_label, b_color = driver_label(breadth)
@@ -487,10 +496,14 @@ def render(snap, chart, raw_data=None):
         "dates": chart["dates"],
         "composite": chart["composite"]["value"],  # MMI (the underlying momentum)
         "mrmi_combined": {
-            "value":            mrmi_combined_chart.get("value", []),
-            "momentum":         mrmi_combined_chart.get("momentum", []),
-            "stress_intensity": mrmi_combined_chart.get("stress_intensity", []),
-            "macro_buffer":     mrmi_combined_chart.get("macro_buffer", []),
+            "value":                     mrmi_combined_chart.get("value", []),
+            "momentum":                  mrmi_combined_chart.get("momentum", []),
+            "stress_intensity":          mrmi_combined_chart.get("stress_intensity", []),
+            "stress_score":              mrmi_combined_chart.get("stress_score", []),
+            "stress_growth_pressure":    mrmi_combined_chart.get("stress_growth_pressure", []),
+            "stress_inflation_pressure": mrmi_combined_chart.get("stress_inflation_pressure", []),
+            "stress_score_bucket":       mrmi_combined_chart.get("stress_score_bucket", []),
+            "macro_buffer":              mrmi_combined_chart.get("macro_buffer", []),
         },
         "spx": chart.get("spx", []),
         "iwm": chart.get("iwm", []),
@@ -1186,7 +1199,8 @@ def render(snap, chart, raw_data=None):
       <div class="hero-pillar">
         <span class="hero-pillar-name">Macro stress</span>
         <span class="hero-pillar-right">
-          <span class="hero-pillar-state" style="color:{stress_color};">{stress_label}</span>
+          <span class="hero-pillar-state" style="color:{stress_color};">{stress_score_label}</span>
+          <span class="hero-pillar-value mono">{stress_value_str}</span>
         </span>
       </div>
       <div class="hero-pillar-note">MRMI = MMI + macro buffer. Cash only when both turn against you.</div>
@@ -1264,19 +1278,19 @@ def render(snap, chart, raw_data=None):
 
 <!-- 5 · MACRO BACKDROP — chart over time + drivers, parallel to MMI -->
 <div class="section-title"><span class="step-num">3</span>What the economy is signaling<span class="pillar-chip economy">Economy pillar</span></div>
-<p class="section-intro"><strong>Macro Stress.</strong> The slow, <em>economy-derived</em> half of MRMI: built entirely from real-economy data — consumer spending, jobs, income, GDP nowcast — and inflation trajectory. The economy moves slowly, so stress takes time to build, but when it does it's grounded in fundamentals rather than market noise. Stress fires only when growth is weak <em>and</em> inflation is rising — that AND condition is what filters out the false alarms the market pillar would otherwise produce on its own.</p>
+<p class="section-intro"><strong>Macro Stress.</strong> The slow, <em>economy-derived</em> half of MRMI: built entirely from real-economy data — consumer spending, jobs, income, GDP nowcast — and inflation trajectory. The dashboard score is a continuous 0–10 read so it moves every day, while the MRMI buffer still uses the stricter legacy stress intensity that only fires when growth is weak <em>and</em> inflation is rising.</p>
 <div class="mrmi-chart macro-stress-snapshot">
   <div class="mrmi-chart-header">
     <h3>Macro Stress
-      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the current economy-pillar stress bucket and 0–1 intensity, followed by stress intensity over time. OFF means macro stress is not eroding the MRMI buffer; BUILDING and ELEVATED show progressively stronger macro pressure.</p><p><strong>Inputs below:</strong> the stress-inputs panel shows the two raw axes visually: Real Economy Score and Inflation Direction Δ6m.</p></span></span>
+      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the current economy-pillar stress score and 0–10 bucket, followed by stress score over time. Calm is intentionally wide, Watch is middle ground, and Building/Elevated mark stronger pressure.</p><p><strong>MRMI buffer:</strong> the older 0–1 stress intensity is unchanged and remains the only value that erodes the MRMI buffer.</p><p><strong>Inputs below:</strong> the stress-inputs panel shows the two raw axes visually: Real Economy Score and Inflation Direction Δ6m.</p></span></span>
     </h3>
     <div class="macro-stress-reading">
       <span class="macro-stress-reading-value mono">{stress_value_str}</span>
-      <span class="macro-stress-reading-chip" style="color:{stress_color}; border-color:{stress_color}55; box-shadow: 0 0 0 3px {stress_color}12;">{stress_label}</span>
-      <span class="macro-stress-reading-label">0–1 intensity</span>
+      <span class="macro-stress-reading-chip" style="color:{stress_color}; border-color:{stress_color}55; box-shadow: 0 0 0 3px {stress_color}12;">{stress_score_label}</span>
+      <span class="macro-stress-reading-label">0–10 score · MRMI intensity {stress_intensity_str}</span>
     </div>
   </div>
-  <p class="mrmi-chart-subtitle">Economy-pillar stress over time: OFF / BUILDING / ELEVATED pressure derived from growth weakness and inflation direction.</p>
+  <p class="mrmi-chart-subtitle">Economy-pillar stress over time: Calm / Watch / Building / Elevated score derived from sigmoid growth and inflation pressures. Current sub-pressures: growth {stress_growth_str}, inflation {stress_inflation_str}.</p>
   <div class="chart-container" style="height: 220px;"><canvas id="chart-stress-history"></canvas></div>
 </div>
 <details class="drivers macro-stress-inputs-panel" open>
@@ -1912,7 +1926,8 @@ function buildStressHistoryChart() {{
   if (!canvas) return;
   const n = RANGE_BARS[currentRange] ?? 252;
   const dates = sliceRecent(CHART_DATA.dates, n);
-  const stress = sliceRecent((CHART_DATA.mrmi_combined || {{}}).stress_intensity || [], n);
+  const stress = sliceRecent((CHART_DATA.mrmi_combined || {{}}).stress_score || [], n);
+  const intensity = sliceRecent((CHART_DATA.mrmi_combined || {{}}).stress_intensity || [], n);
 
   if (window.stressHistoryChart) window.stressHistoryChart.destroy();
   window.stressHistoryChart = new Chart(canvas, {{
@@ -1920,10 +1935,9 @@ function buildStressHistoryChart() {{
     data: {{
       labels: dates,
       datasets: [{{
-        label: 'Stress intensity', data: stress,
-        borderColor: '#ffffff', borderWidth: 1.6,
+        label: 'Stress score', data: stress,
+        borderColor: '#ffffff', borderWidth: 1.8,
         pointRadius: 0, pointHoverRadius: 3, tension: 0.1, spanGaps: true,
-        fill: {{ target: 'origin', above: 'rgba(232,75,90,0.18)' }},
       }}],
     }},
     options: {{
@@ -1936,20 +1950,32 @@ function buildStressHistoryChart() {{
           titleColor: '#999', bodyColor: '#e0e0e0',
           titleFont: {{ size: 11 }}, bodyFont: {{ size: 11, family: "'SF Mono', Menlo, monospace" }},
           padding: 8,
-          callbacks: {{ label: ctx => 'Stress intensity: ' + (ctx.parsed.y !== null ? ctx.parsed.y.toFixed(2) : '—') }},
+          callbacks: {{
+            label: ctx => {{
+              const score = ctx.parsed.y !== null ? ctx.parsed.y.toFixed(1) : '—';
+              const old = intensity[ctx.dataIndex] != null ? intensity[ctx.dataIndex].toFixed(2) : '—';
+              return 'Stress score: ' + score + '  ·  MRMI intensity: ' + old;
+            }},
+          }},
         }},
         annotation: {{
           annotations: {{
-            building: {{ type: 'line', yMin: 0.05, yMax: 0.05, borderColor: 'rgba(255,140,0,0.45)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
+            calmBand: {{ type: 'box', yMin: 0, yMax: 4, backgroundColor: 'rgba(76,175,80,0.10)', borderWidth: 0, scaleID: 'y' }},
+            watchBand: {{ type: 'box', yMin: 4, yMax: 6, backgroundColor: 'rgba(205,170,106,0.10)', borderWidth: 0, scaleID: 'y' }},
+            buildingBand: {{ type: 'box', yMin: 6, yMax: 8, backgroundColor: 'rgba(255,140,0,0.10)', borderWidth: 0, scaleID: 'y' }},
+            elevatedBand: {{ type: 'box', yMin: 8, yMax: 10, backgroundColor: 'rgba(232,75,90,0.10)', borderWidth: 0, scaleID: 'y' }},
+            watch: {{ type: 'line', yMin: 4, yMax: 4, borderColor: 'rgba(205,170,106,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
+              label: {{ display: true, content: 'WATCH', position: 'start', backgroundColor: 'transparent', color: '#8f7644', font: {{ size: 9 }} }} }},
+            building: {{ type: 'line', yMin: 6, yMax: 6, borderColor: 'rgba(255,140,0,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
               label: {{ display: true, content: 'BUILDING', position: 'start', backgroundColor: 'transparent', color: '#9a6a28', font: {{ size: 9 }} }} }},
-            elevated: {{ type: 'line', yMin: 0.30, yMax: 0.30, borderColor: 'rgba(232,75,90,0.45)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
+            elevated: {{ type: 'line', yMin: 8, yMax: 8, borderColor: 'rgba(232,75,90,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
               label: {{ display: true, content: 'ELEVATED', position: 'start', backgroundColor: 'transparent', color: '#9a3d47', font: {{ size: 9 }} }} }},
           }},
         }},
       }},
       scales: {{
         x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 10, maxRotation: 0 }}, grid: {{ display: false }} }},
-        y: {{ min: 0, max: 1, ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 5, callback: v => Number(v).toFixed(2) }}, grid: {{ color: '#1a1a1a' }} }},
+        y: {{ min: 0, max: 10, ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, stepSize: 2 }}, grid: {{ color: '#1a1a1a' }} }},
       }},
     }},
   }});
@@ -2141,7 +2167,8 @@ def build_dashboard(use_cache: bool = True) -> Path:
         latest = mrmi_series.iloc[-1]
         state = "STAY LONG" if latest > 0 else "CASH"
         stress_now = mrmi_combined['stress_intensity'].dropna().iloc[-1] if len(mrmi_combined['stress_intensity'].dropna()) else 0
-        print(f"  ▶ MRMI:     {latest:+.2f} → {state}  (Momentum {composite.dropna().iloc[-1]:+.2f}  Buffer {mrmi_combined['macro_buffer'].dropna().iloc[-1]:+.2f}  Stress {stress_now:.2f})")
+        stress_score_now = mrmi_combined['stress_score'].dropna().iloc[-1] if len(mrmi_combined['stress_score'].dropna()) else 0
+        print(f"  ▶ MRMI:     {latest:+.2f} → {state}  (Momentum {composite.dropna().iloc[-1]:+.2f}  Buffer {mrmi_combined['macro_buffer'].dropna().iloc[-1]:+.2f}  Stress score {stress_score_now:.1f}  Intensity {stress_now:.2f})")
     re_score = macro_ctx['real_economy_score'].dropna()
     inf_dir = macro_ctx['inflation_dir_pp'].dropna()
     if len(re_score):

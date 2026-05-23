@@ -148,6 +148,24 @@ def test_stress_intensity_is_clipped_to_zero_one() -> None:
     assert stress.iloc[2] == pytest.approx(0.0)
 
 
+def test_macro_stress_score_uses_sigmoid_pressures_and_weighting() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    idx = pd.date_range("2026-01-01", periods=4, freq="D")
+    re_score = pd.Series([2.0, 0.0, -0.5, -20.0], index=idx)
+    inf_dir = pd.Series([-2.0, 0.0, 0.5, 20.0], index=idx)
+
+    out = macro_pipeline.calc_macro_stress_score(re_score, inf_dir, k1=1.0, k2=1.0)
+
+    expected_growth = 10.0 / (1.0 + np.exp(re_score))
+    expected_inflation = 10.0 / (1.0 + np.exp(-inf_dir))
+    expected_score = 0.6 * expected_growth + 0.4 * expected_inflation
+
+    pd.testing.assert_series_equal(out["stress_growth_pressure"], expected_growth)
+    pd.testing.assert_series_equal(out["stress_inflation_pressure"], expected_inflation)
+    pd.testing.assert_series_equal(out["stress_score"], expected_score)
+    assert out["stress_score_bucket"].tolist() == ["calm", "watch", "building", "elevated"]
+
+
 def test_prepare_chart_data_uses_release_lagged_macro_values() -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
     idx = pd.date_range("2025-01-01", periods=430, freq="D")
@@ -234,9 +252,18 @@ def test_save_snapshot_schema_uses_actual_current_keys(tmp_path: Path, monkeypat
         "underliers",
     } <= snapshot.keys()
     assert {"gii_fast", "fincon", "breadth"} <= snapshot["components"].keys()
-    assert {"value", "state", "momentum", "stress_intensity", "macro_buffer", "buffer_size"} <= snapshot[
-        "mrmi_combined"
-    ].keys()
+    assert {
+        "value",
+        "state",
+        "momentum",
+        "stress_intensity",
+        "stress_score",
+        "stress_growth_pressure",
+        "stress_inflation_pressure",
+        "stress_score_bucket",
+        "macro_buffer",
+        "buffer_size",
+    } <= snapshot["mrmi_combined"].keys()
     assert {"real_economy_score", "inflation_dir_pp", "core_cpi_yoy_pct", "raw"} <= snapshot[
         "macro"
     ].keys()

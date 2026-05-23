@@ -448,11 +448,55 @@ RELEASE_LAGS_DAYS = {
     "CPILFESL": 45,  # BLS CPI release — ~mid next month
 }
 
+STRESS_SCORE_K1 = 1.03
+STRESS_SCORE_K2 = 0.005
+
+STRESS_SCORE_BUCKETS = {
+    "calm": (0.0, 4.0),
+    "watch": (4.0, 6.0),
+    "building": (6.0, 8.0),
+    "elevated": (8.0, 10.0),
+}
+
 def _lagged(series: pd.Series, days: int) -> pd.Series:
     """Shift forward in time so each value first appears on its actual release date."""
     if days <= 0:
         return series
     return series.shift(days)
+
+def _sigmoid(series: pd.Series) -> pd.Series:
+    return 1.0 / (1.0 + np.exp(-series.clip(lower=-709, upper=709)))
+
+def stress_score_bucket(score: float | None) -> str | None:
+    """Bucket a 0–10 continuous stress score."""
+    if score is None or pd.isna(score):
+        return None
+    if score < 4.0:
+        return "calm"
+    if score < 6.0:
+        return "watch"
+    if score < 8.0:
+        return "building"
+    return "elevated"
+
+def calc_macro_stress_score(re_score: pd.Series, inf_dir: pd.Series,
+                            k1: float = STRESS_SCORE_K1,
+                            k2: float = STRESS_SCORE_K2) -> dict:
+    """Continuous 0–10 macro stress visualization score.
+
+    This is deliberately separate from stress_intensity, which remains the
+    optimized MRMI buffer gate.
+    """
+    growth_pressure = 10.0 * _sigmoid(-re_score / k1)
+    inflation_pressure = 10.0 * _sigmoid(inf_dir / k2)
+    stress_score = (0.6 * growth_pressure + 0.4 * inflation_pressure).clip(lower=0.0, upper=10.0)
+    stress_bucket_series = stress_score.map(stress_score_bucket)
+    return {
+        "stress_score": stress_score,
+        "stress_growth_pressure": growth_pressure,
+        "stress_inflation_pressure": inflation_pressure,
+        "stress_score_bucket": stress_bucket_series,
+    }
 
 def calc_milk_road_macro_index(momentum: pd.Series, macro_ctx: dict,
                                  buffer_size: float = 1.0, threshold: float = 0.5) -> dict:
@@ -491,6 +535,10 @@ def calc_milk_road_macro_index(momentum: pd.Series, macro_ctx: dict,
         return {
             "mrmi": nan_series, "momentum": momentum,
             "stress_intensity": nan_series, "macro_buffer": nan_series,
+            "stress_score": nan_series,
+            "stress_growth_pressure": nan_series,
+            "stress_inflation_pressure": nan_series,
+            "stress_score_bucket": pd.Series([None] * len(momentum.index), index=momentum.index),
         }
 
     # Align to momentum's index
@@ -501,6 +549,7 @@ def calc_milk_road_macro_index(momentum: pd.Series, macro_ctx: dict,
     inf_pos = inf.clip(lower=0)         # positive when inflation rising
     stress_raw = re_neg * inf_pos
     stress_intensity = stress_raw.clip(upper=1.0)
+    stress_score = calc_macro_stress_score(re, inf)
 
     macro_buffer = buffer_size * (1.0 - stress_intensity)
     raw = momentum + macro_buffer
@@ -511,6 +560,10 @@ def calc_milk_road_macro_index(momentum: pd.Series, macro_ctx: dict,
         "raw": raw,                       # MMI + macro_buffer (pre-threshold)
         "momentum": momentum,
         "stress_intensity": stress_intensity,
+        "stress_score": stress_score["stress_score"],
+        "stress_growth_pressure": stress_score["stress_growth_pressure"],
+        "stress_inflation_pressure": stress_score["stress_inflation_pressure"],
+        "stress_score_bucket": stress_score["stress_score_bucket"],
         "macro_buffer": macro_buffer,
         "buffer_size": buffer_size,
         "threshold": threshold,
@@ -752,11 +805,16 @@ def prepare_chart_data(data, composite, gii, fincon, breadth, business_cycle, in
 
     # Milk Road Macro Index time series (the new headline composite)
     if mrmi_combined:
+        stress_bucket_series = mrmi_combined["stress_score_bucket"].reindex(gii.index)
         chart_data["mrmi_combined"] = {
-            "value":            to_list(mrmi_combined["mrmi"].reindex(gii.index)),
-            "momentum":         to_list(mrmi_combined["momentum"].reindex(gii.index)),
-            "stress_intensity": to_list(mrmi_combined["stress_intensity"].reindex(gii.index)),
-            "macro_buffer":     to_list(mrmi_combined["macro_buffer"].reindex(gii.index)),
+            "value":                     to_list(mrmi_combined["mrmi"].reindex(gii.index)),
+            "momentum":                  to_list(mrmi_combined["momentum"].reindex(gii.index)),
+            "stress_intensity":          to_list(mrmi_combined["stress_intensity"].reindex(gii.index)),
+            "stress_score":              to_list(mrmi_combined["stress_score"].reindex(gii.index)),
+            "stress_growth_pressure":    to_list(mrmi_combined["stress_growth_pressure"].reindex(gii.index)),
+            "stress_inflation_pressure": to_list(mrmi_combined["stress_inflation_pressure"].reindex(gii.index)),
+            "stress_score_bucket":       [v if pd.notna(v) else None for v in stress_bucket_series],
+            "macro_buffer":              to_list(mrmi_combined["macro_buffer"].reindex(gii.index)),
         }
 
     # Macro context — Real Economy Composite + Inflation Direction
@@ -906,6 +964,14 @@ def _latest(series) -> float | None:
     except (TypeError, ValueError):
         return None
 
+def _latest_label(series) -> str | None:
+    """Return the latest non-NaN label from a pandas Series, or None."""
+    s = series.dropna()
+    if len(s) == 0:
+        return None
+    v = s.iloc[-1]
+    return str(v) if v is not None else None
+
 def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, macro_ctx=None, mrmi_combined=None) -> Path:
     """Save a compact JSON snapshot of today's key metrics for daily-brief diffing."""
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
@@ -944,6 +1010,10 @@ def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, ma
                       else "CASH" if mrmi_v is not None else None),
             "momentum": _latest(mrmi_combined["momentum"]),
             "stress_intensity": _latest(mrmi_combined["stress_intensity"]),
+            "stress_score": _latest(mrmi_combined["stress_score"]),
+            "stress_growth_pressure": _latest(mrmi_combined["stress_growth_pressure"]),
+            "stress_inflation_pressure": _latest(mrmi_combined["stress_inflation_pressure"]),
+            "stress_score_bucket": _latest_label(mrmi_combined["stress_score_bucket"]),
             "macro_buffer": _latest(mrmi_combined["macro_buffer"]),
             "buffer_size": mrmi_combined.get("buffer_size", 2.0),
         }

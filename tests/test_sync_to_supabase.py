@@ -11,6 +11,10 @@ SAMPLE_SNAPSHOT = {
         "state": "LONG",
         "momentum": 0.5227,
         "stress_intensity": 0.0,
+        "stress_score": 4.321,
+        "stress_growth_pressure": 6.1,
+        "stress_inflation_pressure": 1.7,
+        "stress_score_bucket": "watch",
         "macro_buffer": 1.0,
         "buffer_size": 1.0,
     },
@@ -36,6 +40,10 @@ def test_row_from_snapshot_maps_headline_to_mrmi_combined():
     assert row["mrmi_state"] == "LONG"                      # not 'green'
     assert row["mmi"] == pytest.approx(0.5227)              # from mrmi_combined.momentum
     assert row["stress_intensity"] == pytest.approx(0.0)
+    assert row["stress_score"] == pytest.approx(4.321)
+    assert row["stress_growth_pressure"] == pytest.approx(6.1)
+    assert row["stress_inflation_pressure"] == pytest.approx(1.7)
+    assert row["stress_score_bucket"] == "watch"
     assert row["macro_buffer"] == pytest.approx(1.0)
     assert row["real_economy"] == pytest.approx(-0.8924)
     assert row["inflation_dir_pp"] == pytest.approx(-0.4178)
@@ -63,6 +71,10 @@ def test_rows_from_backfill_series_basic():
         "mrmi":             pd.Series([0.5, -0.1, 1.2], index=idx),
         "mmi":              pd.Series([0.3, -0.2, 0.7], index=idx),
         "stress_intensity": pd.Series([0.0, 0.4, 0.0], index=idx),
+        "stress_score":     pd.Series([3.5, 6.2, 4.8], index=idx),
+        "stress_growth_pressure": pd.Series([2.0, 7.0, 4.0], index=idx),
+        "stress_inflation_pressure": pd.Series([5.75, 5.0, 6.0], index=idx),
+        "stress_score_bucket": pd.Series(["calm", "building", "watch"], index=idx),
         "macro_buffer":     pd.Series([1.0, 0.6, 1.0], index=idx),
         "real_economy":     pd.Series([-0.1, -0.5, 0.1], index=idx),
         "inflation_dir_pp": pd.Series([0.0, 1.0, -0.2], index=idx),
@@ -79,6 +91,11 @@ def test_rows_from_backfill_series_basic():
     assert rows[0]["mrmi_state"] == "LONG"      # mrmi > 0
     assert rows[1]["mrmi_state"] == "CASH"      # mrmi <= 0
     assert rows[2]["mrmi_state"] == "LONG"
+    assert rows[0]["stress_score"] == pytest.approx(3.5)
+    assert rows[1]["stress_growth_pressure"] == pytest.approx(7.0)
+    assert rows[2]["stress_inflation_pressure"] == pytest.approx(6.0)
+    assert rows[0]["stress_score_bucket"] == "calm"
+    assert rows[1]["stress_score_bucket"] == "building"
     assert rows[0]["snapshot"] is None          # backfill rows have no JSONB blob
 
 
@@ -89,6 +106,10 @@ def test_rows_from_backfill_series_skips_nan_rows():
         "mrmi":             pd.Series([np.nan, 0.5], index=idx),
         "mmi":              pd.Series([np.nan, 0.3], index=idx),
         "stress_intensity": pd.Series([np.nan, 0.0], index=idx),
+        "stress_score":     pd.Series([np.nan, 3.5], index=idx),
+        "stress_growth_pressure": pd.Series([np.nan, 2.0], index=idx),
+        "stress_inflation_pressure": pd.Series([np.nan, 5.75], index=idx),
+        "stress_score_bucket": pd.Series([None, "calm"], index=idx),
         "macro_buffer":     pd.Series([np.nan, 1.0], index=idx),
         "real_economy":     pd.Series([np.nan, -0.1], index=idx),
         "inflation_dir_pp": pd.Series([np.nan, 0.0], index=idx),
