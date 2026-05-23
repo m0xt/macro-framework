@@ -448,14 +448,15 @@ RELEASE_LAGS_DAYS = {
     "CPILFESL": 45,  # BLS CPI release — ~mid next month
 }
 
-STRESS_SCORE_K1 = 1.03
-STRESS_SCORE_K2 = 0.005
-BUCKET_CUTOFF_CALM_WATCH = 5.55
-BUCKET_CUTOFF_WATCH_BUILDING = 6.95
-BUCKET_CUTOFF_BUILDING_ELEV = 7.97
+STRESS_SCORE_K1 = 0.97
+STRESS_SCORE_K2 = 0.89
+BUCKET_CUTOFF_CALM_WATCH = 5.33
+BUCKET_CUTOFF_WATCH_BUILDING = 6.01
+BUCKET_CUTOFF_BUILDING_ELEV = 6.77
 
-# Fixed 60th/80th/95th percentile cutoffs from the 2017-09-02..2026-05-23
-# cached daily backfill; re-fit annually rather than auto-updating with new data.
+# K values use the input-series standard deviations; bucket cutoffs are fixed
+# 60th/80th/95th percentiles from the 2017-09-02..2026-05-23 cached daily
+# backfill. Re-fit annually rather than auto-updating with new data.
 STRESS_SCORE_BUCKETS = {
     "calm": (0.0, BUCKET_CUTOFF_CALM_WATCH),
     "watch": (BUCKET_CUTOFF_CALM_WATCH, BUCKET_CUTOFF_WATCH_BUILDING),

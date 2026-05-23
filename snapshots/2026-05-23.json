@@ -1,14 +1,14 @@
 {
   "date": "2026-05-23",
-  "build_time_utc": "2026-05-23 07:07 UTC",
+  "build_time_utc": "2026-05-23 19:25 UTC",
   "mrmi": {
-    "composite": 0.389443662761427,
+    "composite": 0.38650619577531214,
     "state": "green"
   },
   "components": {
-    "gii_fast": 0.24853951910925143,
-    "fincon": 0.2994881675445828,
-    "breadth": 0.6203033016304467
+    "gii_fast": 0.23971531286445655,
+    "fincon": 0.2994999728308331,
+    "breadth": 0.6203033016306467
   },
   "mrci": {
     "composite": 0.7009050493815873,
@@ -19,14 +19,14 @@
   },
   "inflation": 0.7875848121725644,
   "mrmi_combined": {
-    "value": 0.8591202327783747,
+    "value": 0.8561827657922598,
     "state": "LONG",
-    "momentum": 0.389443662761427,
+    "momentum": 0.38650619577531214,
     "stress_intensity": 0.03032342998305239,
-    "stress_score": 7.983134767119067,
-    "stress_growth_pressure": 6.639730473357459,
-    "stress_inflation_pressure": 9.998241207761478,
-    "stress_score_bucket": "elevated",
+    "stress_score": 6.088398267490625,
+    "stress_growth_pressure": 6.733062300671762,
+    "stress_inflation_pressure": 5.121402217718921,
+    "stress_score_bucket": "building",
     "macro_buffer": 0.9696765700169476,
     "buffer_size": 1.0
   },
@@ -50,13 +50,13 @@
   "underliers": {
     "^GSPC": 7473.47021484375,
     "IWM": 285.1199951171875,
-    "BTC-USD": 75211.9921875,
+    "BTC-USD": 75816.078125,
     "^VIX": 16.700000762939453,
-    "^MOVE": 78.4303970336914,
+    "^MOVE": 78.43000030517578,
     "^TNX": 4.558000087738037,
     "HYG": 79.91000366210938,
-    "HG=F": 6.380499839782715,
-    "GC=F": 4510.5,
+    "HG=F": 6.3420000076293945,
+    "GC=F": 4521.0,
     "DBC": 30.540000915527344,
     "DGS10": 4.57,
     "DGS2": 4.08,

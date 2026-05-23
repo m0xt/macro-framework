@@ -151,8 +151,8 @@ def test_stress_intensity_is_clipped_to_zero_one() -> None:
 def test_macro_stress_score_uses_sigmoid_pressures_and_weighting() -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
     idx = pd.date_range("2026-01-01", periods=4, freq="D")
-    re_score = pd.Series([0.0, -0.5, -1.0, -2.0], index=idx)
-    inf_dir = pd.Series([0.0, 0.5, 1.0, 2.0], index=idx)
+    re_score = pd.Series([0.0, -0.2, -0.55, -1.0], index=idx)
+    inf_dir = pd.Series([0.0, 0.2, 0.55, 1.0], index=idx)
 
     out = macro_pipeline.calc_macro_stress_score(re_score, inf_dir, k1=1.0, k2=1.0)
 
@@ -163,10 +163,22 @@ def test_macro_stress_score_uses_sigmoid_pressures_and_weighting() -> None:
     pd.testing.assert_series_equal(out["stress_growth_pressure"], expected_growth)
     pd.testing.assert_series_equal(out["stress_inflation_pressure"], expected_inflation)
     pd.testing.assert_series_equal(out["stress_score"], expected_score)
-    assert macro_pipeline.BUCKET_CUTOFF_CALM_WATCH == 5.55
-    assert macro_pipeline.BUCKET_CUTOFF_WATCH_BUILDING == 6.95
-    assert macro_pipeline.BUCKET_CUTOFF_BUILDING_ELEV == 7.97
+    assert macro_pipeline.BUCKET_CUTOFF_CALM_WATCH == 5.33
+    assert macro_pipeline.BUCKET_CUTOFF_WATCH_BUILDING == 6.01
+    assert macro_pipeline.BUCKET_CUTOFF_BUILDING_ELEV == 6.77
     assert out["stress_score_bucket"].tolist() == ["calm", "watch", "building", "elevated"]
+
+
+def test_macro_stress_score_inflation_pressure_is_smooth_near_zero() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    idx = pd.to_datetime(["2026-05-15", "2026-05-16"])
+    re_score = pd.Series([0.0, 0.0], index=idx)
+    inf_dir = pd.Series([-0.0979, 0.0432], index=idx)
+
+    out = macro_pipeline.calc_macro_stress_score(re_score, inf_dir)
+    inflation_delta = out["stress_inflation_pressure"].diff().abs().iloc[-1]
+
+    assert inflation_delta < 2.0
 
 
 def test_prepare_chart_data_uses_release_lagged_macro_values() -> None:

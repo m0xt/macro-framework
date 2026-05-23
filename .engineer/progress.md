@@ -96,3 +96,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Supabase backfill still blocked on manual migrations/0003_macro_stress_score.sql apply; no schema change needed for this bucket cutoff update.
+
+## 2026-05-23T19:25:55Z — Smooth stress sigmoid retune
+- What: Re-tuned stress-score sigmoid constants for smoothness from full release-lagged backfill std(): k1=0.97 (RE_score std=0.9736), k2=0.89 (inflation_dir_pp std=0.8944). Re-derived percentile cutoffs 5.33 / 6.01 / 6.77; achieved Calm 59.95%, Watch 20.21%, Building 14.75%, Elevated 5.08% over 3186 rows.
+- What: Smoothness check: 2026-05-15 inflation_pressure=4.7252, stress_score=6.0414, bucket=building; 2026-05-16 inflation_pressure=5.1214, stress_score=6.1857, bucket=building; inflation_pressure delta=0.3962 (<2.0). Today 2026-05-23: stress_score=6.0884, growth_pressure=6.7331, inflation_pressure=5.1214, bucket=building, legacy stress_intensity=0.0303.
+- Files touched: src/macro_framework/macro_pipeline.py; tests/test_smoke.py; outputs/dashboard.html; snapshots/2026-05-23.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
