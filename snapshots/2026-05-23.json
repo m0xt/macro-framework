@@ -1,6 +1,6 @@
 {
   "date": "2026-05-23",
-  "build_time_utc": "2026-05-23 19:25 UTC",
+  "build_time_utc": "2026-05-23 20:42 UTC",
   "mrmi": {
     "composite": 0.38650619577531214,
     "state": "green"
@@ -23,7 +23,7 @@
     "state": "LONG",
     "momentum": 0.38650619577531214,
     "stress_intensity": 0.03032342998305239,
-    "stress_score": 6.088398267490625,
+    "stress_score": 8.183152765906163,
     "stress_growth_pressure": 6.733062300671762,
     "stress_inflation_pressure": 5.121402217718921,
     "stress_score_bucket": "building",

@@ -450,13 +450,44 @@ RELEASE_LAGS_DAYS = {
 
 STRESS_SCORE_K1 = 0.97
 STRESS_SCORE_K2 = 0.89
-BUCKET_CUTOFF_CALM_WATCH = 5.33
-BUCKET_CUTOFF_WATCH_BUILDING = 6.01
-BUCKET_CUTOFF_BUILDING_ELEV = 6.77
+BUCKET_CUTOFF_CALM_WATCH = 6.0
+BUCKET_CUTOFF_WATCH_BUILDING = 8.0
+BUCKET_CUTOFF_BUILDING_ELEV = 9.5
 
-# K values use the input-series standard deviations; bucket cutoffs are fixed
-# 60th/80th/95th percentiles from the 2017-09-02..2026-05-23 cached daily
-# backfill. Re-fit annually rather than auto-updating with new data.
+# K values use the input-series standard deviations. The headline score is a
+# percentile-rank transform of the raw weighted sigmoid sum using this locked
+# 2017-09-02..2026-05-23 cached daily backfill CDF (3186 rows).
+STRESS_SCORE_RAW_QUANTILES = (
+    2.254996245644182, 2.503767736150967, 2.774818261589799, 3.104102339845579,
+    3.299998464265979, 3.440066637629750, 3.677773935866991, 3.785324338402876,
+    3.804370409571672, 3.820506099560398, 3.838931522243088, 3.888309617793952,
+    3.919217940346776, 3.930958802255650, 3.957591412126290, 3.985725237198542,
+    4.009725530712123, 4.044276294220510, 4.081937310090426, 4.101435568126261,
+    4.132740212193375, 4.181536483468803, 4.210274808008062, 4.252458241587093,
+    4.302477692313946, 4.323916128650489, 4.350326034144188, 4.388524909702586,
+    4.487873573433209, 4.514884535575136, 4.534099373077986, 4.584615014607991,
+    4.615133092435782, 4.644925566460281, 4.688981096264561, 4.713027361851694,
+    4.787737779597449, 4.839884077656913, 4.865206630595761, 4.876549175458790,
+    4.904291471229190, 4.949669848853614, 4.960617176198728, 4.969501361930653,
+    4.988750065720253, 5.023640881962961, 5.046971323699956, 5.069625282170223,
+    5.084443065610111, 5.100534360727798, 5.125875090453934, 5.135402228260071,
+    5.147168336391681, 5.162702195683393, 5.170987149278666, 5.196614984696584,
+    5.215585896043416, 5.243593303356738, 5.264956241787939, 5.299112802233093,
+    5.333492973653036, 5.369494698362231, 5.403255841083972, 5.473519218138599,
+    5.519378882530261, 5.552572967869843, 5.566158849168255, 5.584738520934691,
+    5.601045948234255, 5.619123523162525, 5.661296734275838, 5.674328477383923,
+    5.698037348543650, 5.711580527542184, 5.765606493378988, 5.798005814523133,
+    5.843552574767048, 5.887880457412900, 5.918132939482430, 5.976178103379648,
+    6.008403682955425, 6.060596098134757, 6.094031148734568, 6.118956630184499,
+    6.169297648305055, 6.236830307154813, 6.270767625339302, 6.294518701799648,
+    6.398788826846942, 6.415996758950967, 6.449202529679326, 6.538721483282926,
+    6.590840789110843, 6.700007193005221, 6.727258917207514, 6.771069042388771,
+    6.942211930096557, 7.108811618825098, 7.437251736201173, 7.732256530954438,
+    8.044327785109994,
+)
+
+# Buckets are fixed percentile ranks: Calm <60th, Watch <80th,
+# Building <95th, Elevated >=95th.
 STRESS_SCORE_BUCKETS = {
     "calm": (0.0, BUCKET_CUTOFF_CALM_WATCH),
     "watch": (BUCKET_CUTOFF_CALM_WATCH, BUCKET_CUTOFF_WATCH_BUILDING),
@@ -473,8 +504,22 @@ def _lagged(series: pd.Series, days: int) -> pd.Series:
 def _sigmoid(series: pd.Series) -> pd.Series:
     return 1.0 / (1.0 + np.exp(-series.clip(lower=-709, upper=709)))
 
+def _stress_score_rank_transform(raw_score: pd.Series) -> pd.Series:
+    out = pd.Series(np.nan, index=raw_score.index)
+    valid = raw_score.dropna()
+    if len(valid) == 0:
+        return out
+    out.loc[valid.index] = np.interp(
+        valid.to_numpy(),
+        STRESS_SCORE_RAW_QUANTILES,
+        np.linspace(0.0, 10.0, len(STRESS_SCORE_RAW_QUANTILES)),
+        left=0.0,
+        right=10.0,
+    )
+    return out
+
 def stress_score_bucket(score: float | None) -> str | None:
-    """Bucket a 0–10 continuous stress score using fixed historical percentiles."""
+    """Bucket a 0–10 percentile-rank stress score using fixed cutoffs."""
     if score is None or pd.isna(score):
         return None
     if score < BUCKET_CUTOFF_CALM_WATCH:
@@ -492,10 +537,14 @@ def calc_macro_stress_score(re_score: pd.Series, inf_dir: pd.Series,
 
     This is deliberately separate from stress_intensity, which remains the
     optimized MRMI buffer gate.
+
+    Headline stress_score is percentile-rank transformed; sub-pressures stay
+    raw sigmoid values, so 0.6×growth + 0.4×inflation != stress_score.
     """
     growth_pressure = 10.0 * _sigmoid(-re_score / k1)
     inflation_pressure = 10.0 * _sigmoid(inf_dir / k2)
-    stress_score = (0.6 * growth_pressure + 0.4 * inflation_pressure).clip(lower=0.0, upper=10.0)
+    raw_score = (0.6 * growth_pressure + 0.4 * inflation_pressure).clip(lower=0.0, upper=10.0)
+    stress_score = _stress_score_rank_transform(raw_score)
     stress_bucket_series = stress_score.map(stress_score_bucket)
     return {
         "stress_score": stress_score,

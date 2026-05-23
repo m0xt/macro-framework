@@ -104,3 +104,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-23T20:42:19Z — Percentile-rank stress headline
+- What: Rank-transformed headline stress_score from raw sigmoid weighted sum via locked 101-point ECDF table; cutoffs are now fixed percentile ranks 6.0/8.0/9.5 while sub-pressures remain raw. CDF checksum sha256=95d24412b04e41e5961f63bc32558f416f37b54bf28faef8213d366507cb4a94; anchors p0=2.254996, p25=4.323916, p50=5.125875, p75=5.798006, p95=6.771069, p100=8.044328. Today raw_score=6.088398 → stress_score=8.183153 (81.83rd percentile), bucket=building; percentile assertion passed.
+- What: Verified history span/distribution/smoothness on 3186 cached release-lagged rows: score min=0.0 max=10.0; buckets calm=1911 (59.98%), watch=637 (19.99%), building=478 (15.00%), elevated=160 (5.02%); May 15 stress_score=8.063170 vs May 16=8.424226, delta=0.361055 (<2.0).
+- Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; tests/test_smoke.py; outputs/dashboard.html; snapshots/2026-05-23.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Bob should rerun Supabase backfill so historical stress_score values update to the rank-transformed scale; no schema change.

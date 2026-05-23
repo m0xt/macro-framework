@@ -148,7 +148,7 @@ def test_stress_intensity_is_clipped_to_zero_one() -> None:
     assert stress.iloc[2] == pytest.approx(0.0)
 
 
-def test_macro_stress_score_uses_sigmoid_pressures_and_weighting() -> None:
+def test_macro_stress_score_uses_sigmoid_pressures_and_ranked_headline() -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
     idx = pd.date_range("2026-01-01", periods=4, freq="D")
     re_score = pd.Series([0.0, -0.2, -0.55, -1.0], index=idx)
@@ -158,15 +158,39 @@ def test_macro_stress_score_uses_sigmoid_pressures_and_weighting() -> None:
 
     expected_growth = 10.0 / (1.0 + np.exp(re_score))
     expected_inflation = 10.0 / (1.0 + np.exp(-inf_dir))
-    expected_score = 0.6 * expected_growth + 0.4 * expected_inflation
+    expected_raw_score = 0.6 * expected_growth + 0.4 * expected_inflation
+    expected_score = macro_pipeline._stress_score_rank_transform(expected_raw_score)
 
     pd.testing.assert_series_equal(out["stress_growth_pressure"], expected_growth)
     pd.testing.assert_series_equal(out["stress_inflation_pressure"], expected_inflation)
     pd.testing.assert_series_equal(out["stress_score"], expected_score)
-    assert macro_pipeline.BUCKET_CUTOFF_CALM_WATCH == 5.33
-    assert macro_pipeline.BUCKET_CUTOFF_WATCH_BUILDING == 6.01
-    assert macro_pipeline.BUCKET_CUTOFF_BUILDING_ELEV == 6.77
-    assert out["stress_score_bucket"].tolist() == ["calm", "watch", "building", "elevated"]
+    assert not out["stress_score"].equals(expected_raw_score)
+    assert macro_pipeline.BUCKET_CUTOFF_CALM_WATCH == 6.0
+    assert macro_pipeline.BUCKET_CUTOFF_WATCH_BUILDING == 8.0
+    assert macro_pipeline.BUCKET_CUTOFF_BUILDING_ELEV == 9.5
+    assert out["stress_score_bucket"].tolist() == [
+        macro_pipeline.stress_score_bucket(v) for v in out["stress_score"]
+    ]
+
+
+def test_stress_score_rank_transform_maps_quantiles_to_percentiles() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    idx = pd.date_range("2026-01-01", periods=5, freq="D")
+    raw = pd.Series([
+        -1.0,
+        macro_pipeline.STRESS_SCORE_RAW_QUANTILES[0],
+        macro_pipeline.STRESS_SCORE_RAW_QUANTILES[65],
+        macro_pipeline.STRESS_SCORE_RAW_QUANTILES[-1],
+        99.0,
+    ], index=idx)
+
+    score = macro_pipeline._stress_score_rank_transform(raw)
+
+    assert score.iloc[0] == pytest.approx(0.0)
+    assert score.iloc[1] == pytest.approx(0.0)
+    assert score.iloc[2] == pytest.approx(6.5)
+    assert score.iloc[3] == pytest.approx(10.0)
+    assert score.iloc[4] == pytest.approx(10.0)
 
 
 def test_macro_stress_score_inflation_pressure_is_smooth_near_zero() -> None:

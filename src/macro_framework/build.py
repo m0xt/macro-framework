@@ -1282,7 +1282,7 @@ def render(snap, chart, raw_data=None):
 <div class="mrmi-chart macro-stress-snapshot">
   <div class="mrmi-chart-header">
     <h3>Macro Stress
-      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the current economy-pillar stress score and 0–10 bucket, followed by stress score over time. Calm/Watch/Building/Elevated are fixed at the historical 60th/80th/95th percentile cutoffs ({BUCKET_CUTOFF_CALM_WATCH:.2f}/{BUCKET_CUTOFF_WATCH_BUILDING:.2f}/{BUCKET_CUTOFF_BUILDING_ELEV:.2f}); re-fit annually rather than auto-updating.</p><p><strong>MRMI buffer:</strong> the older 0–1 stress intensity is unchanged and remains the only value that erodes the MRMI buffer.</p><p><strong>Inputs below:</strong> the stress-inputs panel shows the two raw axes visually: Real Economy Score and Inflation Direction Δ6m.</p></span></span>
+      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the current economy-pillar stress score and 0–10 bucket, followed by stress score over time. The headline score is a percentile rank of the raw sigmoid stress score, so 6.5 means roughly the 65th percentile of historical stress. Calm/Watch/Building/Elevated are fixed at 6.0/8.0/9.5.</p><p><strong>MRMI buffer:</strong> the older 0–1 stress intensity is unchanged and remains the only value that erodes the MRMI buffer.</p><p><strong>Inputs below:</strong> the stress-inputs panel shows the two raw axes visually: Real Economy Score and Inflation Direction Δ6m.</p></span></span>
     </h3>
     <div class="macro-stress-reading">
       <span class="macro-stress-reading-value mono">{stress_value_str}</span>
@@ -1290,7 +1290,7 @@ def render(snap, chart, raw_data=None):
       <span class="macro-stress-reading-label">0–10 score · MRMI intensity {stress_intensity_str}</span>
     </div>
   </div>
-  <p class="mrmi-chart-subtitle">Economy-pillar stress over time: Calm / Watch / Building / Elevated score derived from sigmoid growth and inflation pressures, with fixed historical percentile cutoffs. Current sub-pressures: growth {stress_growth_str}, inflation {stress_inflation_str}.</p>
+  <p class="mrmi-chart-subtitle">Economy-pillar stress over time: percentile-rank headline score on a full 0–10 scale. Sub-pressures remain raw sigmoid values: growth {stress_growth_str}, inflation {stress_inflation_str}.</p>
   <div class="chart-container" style="height: 220px;"><canvas id="chart-stress-history"></canvas></div>
 </div>
 <details class="drivers macro-stress-inputs-panel" open>
@@ -1965,11 +1965,11 @@ function buildStressHistoryChart() {{
             buildingBand: {{ type: 'box', yMin: {BUCKET_CUTOFF_WATCH_BUILDING:.2f}, yMax: {BUCKET_CUTOFF_BUILDING_ELEV:.2f}, backgroundColor: 'rgba(255,140,0,0.10)', borderWidth: 0, scaleID: 'y' }},
             elevatedBand: {{ type: 'box', yMin: {BUCKET_CUTOFF_BUILDING_ELEV:.2f}, yMax: 10, backgroundColor: 'rgba(232,75,90,0.10)', borderWidth: 0, scaleID: 'y' }},
             watch: {{ type: 'line', yMin: {BUCKET_CUTOFF_CALM_WATCH:.2f}, yMax: {BUCKET_CUTOFF_CALM_WATCH:.2f}, borderColor: 'rgba(205,170,106,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
-              label: {{ display: true, content: 'WATCH {BUCKET_CUTOFF_CALM_WATCH:.2f}', position: 'start', backgroundColor: 'transparent', color: '#8f7644', font: {{ size: 9 }} }} }},
+              label: {{ display: true, content: 'WATCH {BUCKET_CUTOFF_CALM_WATCH:.1f}', position: 'start', backgroundColor: 'transparent', color: '#8f7644', font: {{ size: 9 }} }} }},
             building: {{ type: 'line', yMin: {BUCKET_CUTOFF_WATCH_BUILDING:.2f}, yMax: {BUCKET_CUTOFF_WATCH_BUILDING:.2f}, borderColor: 'rgba(255,140,0,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
-              label: {{ display: true, content: 'BUILDING {BUCKET_CUTOFF_WATCH_BUILDING:.2f}', position: 'start', backgroundColor: 'transparent', color: '#9a6a28', font: {{ size: 9 }} }} }},
+              label: {{ display: true, content: 'BUILDING {BUCKET_CUTOFF_WATCH_BUILDING:.1f}', position: 'start', backgroundColor: 'transparent', color: '#9a6a28', font: {{ size: 9 }} }} }},
             elevated: {{ type: 'line', yMin: {BUCKET_CUTOFF_BUILDING_ELEV:.2f}, yMax: {BUCKET_CUTOFF_BUILDING_ELEV:.2f}, borderColor: 'rgba(232,75,90,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
-              label: {{ display: true, content: 'ELEVATED {BUCKET_CUTOFF_BUILDING_ELEV:.2f}', position: 'start', backgroundColor: 'transparent', color: '#9a3d47', font: {{ size: 9 }} }} }},
+              label: {{ display: true, content: 'ELEVATED {BUCKET_CUTOFF_BUILDING_ELEV:.1f}', position: 'start', backgroundColor: 'transparent', color: '#9a3d47', font: {{ size: 9 }} }} }},
           }},
         }},
       }},
@@ -1978,7 +1978,7 @@ function buildStressHistoryChart() {{
         y: {{
           min: 0, max: 10,
           afterBuildTicks: scale => {{ scale.ticks = [0, {BUCKET_CUTOFF_CALM_WATCH:.2f}, {BUCKET_CUTOFF_WATCH_BUILDING:.2f}, {BUCKET_CUTOFF_BUILDING_ELEV:.2f}, 10].map(value => ({{ value }})); }},
-          ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, callback: value => Number(value).toFixed(value === 0 || value === 10 ? 0 : 2) }},
+          ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, callback: value => Number(value).toFixed(value === 0 || value === 10 ? 0 : 1) }},
           grid: {{ color: '#1a1a1a' }},
         }},
       }},
