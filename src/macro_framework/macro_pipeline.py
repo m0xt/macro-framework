@@ -624,6 +624,71 @@ def calc_milk_road_macro_index(momentum: pd.Series, macro_ctx: dict,
         "threshold": threshold,
     }
 
+def calc_milk_road_macro_index_unified_stress(momentum: pd.Series, macro_ctx: dict,
+                                              alpha: float, beta: float, lambda_weight: float,
+                                              buffer_size: float, threshold: float) -> dict:
+    """Experimental MRMI with Martin's OR+AND macro-stress formula.
+
+    This is intentionally separate from the production MRMI path until the
+    task-34 backtest report is reviewed.
+    """
+    re_score = macro_ctx.get("real_economy_score")
+    inf_dir = macro_ctx.get("inflation_dir_pp")
+
+    if re_score is None or inf_dir is None:
+        nan_series = pd.Series(np.nan, index=momentum.index)
+        return {
+            "mrmi": nan_series,
+            "raw": nan_series,
+            "momentum": momentum,
+            "stress_raw": nan_series,
+            "stress_norm": nan_series,
+            "macro_buffer": nan_series,
+            "stress_p99": np.nan,
+            "alpha": alpha,
+            "beta": beta,
+            "lambda_weight": lambda_weight,
+            "buffer_size": buffer_size,
+            "threshold": threshold,
+        }
+
+    re = re_score.reindex(momentum.index)
+    inf = inf_dir.reindex(momentum.index)
+
+    growth_weakness = (-re).clip(lower=0)
+    inflation_pressure = inf.clip(lower=0)
+    stress_raw = (
+        alpha * growth_weakness
+        + beta * inflation_pressure
+        + lambda_weight * growth_weakness * inflation_pressure
+    )
+    stress_p99 = stress_raw.dropna().quantile(0.99)
+    if not np.isfinite(stress_p99) or stress_p99 <= 0:
+        stress_norm = stress_raw * 0.0
+    else:
+        stress_norm = (stress_raw / stress_p99).clip(lower=0.0, upper=1.0)
+
+    macro_buffer = buffer_size * (1.0 - stress_norm)
+    raw = momentum + macro_buffer
+    mrmi = raw - threshold
+
+    return {
+        "mrmi": mrmi,
+        "raw": raw,
+        "momentum": momentum,
+        "growth_weakness": growth_weakness,
+        "inflation_pressure": inflation_pressure,
+        "stress_raw": stress_raw,
+        "stress_norm": stress_norm,
+        "macro_buffer": macro_buffer,
+        "stress_p99": stress_p99,
+        "alpha": alpha,
+        "beta": beta,
+        "lambda_weight": lambda_weight,
+        "buffer_size": buffer_size,
+        "threshold": threshold,
+    }
+
 def calc_macro_context(data: pd.DataFrame, lookback_years: int = 3, apply_release_lags: bool = True) -> dict:
     """
     Macro context — Real Economy Composite + Inflation Direction.

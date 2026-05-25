@@ -112,3 +112,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Bob should rerun Supabase backfill so historical stress_score values update to the rank-transformed scale; no schema change.
+
+## 2026-05-25T08:08:02Z — OR+AND stress backtest spike
+- What: Added an experimental non-production MRMI helper for Martin's OR+AND stress formula and wrote the task-34 comparison report. Requested grid best was α=0.75, β=0.5, λ=10, buffer=0.5, threshold=0.75; avg Calmar improved 1.522 → 2.551, with cash time rising 21.3% → 48.4% and switches 104 → 210. Recommendation: ship the new formula if Martin accepts the more defensive/higher-turnover profile; consider a narrow buffer/threshold follow-up before Phase 2.
+- Files touched: src/macro_framework/macro_pipeline.py; reports/task-34-stress-unification-backtest.md; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Martin/Bob review of Phase 1 report; Phase 2 remains blocked until sign-off, with possible narrow buffer/threshold search suggested by sensitivity.
