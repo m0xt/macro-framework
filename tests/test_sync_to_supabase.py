@@ -10,10 +10,10 @@ SAMPLE_SNAPSHOT = {
         "value": 1.0227,
         "state": "LONG",
         "momentum": 0.5227,
-        "stress_intensity": 0.0,
+        "stress_intensity": 0.4321,
         "stress_score": 4.321,
-        "stress_growth_pressure": 6.1,
-        "stress_inflation_pressure": 1.7,
+        "growth_weakness": 0.8,
+        "inflation_pressure_raw": 0.4,
         "stress_score_bucket": "watch",
         "macro_buffer": 1.0,
         "buffer_size": 1.0,
@@ -39,10 +39,10 @@ def test_row_from_snapshot_maps_headline_to_mrmi_combined():
     assert row["mrmi"] == pytest.approx(1.0227)             # not 0.5227
     assert row["mrmi_state"] == "LONG"                      # not 'green'
     assert row["mmi"] == pytest.approx(0.5227)              # from mrmi_combined.momentum
-    assert row["stress_intensity"] == pytest.approx(0.0)
+    assert row["stress_intensity"] == pytest.approx(0.4321)
     assert row["stress_score"] == pytest.approx(4.321)
-    assert row["stress_growth_pressure"] == pytest.approx(6.1)
-    assert row["stress_inflation_pressure"] == pytest.approx(1.7)
+    assert row["stress_growth_pressure"] == pytest.approx(0.6)
+    assert row["stress_inflation_pressure"] == pytest.approx(0.2)
     assert row["stress_score_bucket"] == "watch"
     assert row["macro_buffer"] == pytest.approx(1.0)
     assert row["real_economy"] == pytest.approx(-0.8924)

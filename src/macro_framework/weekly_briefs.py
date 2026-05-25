@@ -62,23 +62,21 @@ divergences and what's driving the score. Length: 5–7 sentences."""
 SYSTEM_ECONOMY = SYSTEM_BASE + """
 
 Your beat for this brief: the ECONOMY PILLAR. The dashboard's headline view
-for this pillar is the MACRO STRESS PRESSURE chart — a single continuous
-score that smooths the AND-condition between weak growth and rising
-inflation, then z-scores it against its own history. Reading guide:
-  · 0     = typical historical macro reading
-  · +1σ   = stress building above norm (top ~16% of history)
-  · +2σ   = unusual stress building
-  · −1σ   = unusually calm vs history
-The two underlying axes feeding the pressure score are:
+for this pillar is the MACRO STRESS chart — Martin's unified 0–10 score that
+is calm by default, rises when growth weakens or inflation accelerates, and
+builds fastest when both hit together. Reading guide:
+  · 0–3   = Calm
+  · 3–5   = Watch
+  · 5–7   = Building
+  · 7–10  = Elevated
+The two underlying axes feeding the stress score are:
   · Real Economy Score (z) — equal-weighted PCE / Sahm / Real Income / GDPNow
   · Inflation Direction (Δ Core CPI YoY over 6m, in pp)
-For the model's actual buffer / MRMI calculation, the framework still uses
-a hard-clipped stress_intensity (rare, mostly 0). Don't conflate the two —
-the pressure score is the read; the hard-clipped intensity is the trigger.
+The same normalized stress score now drives the MRMI macro-buffer erosion.
 
-Lead with where the pressure z-score sits and what it implies, then
-explain what each axis is doing to drive that reading, then call out what
-would push it materially. Length: 5–7 sentences."""
+Lead with where the 0–10 stress score sits and what it implies, then
+explain what each raw axis is doing to drive that reading, then call out
+what would push it materially. Length: 5–7 sentences."""
 
 SYSTEM_TOP = SYSTEM_BASE + """
 
@@ -223,15 +221,6 @@ def _market_context(latest: dict, prior_1d: dict | None, prior_7d: dict | None) 
     return "\n".join(lines)
 
 
-def _smoothed_pressure(re: float | None, inf: float | None, k: float = 2.0) -> float | None:
-    """Sigmoid-AND, mirrors the dashboard's chart-stress-strip (raw, not z-scored)."""
-    import math
-    if re is None or inf is None:
-        return None
-    sig = lambda x: 1.0 / (1.0 + math.exp(-x))
-    return sig(-k * re) * sig(k * inf)
-
-
 def _economy_context(latest: dict, prior_7d: dict | None) -> str:
     def diff7(a, *k):
         if not prior_7d:
@@ -245,17 +234,10 @@ def _economy_context(latest: dict, prior_7d: dict | None) -> str:
     re_score = _g(latest, "macro", "real_economy_score")
     inf_dir = _g(latest, "macro", "inflation_dir_pp")
     core_cpi = _g(latest, "macro", "core_cpi_yoy_pct")
-    stress_intensity = _g(latest, "mrmi_combined", "stress_intensity")  # hard-clipped (model)
+    stress_score = _g(latest, "mrmi_combined", "stress_score")
+    stress_bucket = _g(latest, "mrmi_combined", "stress_score_bucket")
     macro_buffer = _g(latest, "mrmi_combined", "macro_buffer")
-    pressure_raw = _smoothed_pressure(re_score, inf_dir)
-    pressure_raw_7d = _smoothed_pressure(
-        _g(prior_7d, "macro", "real_economy_score") if prior_7d else None,
-        _g(prior_7d, "macro", "inflation_dir_pp") if prior_7d else None,
-    )
-    pressure_delta = (
-        f" (7d {(pressure_raw - pressure_raw_7d):+.3f})"
-        if (pressure_raw is not None and pressure_raw_7d is not None) else ""
-    )
+    stress_delta = diff7(stress_score, "mrmi_combined", "stress_score")
 
     # Real-economy sub-components (the four feeding the score)
     re_components = (latest.get("macro") or {}).get("real_economy_components") or {}
@@ -270,13 +252,12 @@ def _economy_context(latest: dict, prior_7d: dict | None) -> str:
     lines = [
         f"Date: {latest.get('date', '?')}",
         "",
-        "=== MACRO STRESS PRESSURE (the dashboard headline chart) ===",
-        f"Smoothed pressure (raw, pre-z-score): {_fmt(pressure_raw)}" + pressure_delta,
-        "  · Range ~0.06 to ~1.00; ~0.25 = neutral baseline; rises when both axes are adverse.",
-        "  · The dashboard z-scores this against full history before plotting.",
-        "  · Hard-clipped stress_intensity (used by MRMI for buffer): " + _fmt(stress_intensity),
+        "=== MACRO STRESS (dashboard headline chart) ===",
+        f"Stress score (0-10): {_fmt(stress_score)}" + stress_delta,
+        f"  · Bucket: {stress_bucket or 'unknown'}",
+        "  · Calm <3, Watch <5, Building <7, Elevated ≥7.",
         "  · Macro buffer currently feeding MRMI: " + _fmt(macro_buffer)
-            + "  (1.0 = full strength tailwind; 0.0 = fully eroded)",
+            + "  (0.5 = full strength tailwind; 0.0 = fully eroded)",
         "",
         "=== UNDERLYING AXES (collapsible 'Underlying components' on dashboard) ===",
         f"Real Economy Score (z): {_fmt(re_score)}" + diff7(re_score, "macro", "real_economy_score"),
@@ -313,7 +294,7 @@ def _top_context(latest: dict) -> str:
     mrmi_state = mrmi_combined.get("state", "?")
     momentum = mrmi_combined.get("momentum")
     macro_buffer = mrmi_combined.get("macro_buffer")
-    stress = mrmi_combined.get("stress_intensity") or 0.0
+    stress = mrmi_combined.get("stress_score")
 
     return (
         f"Date: {latest.get('date', '?')}\n\n"
@@ -321,7 +302,7 @@ def _top_context(latest: dict) -> str:
         f"MRMI {_fmt(mrmi_value)} ({mrmi_state})\n"
         f"  MMI (momentum): {_fmt(momentum)}\n"
         f"  Macro buffer: {_fmt(macro_buffer)}\n"
-        f"  Stress intensity: {_fmt(stress)}\n"
+        f"  Stress score: {_fmt(stress)}\n"
     )
 
 

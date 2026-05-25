@@ -162,17 +162,18 @@ Macro Stress is a 0–1 score capturing how deep we are inside the stagflation p
 
 **Why Core CPI**: Excludes food and energy noise. It's the realized inflation the Fed actually targets.
 
-### The AND gate
+### Unified stress
 
 ```
-Stress_intensity = min(1, max(0, −Real_Economy) × max(0, Inflation_Direction))
+g = max(0, −Real_Economy)
+i = max(0, Inflation_Direction)
+Stress_raw       = 0.75 × g + 0.50 × i + 10 × g × i
+Stress_intensity = clip(Stress_raw / 10.0083, 0, 1)
 ```
 
-Production locks: stress is clipped to `[0, 1]`; dashboard `stress_on` fires above 0.5; MRMI defaults are `buffer_size=1.0` and `threshold=0.5`; macro release lags are PCE/RPI 60d, unemployment 35d, Core CPI 45d, GDPNow 0d.
+Production locks: `buffer_size=0.5`, `threshold=0.75`, `stress_p99=10.0083`; macro release lags are PCE/RPI 60d, unemployment 35d, Core CPI 45d, GDPNow 0d.
 
-The two `max(0, …)` clips mean each factor only contributes when it's adversely positioned: weak growth (RE < 0) and rising inflation (Inf_Dir > 0). The product is non-zero only when *both* are adverse — that's the stagflation pocket. This is the one macro condition that overrides the buffer and pulls MRMI toward CASH.
-
-A consequence of the AND gate: when the economy is healthy on either dimension, stress sits flat at 0 regardless of the other. The chart will look uneventful in benign regimes — that's by design. Stress firing is rare *and meaningful*.
+The two `max(0, …)` clips mean each factor contributes only when adversely positioned: weak growth (RE < 0) and rising inflation (Inf_Dir > 0). The single-axis terms let stress build when either side worsens; the `g × i` term amplifies the true stagflation pocket when both are adverse.
 
 ---
 

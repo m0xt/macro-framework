@@ -120,13 +120,40 @@ def test_mrmi_formula_matches_documented_equation() -> None:
         threshold=threshold,
     )
 
-    expected_stress = ((-re_score).clip(lower=0) * inf_dir.clip(lower=0)).clip(upper=1.0)
+    g = (-re_score).clip(lower=0)
+    i = inf_dir.clip(lower=0)
+    expected_stress_raw = (
+        macro_pipeline.UNIFIED_STRESS_ALPHA * g
+        + macro_pipeline.UNIFIED_STRESS_BETA * i
+        + macro_pipeline.UNIFIED_STRESS_LAMBDA * g * i
+    )
+    expected_stress = (expected_stress_raw / macro_pipeline.UNIFIED_STRESS_P99).clip(upper=1.0)
     expected_buffer = buffer_size * (1.0 - expected_stress)
     expected_mrmi = momentum + expected_buffer - threshold
 
+    pd.testing.assert_series_equal(out["growth_weakness"], g)
+    pd.testing.assert_series_equal(out["inflation_pressure_raw"], i)
     pd.testing.assert_series_equal(out["stress_intensity"], expected_stress)
+    pd.testing.assert_series_equal(out["stress_score"], expected_stress * 10.0)
     pd.testing.assert_series_equal(out["macro_buffer"], expected_buffer)
     pd.testing.assert_series_equal(out["mrmi"], expected_mrmi)
+
+
+def test_unified_stress_formula_known_point() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    idx = pd.date_range("2026-01-01", periods=1, freq="D")
+    momentum = pd.Series([0.0], index=idx)
+    re_score = pd.Series([-0.5], index=idx)
+    inf_dir = pd.Series([0.2], index=idx)
+
+    out = macro_pipeline.calc_milk_road_macro_index(
+        momentum, {"real_economy_score": re_score, "inflation_dir_pp": inf_dir}
+    )
+
+    assert out["growth_weakness"].iloc[0] == pytest.approx(0.5)
+    assert out["inflation_pressure_raw"].iloc[0] == pytest.approx(0.2)
+    assert out["stress_score"].iloc[0] == pytest.approx(1.4738, abs=0.0001)
+    assert out["stress_score_bucket"].iloc[0] == "calm"
 
 
 def test_stress_intensity_is_clipped_to_zero_one() -> None:
@@ -145,64 +172,38 @@ def test_stress_intensity_is_clipped_to_zero_one() -> None:
     assert (stress >= 0).all()
     assert (stress <= 1).all()
     assert stress.iloc[1] == pytest.approx(1.0)
-    assert stress.iloc[2] == pytest.approx(0.0)
+    assert stress.iloc[2] == pytest.approx(0.0375, abs=0.0001)
 
 
-def test_macro_stress_score_uses_sigmoid_pressures_and_ranked_headline() -> None:
+def test_stress_score_bucket_boundaries_match_supabase_constraint() -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
-    idx = pd.date_range("2026-01-01", periods=4, freq="D")
-    re_score = pd.Series([0.0, -0.2, -0.55, -1.0], index=idx)
-    inf_dir = pd.Series([0.0, 0.2, 0.55, 1.0], index=idx)
-
-    out = macro_pipeline.calc_macro_stress_score(re_score, inf_dir, k1=1.0, k2=1.0)
-
-    expected_growth = 10.0 / (1.0 + np.exp(re_score))
-    expected_inflation = 10.0 / (1.0 + np.exp(-inf_dir))
-    expected_raw_score = 0.6 * expected_growth + 0.4 * expected_inflation
-    expected_score = macro_pipeline._stress_score_rank_transform(expected_raw_score)
-
-    pd.testing.assert_series_equal(out["stress_growth_pressure"], expected_growth)
-    pd.testing.assert_series_equal(out["stress_inflation_pressure"], expected_inflation)
-    pd.testing.assert_series_equal(out["stress_score"], expected_score)
-    assert not out["stress_score"].equals(expected_raw_score)
-    assert macro_pipeline.BUCKET_CUTOFF_CALM_WATCH == 6.0
-    assert macro_pipeline.BUCKET_CUTOFF_WATCH_BUILDING == 8.0
-    assert macro_pipeline.BUCKET_CUTOFF_BUILDING_ELEV == 9.5
-    assert out["stress_score_bucket"].tolist() == [
-        macro_pipeline.stress_score_bucket(v) for v in out["stress_score"]
-    ]
+    assert {macro_pipeline.stress_score_bucket(v) for v in [0.0, 3.0, 5.0, 7.0]} == {
+        "calm", "watch", "building", "elevated"
+    }
+    assert macro_pipeline.stress_score_bucket(2.999) == "calm"
+    assert macro_pipeline.stress_score_bucket(3.0) == "watch"
+    assert macro_pipeline.stress_score_bucket(5.0) == "building"
+    assert macro_pipeline.stress_score_bucket(7.0) == "elevated"
 
 
-def test_stress_score_rank_transform_maps_quantiles_to_percentiles() -> None:
-    macro_pipeline = _import_module("macro_framework.macro_pipeline")
-    idx = pd.date_range("2026-01-01", periods=5, freq="D")
-    raw = pd.Series([
-        -1.0,
-        macro_pipeline.STRESS_SCORE_RAW_QUANTILES[0],
-        macro_pipeline.STRESS_SCORE_RAW_QUANTILES[65],
-        macro_pipeline.STRESS_SCORE_RAW_QUANTILES[-1],
-        99.0,
-    ], index=idx)
+def test_canonical_backtest_matches_task34_phase1_calmar() -> None:
+    backtest = _import_module("macro_framework.backtest_production")
+    data_path = ROOT / ".cache" / "raw_data.pkl"
+    assert data_path.exists(), "raw_data.pkl is required for the canonical backtest smoke test"
+    data = pd.read_pickle(data_path)
+    mrmi, _mmi = backtest.production_mrmi(data)
+    asset_rets = {
+        "spx": data["^GSPC"].pct_change(),
+        "iwm": data["IWM"].pct_change(),
+        "btc": data["BTC-USD"].pct_change(),
+    }
 
-    score = macro_pipeline._stress_score_rank_transform(raw)
-
-    assert score.iloc[0] == pytest.approx(0.0)
-    assert score.iloc[1] == pytest.approx(0.0)
-    assert score.iloc[2] == pytest.approx(6.5)
-    assert score.iloc[3] == pytest.approx(10.0)
-    assert score.iloc[4] == pytest.approx(10.0)
-
-
-def test_macro_stress_score_inflation_pressure_is_smooth_near_zero() -> None:
-    macro_pipeline = _import_module("macro_framework.macro_pipeline")
-    idx = pd.to_datetime(["2026-05-15", "2026-05-16"])
-    re_score = pd.Series([0.0, 0.0], index=idx)
-    inf_dir = pd.Series([-0.0979, 0.0432], index=idx)
-
-    out = macro_pipeline.calc_macro_stress_score(re_score, inf_dir)
-    inflation_delta = out["stress_inflation_pressure"].diff().abs().iloc[-1]
-
-    assert inflation_delta < 2.0
+    expected = {"spx": 3.37, "iwm": 3.59, "btc": 0.70}
+    for asset, expected_calmar in expected.items():
+        result = backtest.backtest_signal(mrmi, asset_rets[asset])
+        assert result is not None
+        calmar = result["strat_ann"] / abs(result["strat_dd"])
+        assert calmar == pytest.approx(expected_calmar, abs=0.01)
 
 
 def test_prepare_chart_data_uses_release_lagged_macro_values() -> None:
@@ -297,8 +298,8 @@ def test_save_snapshot_schema_uses_actual_current_keys(tmp_path: Path, monkeypat
         "momentum",
         "stress_intensity",
         "stress_score",
-        "stress_growth_pressure",
-        "stress_inflation_pressure",
+        "growth_weakness",
+        "inflation_pressure_raw",
         "stress_score_bucket",
         "macro_buffer",
         "buffer_size",
@@ -326,14 +327,14 @@ def test_breadth_lookback_docs_match_code() -> None:
 def test_documented_mrmi_parameters_are_locked_to_code() -> None:
     source = (PACKAGE_DIR / "macro_pipeline.py").read_text()
     mrmi_src = _function_source(source, "calc_milk_road_macro_index", "calc_macro_context")
-    assert "buffer_size: float = 1.0" in mrmi_src
-    assert "threshold: float = 0.5" in mrmi_src
-    assert "stress_intensity = stress_raw.clip(upper=1.0)" in mrmi_src
+    assert "buffer_size: float = UNIFIED_STRESS_BUFFER_SIZE" in mrmi_src
+    assert "threshold: float = UNIFIED_STRESS_THRESHOLD" in mrmi_src
+    assert "UNIFIED_STRESS_P99" in mrmi_src
 
     docs = "\n".join((ROOT / name).read_text() for name in ("README.md", "CLAUDE.md", "GUIDE.md"))
-    assert "buffer_size=1.0" in docs or "buffer_size = 1.0" in docs
-    assert "threshold=0.5" in docs or "threshold = 0.5" in docs
-    assert "[0, 1]" in docs
+    assert "buffer_size=0.5" in docs or "buffer_size = 0.5" in docs
+    assert "threshold=0.75" in docs or "threshold = 0.75" in docs
+    assert "stress_p99=10.0083" in docs or "stress_p99 = 10.0083" in docs
 
 
 def test_documented_release_lags_are_locked_to_code() -> None:

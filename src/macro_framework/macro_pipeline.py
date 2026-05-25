@@ -448,46 +448,22 @@ RELEASE_LAGS_DAYS = {
     "CPILFESL": 45,  # BLS CPI release — ~mid next month
 }
 
-STRESS_SCORE_K1 = 0.97
-STRESS_SCORE_K2 = 0.89
-BUCKET_CUTOFF_CALM_WATCH = 6.0
-BUCKET_CUTOFF_WATCH_BUILDING = 8.0
-BUCKET_CUTOFF_BUILDING_ELEV = 9.5
+# Unified-stress production parameters promoted from task-34 Phase 1.
+# Basis: full-sample Calmar grid across SPX/IWM/BTC plus 70/30 IS/OOS validation.
+# They govern the MRMI macro buffer erosion and dashboard stress score. Re-fit
+# annually, with care: changing them restates strategy semantics and Supabase
+# historical stress values.
+UNIFIED_STRESS_ALPHA = 0.75
+UNIFIED_STRESS_BETA = 0.50
+UNIFIED_STRESS_LAMBDA = 10.0
+UNIFIED_STRESS_BUFFER_SIZE = 0.5
+UNIFIED_STRESS_THRESHOLD = 0.75
+UNIFIED_STRESS_P99 = 10.0083
 
-# K values use the input-series standard deviations. The headline score is a
-# percentile-rank transform of the raw weighted sigmoid sum using this locked
-# 2017-09-02..2026-05-23 cached daily backfill CDF (3186 rows).
-STRESS_SCORE_RAW_QUANTILES = (
-    2.254996245644182, 2.503767736150967, 2.774818261589799, 3.104102339845579,
-    3.299998464265979, 3.440066637629750, 3.677773935866991, 3.785324338402876,
-    3.804370409571672, 3.820506099560398, 3.838931522243088, 3.888309617793952,
-    3.919217940346776, 3.930958802255650, 3.957591412126290, 3.985725237198542,
-    4.009725530712123, 4.044276294220510, 4.081937310090426, 4.101435568126261,
-    4.132740212193375, 4.181536483468803, 4.210274808008062, 4.252458241587093,
-    4.302477692313946, 4.323916128650489, 4.350326034144188, 4.388524909702586,
-    4.487873573433209, 4.514884535575136, 4.534099373077986, 4.584615014607991,
-    4.615133092435782, 4.644925566460281, 4.688981096264561, 4.713027361851694,
-    4.787737779597449, 4.839884077656913, 4.865206630595761, 4.876549175458790,
-    4.904291471229190, 4.949669848853614, 4.960617176198728, 4.969501361930653,
-    4.988750065720253, 5.023640881962961, 5.046971323699956, 5.069625282170223,
-    5.084443065610111, 5.100534360727798, 5.125875090453934, 5.135402228260071,
-    5.147168336391681, 5.162702195683393, 5.170987149278666, 5.196614984696584,
-    5.215585896043416, 5.243593303356738, 5.264956241787939, 5.299112802233093,
-    5.333492973653036, 5.369494698362231, 5.403255841083972, 5.473519218138599,
-    5.519378882530261, 5.552572967869843, 5.566158849168255, 5.584738520934691,
-    5.601045948234255, 5.619123523162525, 5.661296734275838, 5.674328477383923,
-    5.698037348543650, 5.711580527542184, 5.765606493378988, 5.798005814523133,
-    5.843552574767048, 5.887880457412900, 5.918132939482430, 5.976178103379648,
-    6.008403682955425, 6.060596098134757, 6.094031148734568, 6.118956630184499,
-    6.169297648305055, 6.236830307154813, 6.270767625339302, 6.294518701799648,
-    6.398788826846942, 6.415996758950967, 6.449202529679326, 6.538721483282926,
-    6.590840789110843, 6.700007193005221, 6.727258917207514, 6.771069042388771,
-    6.942211930096557, 7.108811618825098, 7.437251736201173, 7.732256530954438,
-    8.044327785109994,
-)
+BUCKET_CUTOFF_CALM_WATCH = 3.0
+BUCKET_CUTOFF_WATCH_BUILDING = 5.0
+BUCKET_CUTOFF_BUILDING_ELEV = 7.0
 
-# Buckets are fixed percentile ranks: Calm <60th, Watch <80th,
-# Building <95th, Elevated >=95th.
 STRESS_SCORE_BUCKETS = {
     "calm": (0.0, BUCKET_CUTOFF_CALM_WATCH),
     "watch": (BUCKET_CUTOFF_CALM_WATCH, BUCKET_CUTOFF_WATCH_BUILDING),
@@ -501,25 +477,8 @@ def _lagged(series: pd.Series, days: int) -> pd.Series:
         return series
     return series.shift(days)
 
-def _sigmoid(series: pd.Series) -> pd.Series:
-    return 1.0 / (1.0 + np.exp(-series.clip(lower=-709, upper=709)))
-
-def _stress_score_rank_transform(raw_score: pd.Series) -> pd.Series:
-    out = pd.Series(np.nan, index=raw_score.index)
-    valid = raw_score.dropna()
-    if len(valid) == 0:
-        return out
-    out.loc[valid.index] = np.interp(
-        valid.to_numpy(),
-        STRESS_SCORE_RAW_QUANTILES,
-        np.linspace(0.0, 10.0, len(STRESS_SCORE_RAW_QUANTILES)),
-        left=0.0,
-        right=10.0,
-    )
-    return out
-
 def stress_score_bucket(score: float | None) -> str | None:
-    """Bucket a 0–10 percentile-rank stress score using fixed cutoffs."""
+    """Bucket a 0–10 unified-stress score using fixed round cutoffs."""
     if score is None or pd.isna(score):
         return None
     if score < BUCKET_CUTOFF_CALM_WATCH:
@@ -530,107 +489,31 @@ def stress_score_bucket(score: float | None) -> str | None:
         return "building"
     return "elevated"
 
-def calc_macro_stress_score(re_score: pd.Series, inf_dir: pd.Series,
-                            k1: float = STRESS_SCORE_K1,
-                            k2: float = STRESS_SCORE_K2) -> dict:
-    """Continuous 0–10 macro stress visualization score.
-
-    This is deliberately separate from stress_intensity, which remains the
-    optimized MRMI buffer gate.
-
-    Headline stress_score is percentile-rank transformed; sub-pressures stay
-    raw sigmoid values, so 0.6×growth + 0.4×inflation != stress_score.
-    """
-    growth_pressure = 10.0 * _sigmoid(-re_score / k1)
-    inflation_pressure = 10.0 * _sigmoid(inf_dir / k2)
-    raw_score = (0.6 * growth_pressure + 0.4 * inflation_pressure).clip(lower=0.0, upper=10.0)
-    stress_score = _stress_score_rank_transform(raw_score)
-    stress_bucket_series = stress_score.map(stress_score_bucket)
-    return {
-        "stress_score": stress_score,
-        "stress_growth_pressure": growth_pressure,
-        "stress_inflation_pressure": inflation_pressure,
-        "stress_score_bucket": stress_bucket_series,
-    }
-
 def calc_milk_road_macro_index(momentum: pd.Series, macro_ctx: dict,
-                                 buffer_size: float = 1.0, threshold: float = 0.5) -> dict:
+                               buffer_size: float = UNIFIED_STRESS_BUFFER_SIZE,
+                               threshold: float = UNIFIED_STRESS_THRESHOLD) -> dict:
     """
     Milk Road Macro Index (MRMI) — single quantified signal that combines:
       · Momentum Score (MMI — composite of GII / Breadth / FinCon)
-      · Macro Stress (positive only when in stagflation territory)
+      · Unified Macro Stress (growth weakness OR rising inflation, amplified when both hit)
       · Action threshold (subtracted from the raw score so MRMI > 0 means LONG)
 
     Formula:
-        raw  = MMI + buffer_size × (1 − Stress_intensity)
-        MRMI = raw − threshold
-
-    Where Stress_intensity is bounded [0, 1] and positive only when the economy is
-    in stagflation territory (Real Economy negative AND Inflation Direction positive):
-        Stress_raw       = max(0, −RE_score) × max(0, Inflation_dir)
-        Stress_intensity = min(1, Stress_raw)
+        g              = max(0, -Real_Economy_score)
+        i              = max(0, Inflation_direction_pp)
+        stress_raw     = α·g + β·i + λ·g·i
+        stress_norm    = clip(stress_raw / stress_p99, 0, 1)
+        macro_buffer   = buffer_size × (1 − stress_norm)
+        MRMI           = MMI + macro_buffer − threshold
 
     Action:
         MRMI > 0 → STAY LONG  (raw > threshold)
         MRMI < 0 → CASH       (raw < threshold)
 
-    The default buffer_size=1.0 and threshold=0.5 were selected by the drawdown
-    optimization grid search to maximize Calmar ratio (return/|max DD|) across
-    SPX/IWM/BTC. This makes MRMI active ~20% of the time (vs ~3% under prior
-    buffer=2.0/threshold=0 settings), generating real drawdown protection plus
-    positive alpha on equities.
+    Defaults are locked task-34 production parameters selected by Calmar grid
+    search and IS/OOS validation across SPX/IWM/BTC.
 
     Returns dict with the index series + intermediate components for transparency.
-    """
-    re_score = macro_ctx.get("real_economy_score")
-    inf_dir = macro_ctx.get("inflation_dir_pp")
-
-    if re_score is None or inf_dir is None:
-        nan_series = pd.Series(np.nan, index=momentum.index)
-        return {
-            "mrmi": nan_series, "momentum": momentum,
-            "stress_intensity": nan_series, "macro_buffer": nan_series,
-            "stress_score": nan_series,
-            "stress_growth_pressure": nan_series,
-            "stress_inflation_pressure": nan_series,
-            "stress_score_bucket": pd.Series([None] * len(momentum.index), index=momentum.index),
-        }
-
-    # Align to momentum's index
-    re = re_score.reindex(momentum.index)
-    inf = inf_dir.reindex(momentum.index)
-
-    re_neg = (-re).clip(lower=0)        # positive when RE < 0
-    inf_pos = inf.clip(lower=0)         # positive when inflation rising
-    stress_raw = re_neg * inf_pos
-    stress_intensity = stress_raw.clip(upper=1.0)
-    stress_score = calc_macro_stress_score(re, inf)
-
-    macro_buffer = buffer_size * (1.0 - stress_intensity)
-    raw = momentum + macro_buffer
-    mrmi = raw - threshold  # bake threshold into the value so > 0 = LONG
-
-    return {
-        "mrmi": mrmi,
-        "raw": raw,                       # MMI + macro_buffer (pre-threshold)
-        "momentum": momentum,
-        "stress_intensity": stress_intensity,
-        "stress_score": stress_score["stress_score"],
-        "stress_growth_pressure": stress_score["stress_growth_pressure"],
-        "stress_inflation_pressure": stress_score["stress_inflation_pressure"],
-        "stress_score_bucket": stress_score["stress_score_bucket"],
-        "macro_buffer": macro_buffer,
-        "buffer_size": buffer_size,
-        "threshold": threshold,
-    }
-
-def calc_milk_road_macro_index_unified_stress(momentum: pd.Series, macro_ctx: dict,
-                                              alpha: float, beta: float, lambda_weight: float,
-                                              buffer_size: float, threshold: float) -> dict:
-    """Experimental MRMI with Martin's OR+AND macro-stress formula.
-
-    This is intentionally separate from the production MRMI path until the
-    task-34 backtest report is reviewed.
     """
     re_score = macro_ctx.get("real_economy_score")
     inf_dir = macro_ctx.get("inflation_dir_pp")
@@ -641,13 +524,12 @@ def calc_milk_road_macro_index_unified_stress(momentum: pd.Series, macro_ctx: di
             "mrmi": nan_series,
             "raw": nan_series,
             "momentum": momentum,
-            "stress_raw": nan_series,
-            "stress_norm": nan_series,
+            "stress_intensity": nan_series,
+            "stress_score": nan_series,
+            "stress_score_bucket": pd.Series([None] * len(momentum.index), index=momentum.index),
+            "growth_weakness": nan_series,
+            "inflation_pressure_raw": nan_series,
             "macro_buffer": nan_series,
-            "stress_p99": np.nan,
-            "alpha": alpha,
-            "beta": beta,
-            "lambda_weight": lambda_weight,
             "buffer_size": buffer_size,
             "threshold": threshold,
         }
@@ -656,19 +538,17 @@ def calc_milk_road_macro_index_unified_stress(momentum: pd.Series, macro_ctx: di
     inf = inf_dir.reindex(momentum.index)
 
     growth_weakness = (-re).clip(lower=0)
-    inflation_pressure = inf.clip(lower=0)
+    inflation_pressure_raw = inf.clip(lower=0)
     stress_raw = (
-        alpha * growth_weakness
-        + beta * inflation_pressure
-        + lambda_weight * growth_weakness * inflation_pressure
+        UNIFIED_STRESS_ALPHA * growth_weakness
+        + UNIFIED_STRESS_BETA * inflation_pressure_raw
+        + UNIFIED_STRESS_LAMBDA * growth_weakness * inflation_pressure_raw
     )
-    stress_p99 = stress_raw.dropna().quantile(0.99)
-    if not np.isfinite(stress_p99) or stress_p99 <= 0:
-        stress_norm = stress_raw * 0.0
-    else:
-        stress_norm = (stress_raw / stress_p99).clip(lower=0.0, upper=1.0)
+    stress_intensity = (stress_raw / UNIFIED_STRESS_P99).clip(lower=0.0, upper=1.0)
+    stress_score = stress_intensity * 10.0
+    stress_bucket_series = stress_score.map(stress_score_bucket)
 
-    macro_buffer = buffer_size * (1.0 - stress_norm)
+    macro_buffer = buffer_size * (1.0 - stress_intensity)
     raw = momentum + macro_buffer
     mrmi = raw - threshold
 
@@ -676,15 +556,12 @@ def calc_milk_road_macro_index_unified_stress(momentum: pd.Series, macro_ctx: di
         "mrmi": mrmi,
         "raw": raw,
         "momentum": momentum,
+        "stress_intensity": stress_intensity,
+        "stress_score": stress_score,
+        "stress_score_bucket": stress_bucket_series,
         "growth_weakness": growth_weakness,
-        "inflation_pressure": inflation_pressure,
-        "stress_raw": stress_raw,
-        "stress_norm": stress_norm,
+        "inflation_pressure_raw": inflation_pressure_raw,
         "macro_buffer": macro_buffer,
-        "stress_p99": stress_p99,
-        "alpha": alpha,
-        "beta": beta,
-        "lambda_weight": lambda_weight,
         "buffer_size": buffer_size,
         "threshold": threshold,
     }
@@ -931,8 +808,8 @@ def prepare_chart_data(data, composite, gii, fincon, breadth, business_cycle, in
             "momentum":                  to_list(mrmi_combined["momentum"].reindex(gii.index)),
             "stress_intensity":          to_list(mrmi_combined["stress_intensity"].reindex(gii.index)),
             "stress_score":              to_list(mrmi_combined["stress_score"].reindex(gii.index)),
-            "stress_growth_pressure":    to_list(mrmi_combined["stress_growth_pressure"].reindex(gii.index)),
-            "stress_inflation_pressure": to_list(mrmi_combined["stress_inflation_pressure"].reindex(gii.index)),
+            "growth_weakness":           to_list(mrmi_combined["growth_weakness"].reindex(gii.index)),
+            "inflation_pressure_raw":    to_list(mrmi_combined["inflation_pressure_raw"].reindex(gii.index)),
             "stress_score_bucket":       [v if pd.notna(v) else None for v in stress_bucket_series],
             "macro_buffer":              to_list(mrmi_combined["macro_buffer"].reindex(gii.index)),
         }
@@ -1131,11 +1008,12 @@ def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, ma
             "momentum": _latest(mrmi_combined["momentum"]),
             "stress_intensity": _latest(mrmi_combined["stress_intensity"]),
             "stress_score": _latest(mrmi_combined["stress_score"]),
-            "stress_growth_pressure": _latest(mrmi_combined["stress_growth_pressure"]),
-            "stress_inflation_pressure": _latest(mrmi_combined["stress_inflation_pressure"]),
+            "growth_weakness": _latest(mrmi_combined["growth_weakness"]),
+            "inflation_pressure_raw": _latest(mrmi_combined["inflation_pressure_raw"]),
             "stress_score_bucket": _latest_label(mrmi_combined["stress_score_bucket"]),
             "macro_buffer": _latest(mrmi_combined["macro_buffer"]),
-            "buffer_size": mrmi_combined.get("buffer_size", 2.0),
+            "buffer_size": mrmi_combined.get("buffer_size", UNIFIED_STRESS_BUFFER_SIZE),
+            "threshold": mrmi_combined.get("threshold", UNIFIED_STRESS_THRESHOLD),
         }
 
     # Macro context — Real Economy Composite + Inflation Direction

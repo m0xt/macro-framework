@@ -46,7 +46,7 @@ uv run python -m macro_framework.weekly_briefs --force
 ## Parameter locks
 
 - Sector Breadth: `lookback=90` over 90 days.
-- MRMI: `buffer_size=1.0`, `threshold=0.5`, stress clipped to `[0, 1]`.
+- MRMI: `buffer_size=0.5`, `threshold=0.75`, `stress_p99=10.0083`, unified stress clipped to `[0, 1]`.
 - Release lags: PCE/RPI 60d, unemployment 35d, Core CPI 45d, GDPNow 0d.
 
 These are locked by `tests/test_smoke.py`; do not change docs or math independently.

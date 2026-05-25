@@ -4,8 +4,8 @@ Produces every number used in docs/PRESENTATION.html so the slides can be update
 with accurate, current results. Uses the production-level signal:
 
     MMI    = equal-weighted (GII, Breadth, FinCon)
-    Stress = min(1, max(0, -RE) × max(0, Inf_Dir))
-    MRMI   = MMI + 1.0 × (1 - Stress) − 0.5
+    Stress = clip((0.75·g + 0.50·i + 10·g·i) / 10.0083, 0, 1)
+    MRMI   = MMI + 0.5 × (1 - Stress) − 0.75
 
 Strategy: invested when MRMI > 0, cash when MRMI < 0.
 
@@ -76,7 +76,7 @@ def backtest_signal(signal: pd.Series, ret: pd.Series,
 
 
 def production_mrmi(data: pd.DataFrame, w_gii=1.0, w_breadth=1.0, w_fincon=1.0,
-                    buffer_size=1.0, threshold=0.5) -> tuple[pd.Series, pd.Series]:
+                    buffer_size=None, threshold=None) -> tuple[pd.Series, pd.Series]:
     """Build production MRMI + the underlying MMI."""
     gii = calc_growth_impulse(data)
     fincon = calc_financial_conditions(data)
@@ -93,12 +93,12 @@ def production_mrmi(data: pd.DataFrame, w_gii=1.0, w_breadth=1.0, w_fincon=1.0,
             + fincon["composite"] * w_fincon
         ) / w_total
 
-    mrmi_components = calc_milk_road_macro_index(
-        mmi,
-        macro_ctx,
-        buffer_size=buffer_size,
-        threshold=threshold,
-    )
+    kwargs = {}
+    if buffer_size is not None:
+        kwargs["buffer_size"] = buffer_size
+    if threshold is not None:
+        kwargs["threshold"] = threshold
+    mrmi_components = calc_milk_road_macro_index(mmi, macro_ctx, **kwargs)
     return mrmi_components["mrmi"], mmi
 
 

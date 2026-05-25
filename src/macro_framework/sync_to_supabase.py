@@ -24,6 +24,8 @@ import pandas as pd
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
+from macro_framework.macro_pipeline import UNIFIED_STRESS_ALPHA, UNIFIED_STRESS_BETA
+
 EXPECTED_SCHEMA_VERSION = 3
 SCHEMA_VERSION_KEY = "schema_version"
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -101,10 +103,15 @@ def row_from_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
         "mrmi": mrmi_c["value"],
         "mrmi_state": mrmi_c["state"],
         "mmi": mrmi_c["momentum"],
+        # New unified-stress semantics: normalized 0–1 stress_score / 10.
         "stress_intensity": mrmi_c["stress_intensity"],
+        # New unified-stress semantics: normalized 0–10 production stress score.
         "stress_score": mrmi_c.get("stress_score"),
-        "stress_growth_pressure": mrmi_c.get("stress_growth_pressure"),
-        "stress_inflation_pressure": mrmi_c.get("stress_inflation_pressure"),
+        # Column name unchanged; value is α·g contribution before normalization.
+        "stress_growth_pressure": mrmi_c.get("growth_weakness") * UNIFIED_STRESS_ALPHA,
+        # Column name unchanged; value is β·i contribution before normalization.
+        "stress_inflation_pressure": mrmi_c.get("inflation_pressure_raw") * UNIFIED_STRESS_BETA,
+        # New round-boundary bucket: calm/watch/building/elevated.
         "stress_score_bucket": mrmi_c.get("stress_score_bucket"),
         "macro_buffer": mrmi_c["macro_buffer"],
         "real_economy": macro["real_economy_score"],
@@ -319,8 +326,10 @@ def cmd_backfill() -> None:
         "mmi": composite,
         "stress_intensity": mrmi_combined["stress_intensity"],
         "stress_score": mrmi_combined["stress_score"],
-        "stress_growth_pressure": mrmi_combined["stress_growth_pressure"],
-        "stress_inflation_pressure": mrmi_combined["stress_inflation_pressure"],
+        # Column name unchanged; value is α·g contribution before normalization.
+        "stress_growth_pressure": mrmi_combined["growth_weakness"] * build.UNIFIED_STRESS_ALPHA,
+        # Column name unchanged; value is β·i contribution before normalization.
+        "stress_inflation_pressure": mrmi_combined["inflation_pressure_raw"] * build.UNIFIED_STRESS_BETA,
         "stress_score_bucket": mrmi_combined["stress_score_bucket"],
         "macro_buffer": mrmi_combined["macro_buffer"],
         "real_economy": macro_ctx["real_economy_score"],

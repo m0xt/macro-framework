@@ -7,9 +7,12 @@
 MRMI (Milk Road Macro Index) is the headline LONG/CASH signal. It combines fast market momentum with a slow macro-stress buffer:
 
 ```text
-Stress_intensity = min(1, max(0, -Real_Economy) * max(0, Inflation_Direction))
-Macro_buffer     = buffer_size * (1 - Stress_intensity)   # buffer_size=1.0
-MRMI             = MMI + Macro_buffer - threshold          # threshold=0.5
+g                = max(0, -Real_Economy)
+i                = max(0, Inflation_Direction)
+Stress_raw       = 0.75*g + 0.50*i + 10*g*i
+Stress_intensity = clip(Stress_raw / stress_p99, 0, 1)     # stress_p99=10.0083
+Macro_buffer     = buffer_size * (1 - Stress_intensity)   # buffer_size=0.5
+MRMI             = MMI + Macro_buffer - threshold          # threshold=0.75
 
 MRMI > 0 -> LONG
 MRMI < 0 -> CASH
@@ -18,8 +21,8 @@ MRMI < 0 -> CASH
 - `MMI` is the equal-weighted Market Momentum Index: Growth Impulse Index, Sector Breadth, and Financial Conditions.
 - `Real_Economy` is an equal-weighted z-score of real PCE YoY, Sahm Rule inverted, real personal income YoY, and Atlanta Fed GDPNow.
 - `Inflation_Direction` is the 6-month change in core CPI YoY, in percentage points.
-- `stress_intensity` is clipped to `[0, 1]`; the dashboard `stress_on` flag fires when intensity is above 0.5.
-- The default `buffer_size=1.0` and `threshold=0.5` live in `src/macro_framework/macro_pipeline.py` and are locked by `tests/test_smoke.py`.
+- `stress_intensity` is clipped to `[0, 1]`; `stress_score` is the same value on a 0–10 scale.
+- The default `buffer_size=0.5`, `threshold=0.75`, and `stress_p99=10.0083` live in `src/macro_framework/macro_pipeline.py` and are locked by `tests/test_smoke.py`.
 
 The buffer is intentionally pro-risk by default: MMI weakness alone is not enough to trigger CASH unless macro stress also builds. This is why MMI standalone can outperform MRMI in calm periods; the buffer is insurance against false market alarms and stagflation-style drawdowns.
 
