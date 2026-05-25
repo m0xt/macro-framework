@@ -152,6 +152,6 @@ Keep entries terse — this file is read by every stateless dispatch.
 ## 2026-05-25T10:23:48Z — Task 34 unified stress production ship
 - What: Promoted Martin's unified-stress formula to production MRMI end-to-end with locked α=0.75, β=0.50, λ=10, buffer_size=0.5, threshold=0.75, stress_p99=10.0083; retired the task-33 rank/sigmoid visualization layer, updated Supabase value semantics, rebuilt dashboard/snapshots, and deleted the preview-only build artifacts. Today's reading after cached build: MRMI +0.13 → LONG, stress_score 0.83 → calm.
 - Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; src/macro_framework/sync_to_supabase.py; src/macro_framework/backtest_production.py; src/macro_framework/weekly_briefs.py; tests/test_smoke.py; tests/test_sync_to_supabase.py; README.md; GUIDE.md; docs/architecture.md; docs/PRESENTATION.html; outputs/dashboard.html; snapshots/2026-05-23.json; snapshots/2026-05-25.json; outputs/dashboard-preview.html; scripts/build_preview.py; .engineer/progress.md
-- Commit: 5785702
+- Commit: 4519bc0
 - Status: completed
 - Open thread for next dispatch: Bob should run `uv run python -m macro_framework.sync_to_supabase backfill` after pulling this commit; no SQL migration was added.
