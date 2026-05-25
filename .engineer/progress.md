@@ -126,3 +126,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Martin/Bob sign-off on whether to ship the more defensive buffer_size=0.3 / threshold=0.75 profile; Phase 2 implementation remains separate.
+
+## 2026-05-25T08:38:37Z — Task 34 cash-time Pareto frontier
+- What: Re-ran the original 2400-combo Phase 1 unified-stress grid, saved all rows, and appended a cash-time vs Calmar Pareto frontier with six representative caps. Closest thesis-preserving stay-long upgrade is ≤30% cash (α=0.5, β=0.75, λ=10, buffer=0.5, threshold=0.25): avg Calmar 1.746, cash 28.07%, switches 130; Phase 1 best remains avg Calmar 2.551 at 48.43% cash.
+- Files touched: reports/task-34-stress-unification-backtest.md; reports/task-34-phase1-grid-all-rows.csv; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Martin/Bob decision on whether to prefer stay-long ≤30% cash, intermediate defensive ≤40/45%, Phase 1 best ≤50%, or the prior narrow-grid >50% defensive profile.

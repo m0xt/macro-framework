@@ -172,3 +172,60 @@ Phase 1 best was α=`0.75`, β=`0.5`, λ=`10`, buffer_size=`0.5`, threshold=`0.7
 ### Narrow-grid recommendation
 
 **Ship at the new best params** if Martin accepts the substantially more defensive profile: buffer_size `0.3` / threshold `0.75` lifts average Calmar from `2.551` to `4.027`, mainly by cutting SPX/IWM drawdowns, while cash time rises another `12.45pp` and BTC Calmar is essentially flat/slightly lower.
+
+## Pareto frontier — cash time vs Calmar
+
+Generated: 2026-05-25T08:38:37Z dispatch. Re-ran the original Phase 1 `2400`-combo grid using `calc_milk_road_macro_index_unified_stress` and the same cached production data path / SPX-IWM-BTC full-sample backtest objective. All rows are saved in `reports/task-34-phase1-grid-all-rows.csv`.
+
+For each cash-time target, the frontier point is the highest average Calmar available at or below that average cash-time cap; ties break toward lower cash time.
+
+| Cash cap | Params | Avg Calmar | Avg cash time | Avg switches | SPX ann / DD / Calmar | IWM ann / DD / Calmar | BTC ann / DD / Calmar |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| ≤25% | `α=0.25, β=0, λ=0, buffer=0.5, threshold=0` | 1.628 | 21.30% | 114 | +21.60% / -9.66% / 2.24 | +24.36% / -11.80% / 2.07 | +39.73% / -68.17% / 0.58 |
+| ≤30% | `α=0.5, β=0.75, λ=10, buffer=0.5, threshold=0.25` | 1.746 | 28.07% | 130 | +22.35% / -9.60% / 2.33 | +26.31% / -11.80% / 2.23 | +41.94% / -61.55% / 0.68 |
+| ≤35% | `α=0, β=0, λ=0, buffer=0.5, threshold=0.5` | 1.818 | 34.16% | 172 | +23.41% / -9.60% / 2.44 | +28.72% / -11.80% / 2.43 | +40.77% / -70.00% / 0.58 |
+| ≤40% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` | 1.833 | 35.92% | 186 | +23.96% / -9.60% / 2.49 | +28.91% / -11.80% / 2.45 | +38.75% / -70.00% / 0.55 |
+| ≤45% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` | 1.833 | 35.92% | 186 | +23.96% / -9.60% / 2.49 | +28.91% / -11.80% / 2.45 | +38.75% / -70.00% / 0.55 |
+| ≤50% | `α=0.75, β=0.5, λ=10, buffer=0.5, threshold=0.75` | 2.551 | 48.43% | 210 | +20.96% / -6.23% / 3.37 | +26.87% / -7.49% / 3.59 | +42.66% / -60.92% / 0.70 |
+
+### Integer-cap frontier
+
+| Cash cap | Best avg Calmar | Actual avg cash | Params |
+|---:|---:|---:|---|
+| ≤20% | 1.494 | 16.97% | `α=0.25, β=0, λ=0, buffer=1, threshold=0.25` ← frontier step |
+| ≤21% | 1.572 | 20.51% | `α=0, β=0, λ=0, buffer=0.5, threshold=0` ← frontier step |
+| ≤22% | 1.628 | 21.30% | `α=0.25, β=0, λ=0, buffer=0.5, threshold=0` ← frontier step |
+| ≤23% | 1.628 | 21.30% | `α=0.25, β=0, λ=0, buffer=0.5, threshold=0` |
+| ≤24% | 1.628 | 21.30% | `α=0.25, β=0, λ=0, buffer=0.5, threshold=0` |
+| ≤25% | 1.628 | 21.30% | `α=0.25, β=0, λ=0, buffer=0.5, threshold=0` |
+| ≤26% | 1.628 | 21.30% | `α=0.25, β=0, λ=0, buffer=0.5, threshold=0` |
+| ≤27% | 1.714 | 26.76% | `α=0, β=0, λ=0, buffer=0.5, threshold=0.25` ← frontier step |
+| ≤28% | 1.737 | 27.92% | `α=0, β=0.75, λ=10, buffer=0.5, threshold=0.25` ← frontier step |
+| ≤29% | 1.746 | 28.07% | `α=0.5, β=0.75, λ=10, buffer=0.5, threshold=0.25` ← frontier step |
+| ≤30% | 1.746 | 28.07% | `α=0.5, β=0.75, λ=10, buffer=0.5, threshold=0.25` |
+| ≤31% | 1.757 | 30.96% | `α=1, β=0.25, λ=1, buffer=1, threshold=0.75` ← frontier step |
+| ≤32% | 1.757 | 30.96% | `α=1, β=0.25, λ=1, buffer=1, threshold=0.75` |
+| ≤33% | 1.757 | 30.96% | `α=1, β=0.25, λ=1, buffer=1, threshold=0.75` |
+| ≤34% | 1.757 | 30.96% | `α=1, β=0.25, λ=1, buffer=1, threshold=0.75` |
+| ≤35% | 1.818 | 34.16% | `α=0, β=0, λ=0, buffer=0.5, threshold=0.5` ← frontier step |
+| ≤36% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` ← frontier step |
+| ≤37% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` |
+| ≤38% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` |
+| ≤39% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` |
+| ≤40% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` |
+| ≤41% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` |
+| ≤42% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` |
+| ≤43% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` |
+| ≤44% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` |
+| ≤45% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` |
+| ≤46% | 1.833 | 35.92% | `α=1, β=0, λ=3, buffer=0.5, threshold=0.5` |
+| ≤47% | 1.977 | 46.93% | `α=0, β=0, λ=1, buffer=0.5, threshold=0.75` ← frontier step |
+| ≤48% | 2.399 | 47.93% | `α=0.25, β=0, λ=3, buffer=0.5, threshold=0.75` ← frontier step |
+| ≤49% | 2.551 | 48.43% | `α=0.75, β=0.5, λ=10, buffer=0.5, threshold=0.75` ← frontier step |
+| ≤50% | 2.551 | 48.43% | `α=0.75, β=0.5, λ=10, buffer=0.5, threshold=0.75` |
+
+### Recommendation
+
+For the **stay-long-mostly** philosophy (production = 21% cash), the ≤25% frontier point is closest on exposure (`21.30%` cash, average Calmar `1.628`) but is not a thesis-preserving upgrade because `λ=0` removes the stagflation amplifier. The closest meaningful upgrade is the ≤30% cap: `α=0.5, β=0.75, λ=10, buffer=0.5, threshold=0.25`, with average Calmar `1.746`, cash `28.07%`, and `130` switches.
+
+For a **more defensive** shift, the ≤40%/≤45% representative point (`α=1, β=0, λ=3, buffer=0.5, threshold=0.5`) is available at `35.92%` cash and average Calmar `1.833`, but the frontier does not find much additional payoff until cash approaches the high-40s. If Martin accepts roughly half-time cash exposure, prefer the Phase 1 best: `α=0.75, β=0.5, λ=10, buffer=0.5, threshold=0.75` with average Calmar `2.551` and cash `48.43%`.
