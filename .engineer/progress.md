@@ -133,3 +133,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Martin/Bob decision on whether to prefer stay-long ≤30% cash, intermediate defensive ≤40/45%, Phase 1 best ≤50%, or the prior narrow-grid >50% defensive profile.
+
+## 2026-05-25T08:59:30Z — Task 34 OOS validation
+- What: Ran canonical 70/30 IS/OOS validation, IS-only 2400-combo re-optimization, and walk-forward annual-return sanity for Phase 1 best. OOS Calmar for Phase 1 best: SPX 8.22, IWM 4.57, BTC 2.03 vs production 5.38/3.76/0.73; IS-only optimum changed only α to 1.0 and had near-identical OOS metrics, so report recommends Phase 2 ready subject to cash-time sign-off.
+- Files touched: reports/task-34-stress-unification-backtest.md; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Martin/Bob sign-off on Phase 2 implementation despite roughly half-time cash exposure and higher switches.

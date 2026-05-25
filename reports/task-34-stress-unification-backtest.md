@@ -229,3 +229,75 @@ For each cash-time target, the frontier point is the highest average Calmar avai
 For the **stay-long-mostly** philosophy (production = 21% cash), the ≤25% frontier point is closest on exposure (`21.30%` cash, average Calmar `1.628`) but is not a thesis-preserving upgrade because `λ=0` removes the stagflation amplifier. The closest meaningful upgrade is the ≤30% cap: `α=0.5, β=0.75, λ=10, buffer=0.5, threshold=0.25`, with average Calmar `1.746`, cash `28.07%`, and `130` switches.
 
 For a **more defensive** shift, the ≤40%/≤45% representative point (`α=1, β=0, λ=3, buffer=0.5, threshold=0.5`) is available at `35.92%` cash and average Calmar `1.833`, but the frontier does not find much additional payoff until cash approaches the high-40s. If Martin accepts roughly half-time cash exposure, prefer the Phase 1 best: `α=0.75, β=0.5, λ=10, buffer=0.5, threshold=0.75` with average Calmar `2.551` and cash `48.43%`.
+
+## Out-of-sample validation
+
+Generated: 2026-05-25T08:55:39Z dispatch. Method matches `src/macro_framework/backtest_production.py`: align MRMI and SPX/IWM/BTC return rows, split the first 70% as IS and last 30% as OOS, and keep the existing walk-forward/year-by-year check. Data span after alignment: `2017-09-02` to `2026-05-25` (`3188` rows; IS `2231` rows through `2023-10-11`, OOS `957` rows from `2023-10-12`).
+
+### Test 1 — headline IS/OOS at Phase 1 best params
+
+Phase 1 best new params: `α=0.75, β=0.5, λ=10, buffer=0.5, threshold=0.75`. Production baseline: legacy `calc_milk_road_macro_index`, `buffer=1.0`, `threshold=0.5`.
+
+| Asset | Strategy | Split | Ann. return | Max DD | Calmar | Sharpe | Cash time | Switches |
+|---|---|---|---|---|---|---|---|---|
+| SPX | New Phase 1 best | IS | +19.87% | -6.23% | 3.19 | 2.65 | 51.73% | 141 |
+| IWM | New Phase 1 best | IS | +25.06% | -7.49% | 3.35 | 2.23 | 51.73% | 141 |
+| BTC | New Phase 1 best | IS | +39.56% | -60.92% | 0.65 | 1.02 | 51.73% | 141 |
+| SPX | New Phase 1 best | OOS | +23.53% | -2.86% | 8.22 | 3.24 | 40.75% | 69 |
+| IWM | New Phase 1 best | OOS | +31.20% | -6.83% | 4.57 | 2.29 | 40.75% | 69 |
+| BTC | New Phase 1 best | OOS | +50.17% | -24.67% | 2.03 | 1.52 | 40.75% | 69 |
+| SPX | Production | IS | +18.62% | -10.07% | 1.85 | 1.74 | 24.25% | 78 |
+| IWM | Production | IS | +20.31% | -11.80% | 1.72 | 1.36 | 24.25% | 78 |
+| BTC | Production | IS | +43.95% | -68.17% | 0.64 | 0.97 | 24.25% | 78 |
+| SPX | Production | OOS | +25.43% | -4.73% | 5.38 | 2.60 | 14.42% | 26 |
+| IWM | Production | OOS | +28.18% | -7.49% | 3.76 | 1.71 | 14.42% | 26 |
+| BTC | Production | OOS | +33.82% | -46.57% | 0.73 | 1.00 | 14.42% | 26 |
+
+Acceptance check for the new formula:
+
+| Asset | New IS Calmar | New OOS Calmar | OOS / IS |
+|---|---|---|---|
+| SPX | 3.19 | 8.22 | 258% |
+| IWM | 3.35 | 4.57 | 137% |
+| BTC | 0.65 | 2.03 | 313% |
+
+### Test 2 — IS-only re-optimization, then OOS evaluation
+
+The IS-only grid reused the exact saved Phase 1 grid (`2400` combos: α ∈ {0, 0.25, 0.5, 0.75, 1}, β ∈ {0, 0.25, 0.5, 0.75, 1}, λ ∈ {0, 1, 3, 5, 10, 20}, buffer ∈ {0.5, 1.0, 1.5, 2.0}, threshold ∈ {0, 0.25, 0.5, 0.75}). For the honest IS-only application, the OOS signal uses the stress-normalization p99 fitted on IS only.
+
+| Param set | Params | Stress p99 | IS avg Calmar | Full-sample avg Calmar |
+|---|---|---|---|---|
+| Full-sample Phase 1 best | α=0.75, β=0.5, λ=10, buffer=0.5, threshold=0.75 | 10.008333 | 2.396 | 2.551 |
+| IS-only optimum | α=1, β=0.5, λ=10, buffer=0.5, threshold=0.75 | 13.239206 | 2.434 | 2.446 |
+
+OOS-only performance comparison:
+
+| Asset | Strategy | Split | Ann. return | Max DD | Calmar | Sharpe | Cash time | Switches |
+|---|---|---|---|---|---|---|---|---|
+| SPX | Full-sample best | OOS | +23.53% | -2.86% | 8.22 | 3.24 | 40.75% | 69 |
+| IWM | Full-sample best | OOS | +31.20% | -6.83% | 4.57 | 2.29 | 40.75% | 69 |
+| BTC | Full-sample best | OOS | +50.17% | -24.67% | 2.03 | 1.52 | 40.75% | 69 |
+| SPX | IS-optimal | OOS | +23.50% | -2.86% | 8.21 | 3.24 | 40.86% | 69 |
+| IWM | IS-optimal | OOS | +30.85% | -6.83% | 4.52 | 2.27 | 40.86% | 69 |
+| BTC | IS-optimal | OOS | +49.66% | -24.67% | 2.01 | 1.51 | 40.86% | 69 |
+
+### Test 3 — walk-forward annual returns
+
+Phase 1 best params, reported by calendar year using the existing `test_walk_forward` convention.
+
+| Year | SPX strat ann | SPX B&H ann | IWM strat ann | IWM B&H ann | BTC strat ann | BTC B&H ann |
+|---|---|---|---|---|---|---|
+| 2017 | +20.82% | +17.29% | +19.14% | +20.05% | +591.96% | +814.26% |
+| 2018 | +12.20% | -4.35% | +7.99% | -7.82% | -29.53% | -60.09% |
+| 2019 | +18.91% | +19.14% | +22.35% | +16.91% | +0.20% | +57.00% |
+| 2020 | +40.66% | +10.93% | +63.96% | +13.40% | +143.25% | +161.15% |
+| 2021 | +20.58% | +17.87% | +31.14% | +9.82% | +70.22% | +38.13% |
+| 2022 | +10.05% | -13.87% | +8.93% | -14.64% | +5.39% | -50.86% |
+| 2023 | +20.42% | +16.16% | +34.79% | +11.34% | +44.70% | +91.06% |
+| 2024 | +20.37% | +15.52% | +24.81% | +7.71% | +131.05% | +72.66% |
+| 2025 | +23.53% | +11.05% | +25.38% | +8.58% | +13.98% | -4.42% |
+| 2026 | +29.53% | +16.48% | +43.31% | +29.49% | -1.44% | -19.44% |
+
+### Recommendation
+
+**Phase 2 ready to ship, subject to Martin accepting the defensive/cash-time profile already flagged above.** Test 1 passes the mechanical OOS/IS Calmar retention threshold for all three assets: SPX `258%`, IWM `137%`, BTC `313%`. Test 2 is also reassuring: the IS-only optimum changes only α (`1.0` instead of `0.75`) while keeping β, λ, buffer, and threshold identical; its IS avg Calmar (`2.434`) is only `+0.039` above the full-sample best on IS, and the two OOS metric sets are effectively identical. Walk-forward does not show a year with strategy annual return below `-20%` while SPX buy-and-hold was up. This validation does not remove the earlier business trade-off — roughly half-time cash and higher switches — but it does not show meaningful overfitting in the canonical OOS tests.
