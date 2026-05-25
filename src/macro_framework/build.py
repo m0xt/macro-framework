@@ -313,6 +313,7 @@ def render(snap, chart, raw_data=None):
     stress_growth_pressure = mrmi_combined.get("stress_growth_pressure")
     stress_inflation_pressure = mrmi_combined.get("stress_inflation_pressure")
     stress_score_label = (mrmi_combined.get("stress_score_bucket") or "watch").upper()
+    preview_meta = snap.get("preview") or {}
 
     # Legacy MMI (formerly called MRMI in old code) — now the underlying momentum signal
     mmi = snap["mrmi"]
@@ -445,6 +446,46 @@ def render(snap, chart, raw_data=None):
     stress_intensity_str = f"{float(stress_intensity or 0.0):.2f}"
     stress_growth_str = f"{float(stress_growth_pressure):.1f}" if stress_growth_pressure is not None else "—"
     stress_inflation_str = f"{float(stress_inflation_pressure):.1f}" if stress_inflation_pressure is not None else "—"
+    stress_momentum_label = preview_meta.get("stress_momentum_label")
+    stress_momentum_color = preview_meta.get("stress_momentum_color", "#888")
+    stress_momentum_chip = (
+        f'<span class="macro-stress-momentum-chip" style="color:{stress_momentum_color}; '
+        f'border-color:{stress_momentum_color}55;">{stress_momentum_label}</span>'
+        if stress_momentum_label else ""
+    )
+    stress_panel_tip = preview_meta.get("stress_panel_tip") or (
+        "<p><strong>What you're seeing:</strong> the current economy-pillar stress score and 0–10 bucket, followed by stress score over time. The headline score is a percentile rank of the raw sigmoid stress score, so 6.5 means roughly the 65th percentile of historical stress. Calm/Watch/Building/Elevated are fixed at 6.0/8.0/9.5.</p><p><strong>MRMI buffer:</strong> the older 0–1 stress intensity is unchanged and remains the only value that erodes the MRMI buffer.</p><p><strong>Inputs below:</strong> the stress-inputs panel shows the two raw axes visually: Real Economy Score and Inflation Direction Δ6m.</p>"
+    )
+    stress_panel_subtitle = preview_meta.get("stress_panel_subtitle") or (
+        f"Economy-pillar stress over time: percentile-rank headline score on a full 0–10 scale. Sub-pressures remain raw sigmoid values: growth {stress_growth_str}, inflation {stress_inflation_str}."
+    )
+    stress_reading_label = preview_meta.get("stress_reading_label") or f"0–10 score · MRMI intensity {stress_intensity_str}"
+    stress_inputs_title = preview_meta.get("stress_inputs_title") or "Real Economy Score · Inflation Direction Δ6m"
+    stress_growth_label = preview_meta.get("stress_growth_label") or "Real Economy Score"
+    stress_inflation_label = preview_meta.get("stress_inflation_label") or "Inflation Direction Δ6m"
+    stress_cutoff_calm_watch = preview_meta.get("stress_cutoff_calm_watch", BUCKET_CUTOFF_CALM_WATCH)
+    stress_cutoff_watch_building = preview_meta.get("stress_cutoff_watch_building", BUCKET_CUTOFF_WATCH_BUILDING)
+    stress_cutoff_building_elev = preview_meta.get("stress_cutoff_building_elev", BUCKET_CUTOFF_BUILDING_ELEV)
+    preview_banner = ""
+    if preview_meta:
+        preview_banner = (
+            '<div class="preview-banner">PREVIEW BUILD · '
+            f'{preview_meta.get("label", "new strategy formula")} · output only, production dashboard unchanged</div>'
+        )
+    backtest_card_html = preview_meta.get("backtest_card_html") or '''
+    <!-- Backtest figures source: reports/backtest-2026-05-20-aligned.txt -->
+    <details class="backtest-toggle">
+      <summary>How well does this work historically? <span class="muted small">(click)</span></summary>
+      <div class="backtest-toggle-body">
+        <p class="muted small" style="margin-bottom: 8px;">Full-sample backtest (2017–2026), no leverage, vs buy-and-hold:</p>
+        <ul class="backtest-list">
+          <li><span class="bt-asset-inline">SPX</span> +11.5% annual alpha · drawdown cut from −33.9% to −10.1%</li>
+          <li><span class="bt-asset-inline">Russell 2000</span> +15.9% annual alpha · drawdown cut from −41.1% to −11.8%</li>
+          <li><span class="bt-asset-inline">Bitcoin</span> +16.5% annual alpha · drawdown cut from −83.4% to −68.2%</li>
+        </ul>
+        <p class="muted small" style="margin-top: 8px;">Active 78.7% of the time (cash during stress). OOS: SPX +10.1%, Russell +13.5%, BTC +2.2% annual alpha; SPX drawdown cut from −18.9% to −4.7%.</p>
+      </div>
+    </details>'''
 
     g_label, g_color = driver_label(gii)
     b_label, b_color = driver_label(breadth)
@@ -517,6 +558,7 @@ def render(snap, chart, raw_data=None):
         },
         "macro_drivers": macro_drivers_meta,
         "library": library_payload,
+        "preview": preview_meta.get("chart") or {},
     }, separators=(",", ":"))
 
     info_svg = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="4" r="0.9" fill="currentColor"/><line x1="7" y1="6.5" x2="7" y2="10.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>'
@@ -848,6 +890,17 @@ def render(snap, chart, raw_data=None):
     display: inline-block; min-width: 100px; color: #888;
     font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 1px;
   }}
+  .preview-banner {{
+    margin: 0 0 16px; padding: 10px 14px; border: 1px solid #3a2b10;
+    background: #130f07; color: #d8b764; border-radius: 8px;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
+    font-weight: 700;
+  }}
+  .macro-stress-momentum-chip {{
+    display: inline-flex; align-items: center; height: 24px; padding: 0 8px;
+    border: 1px solid; border-radius: 999px; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.4px; white-space: nowrap;
+  }}
 
   /* 3 — DRIVERS (toggle + scorecard table) */
   details.drivers {{
@@ -1169,6 +1222,7 @@ def render(snap, chart, raw_data=None):
   <span class="brand">MILK ROAD · MACRO DASHBOARD v2</span>
   <span>{snap["date"]} · built {snap.get("build_time_utc", "")}</span>
 </div>
+{preview_banner}
 
 <!-- 1 · HERO (single source of truth for the headline value) -->
 <header class="hero">
@@ -1238,19 +1292,7 @@ def render(snap, chart, raw_data=None):
   <div class="chart-container"><canvas id="chart-mrmi"></canvas></div>
 
   <div class="chart-description">
-    <!-- Backtest figures source: reports/backtest-2026-05-20-aligned.txt -->
-    <details class="backtest-toggle">
-      <summary>How well does this work historically? <span class="muted small">(click)</span></summary>
-      <div class="backtest-toggle-body">
-        <p class="muted small" style="margin-bottom: 8px;">Full-sample backtest (2017–2026), no leverage, vs buy-and-hold:</p>
-        <ul class="backtest-list">
-          <li><span class="bt-asset-inline">SPX</span> +11.5% annual alpha · drawdown cut from −33.9% to −10.1%</li>
-          <li><span class="bt-asset-inline">Russell 2000</span> +15.9% annual alpha · drawdown cut from −41.1% to −11.8%</li>
-          <li><span class="bt-asset-inline">Bitcoin</span> +16.5% annual alpha · drawdown cut from −83.4% to −68.2%</li>
-        </ul>
-        <p class="muted small" style="margin-top: 8px;">Active 78.7% of the time (cash during stress). OOS: SPX +10.1%, Russell +13.5%, BTC +2.2% annual alpha; SPX drawdown cut from −18.9% to −4.7%.</p>
-      </div>
-    </details>
+    {backtest_card_html}
   </div>
 </div>
 
@@ -1282,25 +1324,26 @@ def render(snap, chart, raw_data=None):
 <div class="mrmi-chart macro-stress-snapshot">
   <div class="mrmi-chart-header">
     <h3>Macro Stress
-      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>What you're seeing:</strong> the current economy-pillar stress score and 0–10 bucket, followed by stress score over time. The headline score is a percentile rank of the raw sigmoid stress score, so 6.5 means roughly the 65th percentile of historical stress. Calm/Watch/Building/Elevated are fixed at 6.0/8.0/9.5.</p><p><strong>MRMI buffer:</strong> the older 0–1 stress intensity is unchanged and remains the only value that erodes the MRMI buffer.</p><p><strong>Inputs below:</strong> the stress-inputs panel shows the two raw axes visually: Real Economy Score and Inflation Direction Δ6m.</p></span></span>
+      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide">{stress_panel_tip}</span></span>
     </h3>
     <div class="macro-stress-reading">
       <span class="macro-stress-reading-value mono">{stress_value_str}</span>
+      {stress_momentum_chip}
       <span class="macro-stress-reading-chip" style="color:{stress_color}; border-color:{stress_color}55; box-shadow: 0 0 0 3px {stress_color}12;">{stress_score_label}</span>
-      <span class="macro-stress-reading-label">0–10 score · MRMI intensity {stress_intensity_str}</span>
+      <span class="macro-stress-reading-label">{stress_reading_label}</span>
     </div>
   </div>
-  <p class="mrmi-chart-subtitle">Economy-pillar stress over time: percentile-rank headline score on a full 0–10 scale. Sub-pressures remain raw sigmoid values: growth {stress_growth_str}, inflation {stress_inflation_str}.</p>
+  <p class="mrmi-chart-subtitle">{stress_panel_subtitle}</p>
   <div class="chart-container" style="height: 220px;"><canvas id="chart-stress-history"></canvas></div>
 </div>
 <details class="drivers macro-stress-inputs-panel" open>
   <summary>
-    <span><span class="state-dot" style="background:{stress_color}"></span>STRESS INPUTS <span class="muted small">· Real Economy Score · Inflation Direction Δ6m</span></span>
+    <span><span class="state-dot" style="background:{stress_color}"></span>STRESS INPUTS <span class="muted small">· {stress_inputs_title}</span></span>
   </summary>
   <div class="drivers-body">
     <div class="macro-stress-mini-legend">
-      <span><i style="background:#4CAF50"></i>Real Economy Score</span>
-      <span><i style="background:#cdaa6a"></i>Inflation Direction Δ6m</span>
+      <span><i style="background:#4CAF50"></i>{stress_growth_label}</span>
+      <span><i style="background:#cdaa6a"></i>{stress_inflation_label}</span>
     </div>
     <div class="chart-wrap macro-stress-inputs-wrap"><canvas id="chart-stress-inputs"></canvas></div>
   </div>
@@ -1960,16 +2003,16 @@ function buildStressHistoryChart() {{
         }},
         annotation: {{
           annotations: {{
-            calmBand: {{ type: 'box', yMin: 0, yMax: {BUCKET_CUTOFF_CALM_WATCH:.2f}, backgroundColor: 'rgba(76,175,80,0.10)', borderWidth: 0, scaleID: 'y' }},
-            watchBand: {{ type: 'box', yMin: {BUCKET_CUTOFF_CALM_WATCH:.2f}, yMax: {BUCKET_CUTOFF_WATCH_BUILDING:.2f}, backgroundColor: 'rgba(205,170,106,0.10)', borderWidth: 0, scaleID: 'y' }},
-            buildingBand: {{ type: 'box', yMin: {BUCKET_CUTOFF_WATCH_BUILDING:.2f}, yMax: {BUCKET_CUTOFF_BUILDING_ELEV:.2f}, backgroundColor: 'rgba(255,140,0,0.10)', borderWidth: 0, scaleID: 'y' }},
-            elevatedBand: {{ type: 'box', yMin: {BUCKET_CUTOFF_BUILDING_ELEV:.2f}, yMax: 10, backgroundColor: 'rgba(232,75,90,0.10)', borderWidth: 0, scaleID: 'y' }},
-            watch: {{ type: 'line', yMin: {BUCKET_CUTOFF_CALM_WATCH:.2f}, yMax: {BUCKET_CUTOFF_CALM_WATCH:.2f}, borderColor: 'rgba(205,170,106,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
-              label: {{ display: true, content: 'WATCH {BUCKET_CUTOFF_CALM_WATCH:.1f}', position: 'start', backgroundColor: 'transparent', color: '#8f7644', font: {{ size: 9 }} }} }},
-            building: {{ type: 'line', yMin: {BUCKET_CUTOFF_WATCH_BUILDING:.2f}, yMax: {BUCKET_CUTOFF_WATCH_BUILDING:.2f}, borderColor: 'rgba(255,140,0,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
-              label: {{ display: true, content: 'BUILDING {BUCKET_CUTOFF_WATCH_BUILDING:.1f}', position: 'start', backgroundColor: 'transparent', color: '#9a6a28', font: {{ size: 9 }} }} }},
-            elevated: {{ type: 'line', yMin: {BUCKET_CUTOFF_BUILDING_ELEV:.2f}, yMax: {BUCKET_CUTOFF_BUILDING_ELEV:.2f}, borderColor: 'rgba(232,75,90,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
-              label: {{ display: true, content: 'ELEVATED {BUCKET_CUTOFF_BUILDING_ELEV:.1f}', position: 'start', backgroundColor: 'transparent', color: '#9a3d47', font: {{ size: 9 }} }} }},
+            calmBand: {{ type: 'box', yMin: 0, yMax: {stress_cutoff_calm_watch:.2f}, backgroundColor: 'rgba(76,175,80,0.10)', borderWidth: 0, scaleID: 'y' }},
+            watchBand: {{ type: 'box', yMin: {stress_cutoff_calm_watch:.2f}, yMax: {stress_cutoff_watch_building:.2f}, backgroundColor: 'rgba(205,170,106,0.10)', borderWidth: 0, scaleID: 'y' }},
+            buildingBand: {{ type: 'box', yMin: {stress_cutoff_watch_building:.2f}, yMax: {stress_cutoff_building_elev:.2f}, backgroundColor: 'rgba(255,140,0,0.10)', borderWidth: 0, scaleID: 'y' }},
+            elevatedBand: {{ type: 'box', yMin: {stress_cutoff_building_elev:.2f}, yMax: 10, backgroundColor: 'rgba(232,75,90,0.10)', borderWidth: 0, scaleID: 'y' }},
+            watch: {{ type: 'line', yMin: {stress_cutoff_calm_watch:.2f}, yMax: {stress_cutoff_calm_watch:.2f}, borderColor: 'rgba(205,170,106,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
+              label: {{ display: true, content: 'WATCH {stress_cutoff_calm_watch:.1f}', position: 'start', backgroundColor: 'transparent', color: '#8f7644', font: {{ size: 9 }} }} }},
+            building: {{ type: 'line', yMin: {stress_cutoff_watch_building:.2f}, yMax: {stress_cutoff_watch_building:.2f}, borderColor: 'rgba(255,140,0,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
+              label: {{ display: true, content: 'BUILDING {stress_cutoff_watch_building:.1f}', position: 'start', backgroundColor: 'transparent', color: '#9a6a28', font: {{ size: 9 }} }} }},
+            elevated: {{ type: 'line', yMin: {stress_cutoff_building_elev:.2f}, yMax: {stress_cutoff_building_elev:.2f}, borderColor: 'rgba(232,75,90,0.55)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y',
+              label: {{ display: true, content: 'ELEVATED {stress_cutoff_building_elev:.1f}', position: 'start', backgroundColor: 'transparent', color: '#9a3d47', font: {{ size: 9 }} }} }},
           }},
         }},
       }},
@@ -1977,7 +2020,7 @@ function buildStressHistoryChart() {{
         x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 10, maxRotation: 0 }}, grid: {{ display: false }} }},
         y: {{
           min: 0, max: 10,
-          afterBuildTicks: scale => {{ scale.ticks = [0, {BUCKET_CUTOFF_CALM_WATCH:.2f}, {BUCKET_CUTOFF_WATCH_BUILDING:.2f}, {BUCKET_CUTOFF_BUILDING_ELEV:.2f}, 10].map(value => ({{ value }})); }},
+          afterBuildTicks: scale => {{ scale.ticks = [0, {stress_cutoff_calm_watch:.2f}, {stress_cutoff_watch_building:.2f}, {stress_cutoff_building_elev:.2f}, 10].map(value => ({{ value }})); }},
           ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, callback: value => Number(value).toFixed(value === 0 || value === 10 ? 0 : 1) }},
           grid: {{ color: '#1a1a1a' }},
         }},
@@ -1991,8 +2034,11 @@ function buildStressInputsChart() {{
   if (!canvas) return;
   const n = RANGE_BARS[currentRange] ?? 252;
   const dates = sliceRecent(CHART_DATA.dates, n);
-  const realEconomy = sliceRecent((CHART_DATA.macro || {{}}).real_economy_score || [], n);
-  const inflationDir = sliceRecent((CHART_DATA.macro || {{}}).inflation_dir_pp || [], n);
+  const previewInputs = (CHART_DATA.preview || {{}}).stress_inputs || {{}};
+  const realEconomy = sliceRecent(previewInputs.growth_weakness || (CHART_DATA.macro || {{}}).real_economy_score || [], n);
+  const inflationDir = sliceRecent(previewInputs.inflation_pressure || (CHART_DATA.macro || {{}}).inflation_dir_pp || [], n);
+  const growthLabel = previewInputs.growth_label || 'Real Economy Score';
+  const inflationLabel = previewInputs.inflation_label || 'Inflation Direction Δ6m';
 
   if (window.stressInputsChart) window.stressInputsChart.destroy();
   window.stressInputsChart = new Chart(canvas, {{
@@ -2000,10 +2046,10 @@ function buildStressInputsChart() {{
     data: {{
       labels: dates,
       datasets: [
-        {{ label: 'Real Economy Score', data: realEconomy,
+        {{ label: growthLabel, data: realEconomy,
            borderColor: '#4CAF50', borderWidth: 1.6,
            pointRadius: 0, pointHoverRadius: 3, tension: 0.1, spanGaps: true }},
-        {{ label: 'Inflation Direction Δ6m', data: inflationDir,
+        {{ label: inflationLabel, data: inflationDir,
            borderColor: '#cdaa6a', borderWidth: 1.6, borderDash: [4, 3],
            pointRadius: 0, pointHoverRadius: 3, tension: 0.1, spanGaps: true }},
       ],

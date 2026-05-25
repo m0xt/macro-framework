@@ -140,3 +140,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Martin/Bob sign-off on Phase 2 implementation despite roughly half-time cash exposure and higher switches.
+
+## 2026-05-25T09:16:21Z — Task 34 preview dashboard
+- What: Rendered `outputs/dashboard-preview.html` as a read-only Phase 1 preview using `calc_milk_road_macro_index_unified_stress` with α=0.75, β=0.5, λ=10, buffer=0.5, threshold=0.75 and full-history stress p99=10.0083. Stress display uses round buckets (Calm 0–3, Watch 3–5, Building 5–7, Elevated 7–10) for visual cleanliness rather than percentile buckets; today's preview reading is MRMI +0.13 → LONG and stress 0.8 → calm.
+- What: Preview rendered the unified-stress MRMI headline/history strip, normalized `stress_raw` chart, raw `growth_weakness` + `inflation_pressure` inputs panel, 7-day stress momentum chip (`→ steady`), and preview-only Phase 1/IS-OOS backtest card; production `outputs/dashboard.html`, snapshots, presentation, Supabase sync, and production MRMI math were left unchanged.
+- Files touched: src/macro_framework/build.py; scripts/build_preview.py; outputs/dashboard-preview.html; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Martin review of `outputs/dashboard-preview.html` shape before deciding whether to ship Phase 2.
