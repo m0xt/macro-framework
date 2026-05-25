@@ -119,3 +119,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Martin/Bob review of Phase 1 report; Phase 2 remains blocked until sign-off, with possible narrow buffer/threshold search suggested by sensitivity.
+
+## 2026-05-25T08:24:53Z — Task 34 narrow buffer/threshold grid
+- What: Ran the requested 35-combo buffer_size × threshold refinement with α=0.75, β=0.5, λ=10 locked. New best is buffer_size=0.3, threshold=0.75: avg Calmar 4.027, avg cash 60.88%, avg switches 215; SPX/IWM/BTC Calmar 6.88/4.53/0.67.
+- Files touched: reports/task-34-stress-unification-backtest.md; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Martin/Bob sign-off on whether to ship the more defensive buffer_size=0.3 / threshold=0.75 profile; Phase 2 implementation remains separate.

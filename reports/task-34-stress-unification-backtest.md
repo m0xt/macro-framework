@@ -80,3 +80,95 @@ The requested trade-off shows up as deeper/longer CASH behavior in the new MRMI.
 **ship the new formula.** Within the requested grid, the best OR+AND parameter set preserves Martin's thesis and improves Calmar for all three assets: SPX 2.05 → 3.37, IWM 1.92 → 3.59, BTC 0.60 → 0.70. Max drawdown also improves across all three assets. The cost is material: cash time rises from 21.3% to 48.4% and switches roughly double from 104 to 210, so Phase 2 should present this as a more defensive strategy rather than a small visualization cleanup.
 
 Before production replacement, Martin/Bob should explicitly accept the higher cash/turnover profile and consider a narrow follow-up search around buffer/threshold, since the ±20% sensitivity suggests nearby values outside the requested grid may improve Calmar further.
+
+## Narrow grid refinement (buffer × threshold)
+
+Generated: 2026-05-25T08:24:53Z dispatch. Fixed α=`0.75`, β=`0.5`, λ=`10`, then swept `buffer_size × threshold` across the requested 35 combinations using the same cached production data path and canonical SPX/IWM/BTC backtest objective as Phase 1.
+
+| Buffer | Threshold | Avg Calmar | Avg cash time | Avg switches |
+|---:|---:|---:|---:|---:|
+| 0.30 | 0.75 | 4.027 | 60.88% | 215 |
+| 0.30 | 0.80 | 3.900 | 63.83% | 221 |
+| 0.30 | 0.85 | 4.024 | 66.97% | 205 |
+| 0.30 | 0.90 | 3.519 | 70.39% | 204 |
+| 0.30 | 0.95 | 3.362 | 74.15% | 190 |
+| 0.35 | 0.75 | 3.135 | 57.18% | 217 |
+| 0.35 | 0.80 | 4.026 | 60.98% | 217 |
+| 0.35 | 0.85 | 3.926 | 63.99% | 219 |
+| 0.35 | 0.90 | 3.969 | 67.06% | 203 |
+| 0.35 | 0.95 | 3.520 | 70.64% | 208 |
+| 0.40 | 0.75 | 3.079 | 54.36% | 218 |
+| 0.40 | 0.80 | 3.133 | 57.25% | 215 |
+| 0.40 | 0.85 | 4.017 | 61.01% | 215 |
+| 0.40 | 0.90 | 3.963 | 64.12% | 215 |
+| 0.40 | 0.95 | 3.966 | 67.31% | 205 |
+| 0.45 | 0.75 | 2.464 | 51.29% | 206 |
+| 0.45 | 0.80 | 3.081 | 54.58% | 214 |
+| 0.45 | 0.85 | 3.130 | 57.43% | 213 |
+| 0.45 | 0.90 | 3.994 | 61.14% | 211 |
+| 0.45 | 0.95 | 3.945 | 64.30% | 211 |
+| 0.50 | 0.75 | 2.551 | 48.43% | 210 |
+| 0.50 | 0.80 | 2.427 | 51.54% | 202 |
+| 0.50 | 0.85 | 3.069 | 54.83% | 212 |
+| 0.50 | 0.90 | 3.147 | 57.56% | 211 |
+| 0.50 | 0.95 | 3.990 | 61.23% | 217 |
+| 0.55 | 0.75 | 1.999 | 45.04% | 218 |
+| 0.55 | 0.80 | 2.451 | 48.59% | 204 |
+| 0.55 | 0.85 | 2.412 | 51.69% | 202 |
+| 0.55 | 0.90 | 3.070 | 54.89% | 208 |
+| 0.55 | 0.95 | 3.159 | 57.69% | 217 |
+| 0.60 | 0.75 | 2.017 | 42.72% | 216 |
+| 0.60 | 0.80 | 2.010 | 45.17% | 216 |
+| 0.60 | 0.85 | 2.400 | 48.68% | 204 |
+| 0.60 | 0.90 | 2.417 | 51.88% | 208 |
+| 0.60 | 0.95 | 3.060 | 54.99% | 206 |
+
+### New best params
+
+- α: `0.75`
+- β: `0.5`
+- λ: `10`
+- buffer_size: `0.3`
+- threshold: `0.75`
+- objective: average Calmar `4.027`, average cash `60.88%`, average switches `215`
+
+| Asset | Strategy | Ann. return | Max DD | Calmar | Sharpe | Cash time | Switches |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| SPX | Narrow best | +18.72% | -2.72% | 6.88 | 3.06 | 60.88% | 215 |
+| IWM | Narrow best | +24.81% | -5.47% | 4.53 | 2.44 | 60.88% | 215 |
+| BTC | Narrow best | +40.71% | -60.75% | 0.67 | 1.19 | 60.88% | 215 |
+
+### Narrow best vs Phase 1 best
+
+Phase 1 best was α=`0.75`, β=`0.5`, λ=`10`, buffer_size=`0.5`, threshold=`0.75` with average Calmar `2.551`, average cash `48.43%`, and average switches `210`.
+
+| Metric | Phase 1 best | Narrow best | Delta |
+|---|---:|---:|---:|
+| Avg Calmar | 2.551 | 4.027 | +1.476 |
+| Avg cash time | 48.43% | 60.88% | +12.45pp |
+| Avg switches | 210 | 215 | +5 |
+
+| Asset | Metric | Phase 1 best | Narrow best | Delta |
+|---|---|---:|---:|---:|
+| SPX | Ann. return | +20.96% | +18.72% | -2.24pp |
+| SPX | Max DD | -6.23% | -2.72% | +3.51pp |
+| SPX | Calmar | 3.37 | 6.88 | +3.51 |
+| SPX | Sharpe | 2.82 | 3.06 | +0.23 |
+| SPX | Cash time | 48.43% | 60.88% | +12.45pp |
+| SPX | Switches | 210 | 215 | +5 |
+| IWM | Ann. return | +26.87% | +24.81% | -2.06pp |
+| IWM | Max DD | -7.49% | -5.47% | +2.02pp |
+| IWM | Calmar | 3.59 | 4.53 | +0.94 |
+| IWM | Sharpe | 2.24 | 2.44 | +0.20 |
+| IWM | Cash time | 48.43% | 60.88% | +12.45pp |
+| IWM | Switches | 210 | 215 | +5 |
+| BTC | Ann. return | +42.66% | +40.71% | -1.96pp |
+| BTC | Max DD | -60.92% | -60.75% | +0.17pp |
+| BTC | Calmar | 0.70 | 0.67 | -0.03 |
+| BTC | Sharpe | 1.13 | 1.19 | +0.06 |
+| BTC | Cash time | 48.43% | 60.88% | +12.45pp |
+| BTC | Switches | 210 | 215 | +5 |
+
+### Narrow-grid recommendation
+
+**Ship at the new best params** if Martin accepts the substantially more defensive profile: buffer_size `0.3` / threshold `0.75` lifts average Calmar from `2.551` to `4.027`, mainly by cutting SPX/IWM drawdowns, while cash time rises another `12.45pp` and BTC Calmar is essentially flat/slightly lower.
