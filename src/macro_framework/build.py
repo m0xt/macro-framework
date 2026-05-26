@@ -371,6 +371,67 @@ def _growth_impulse_drilldown_html(payload):
         </div>
       </details>'''
 
+def _driver_drilldown_html(payload, *, dom_key, summary_label, brief_label, chart_label):
+    rows = payload.get("rows") or []
+    if not rows:
+        return ""
+    brief = payload.get("brief") or []
+    brief_html = "".join(f"<p>{_escape(sentence)}</p>" for sentence in brief[:4])
+    options_html = "".join(
+        f'<option value="{_escape(row.get("key", ""))}">{_escape(row.get("label", ""))}</option>'
+        for row in rows
+    )
+    row_html = []
+    for row in rows:
+        z_now = row.get("z_21d")
+        z7 = row.get("z_change_7d")
+        z30 = row.get("z_change_30d")
+        label = _escape(row.get("label", ""))
+        explanation = _escape(row.get("explanation", ""))
+        row_html.append(f"""
+          <tr class="driver-input-row" data-driver-drilldown="{_escape(dom_key)}" data-input-key="{_escape(row.get("key", ""))}">
+            <td>
+              <div class="growth-input-name">
+                <span class="sc-label">{label}</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="{label}: {explanation}" data-tooltip="{explanation}">i</span>
+              </div>
+              <div class="muted small">{_escape(row.get("source", ""))}</div>
+            </td>
+            <td><span class="muted small">{_escape(row.get("group", ""))}</span></td>
+            <td><span class="val {_growth_z_class(z7)}">{_fmt_growth_z(z7)}</span></td>
+            <td><span class="val {_growth_z_class(z30)}">{_fmt_growth_z(z30)}</span></td>
+            <td><span class="val {_growth_z_class(z_now)}">{_fmt_growth_z(z_now)}</span></td>
+          </tr>""")
+    return f"""
+      <details class="growth-drilldown driver-drilldown" data-driver-drilldown="{_escape(dom_key)}">
+        <summary>View {summary_label} inputs <span class="muted small">· sorted by 7-day contribution</span></summary>
+        <div class="growth-drilldown-body">
+          <p class="drivers-desc">{_escape(payload.get("intro", ""))}<br><span class="muted small">{_escape(payload.get("sort_note", ""))}</span></p>
+          <div class="growth-mini-brief">
+            <div class="pillar-brief-eyebrow">{brief_label} mini-brief</div>
+            {brief_html}
+          </div>
+          <table class="growth-inputs-table">
+            <thead><tr>
+              <th>Input</th><th>Group</th>
+              <th title="Input z-score change over the latest 7 trading days — main sort key">7d zΔ</th>
+              <th title="Input z-score change over the latest 30 trading days — durability check">30d zΔ</th>
+              <th title="Current z-score used in the driver composite">Current z</th>
+            </tr></thead>
+            <tbody>{''.join(row_html)}</tbody>
+          </table>
+          <div class="growth-input-chart-panel">
+            <div class="growth-input-chart-header">
+              <span class="growth-input-chart-title">Raw input history</span>
+              <select id="{_escape(dom_key)}-input-select" aria-label="{_escape(chart_label)} input chart">{options_html}</select>
+            </div>
+            <div class="chart-wrap growth-input-chart-wrap"><canvas id="chart-{_escape(dom_key)}-input"></canvas></div>
+            <div id="{_escape(dom_key)}-input-chart-desc" class="chart-desc"></div>
+          </div>
+        </div>
+      </details>"""
+
+
 def _make_scale_bar(mrmi_value, state_color):
     """Horizontal bar showing MRMI's cash / caution / long posture zones."""
     if mrmi_value is None:
@@ -650,6 +711,8 @@ def render(snap, chart, raw_data=None):
         "btc": chart.get("btc", []),
         "drivers": drivers_meta,
         "growth_impulse": chart.get("growth_impulse") or {},
+        "sector_breadth": chart.get("sector_breadth") or {},
+        "financial_conditions": chart.get("financial_conditions") or {},
         "macro": {
             "real_economy_score": re_score_series,
             "inflation_dir_pp":   inf_dir_series,
@@ -663,6 +726,20 @@ def render(snap, chart, raw_data=None):
 
     growth_drilldown_html = _growth_impulse_drilldown_html(
         chart.get("growth_impulse") or snap.get("growth_impulse_drilldown") or {}
+    )
+    breadth_drilldown_html = _driver_drilldown_html(
+        chart.get("sector_breadth") or snap.get("sector_breadth_drilldown") or {},
+        dom_key="breadth",
+        summary_label="Sector Breadth",
+        brief_label="Sector Breadth",
+        chart_label="Sector Breadth",
+    )
+    fincon_drilldown_html = _driver_drilldown_html(
+        chart.get("financial_conditions") or snap.get("financial_conditions_drilldown") or {},
+        dom_key="fincon",
+        summary_label="Financial Conditions",
+        brief_label="Financial Conditions",
+        chart_label="Financial Conditions",
     )
     info_svg = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="4" r="0.9" fill="currentColor"/><line x1="7" y1="6.5" x2="7" y2="10.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>'
 
@@ -1098,9 +1175,9 @@ def render(snap, chart, raw_data=None):
   .growth-info-icon:hover::after, .growth-info-icon:focus::after,
   .growth-info-icon:hover::before, .growth-info-icon:focus::before {{ opacity: 1; visibility: visible; }}
   .growth-info-icon:focus-visible {{ box-shadow: 0 0 0 2px #4CAF5055; }}
-  .growth-input-row {{ cursor: pointer; transition: background 0.1s; }}
-  .growth-input-row:hover {{ background: #161616; }}
-  .growth-input-row.is-selected {{ background: #14171a; }}
+  .growth-input-row, .driver-input-row {{ cursor: pointer; transition: background 0.1s; }}
+  .growth-input-row:hover, .driver-input-row:hover {{ background: #161616; }}
+  .growth-input-row.is-selected, .driver-input-row.is-selected {{ background: #14171a; }}
   .growth-input-chart-panel {{
     margin-top: 18px; padding: 12px 14px; background: #0d0d0d;
     border: 1px solid #1c1c1c; border-radius: 6px;
@@ -1502,6 +1579,8 @@ def render(snap, chart, raw_data=None):
   <div class="drivers-body">
     <div id="scorecard-mrmi"></div>
 {growth_drilldown_html}
+{breadth_drilldown_html}
+{fincon_drilldown_html}
   </div>
 </details>
 
@@ -1853,6 +1932,7 @@ document.querySelectorAll('.range-tabs button').forEach(btn => {{
     Object.keys(macroDriverCharts).forEach(k => createMacroDriverChart(k));
     Object.keys(libCharts).forEach(k => createLibChart(k));
     if (growthInputBuilt && growthInputCurrentKey) buildGrowthInputChart(growthInputCurrentKey);
+    rebuildDriverInputCharts();
   }});
 }});
 
@@ -2370,6 +2450,120 @@ document.querySelectorAll('.growth-input-row').forEach(tr => {{
     if (growthDetails && !growthDetails.open) growthDetails.open = true;
     growthInputBuilt = true;
     buildGrowthInputChart(key);
+  }});
+}});
+
+// Sector Breadth / Financial Conditions raw-input charts (same UX as Growth Impulses).
+const DRIVER_DRILLDOWN_CONFIG = {{
+  breadth: {{ payloadKey: 'sector_breadth', color: '#9AD0F5' }},
+  fincon: {{ payloadKey: 'financial_conditions', color: '#cdaa6a' }},
+}};
+const driverInputState = {{}};
+
+function driverRowsByKey(payloadKey) {{
+  const map = {{}};
+  const rows = ((CHART_DATA[payloadKey] || {{}}).rows) || [];
+  rows.forEach(r => {{ if (r && r.key) map[r.key] = r; }});
+  return map;
+}}
+
+function buildDriverInputChart(driverKey, inputKey) {{
+  const cfg = DRIVER_DRILLDOWN_CONFIG[driverKey];
+  if (!cfg) return;
+  const rows = driverRowsByKey(cfg.payloadKey);
+  const row = rows[inputKey];
+  const canvas = document.getElementById('chart-' + driverKey + '-input');
+  if (!row || !canvas) return;
+  const state = driverInputState[driverKey] || (driverInputState[driverKey] = {{}});
+  state.currentKey = inputKey;
+  state.built = true;
+
+  const n = RANGE_BARS[currentRange] ?? 252;
+  const dates = sliceRecent(CHART_DATA.dates, n);
+  const values = sliceRecent(row.values || [], n);
+  const desc = document.getElementById(driverKey + '-input-chart-desc');
+  if (desc) {{
+    const unit = row.unit ? ' (' + row.unit + ')' : '';
+    const z = row.z_21d != null ? ((row.z_21d >= 0 ? '+' : '') + row.z_21d.toFixed(2)) : '—';
+    const z7 = row.z_change_7d != null ? ((row.z_change_7d >= 0 ? '+' : '') + row.z_change_7d.toFixed(2)) : '—';
+    desc.textContent = row.source + ' · current z ' + z + ' · 7d zΔ ' + z7 + unit;
+  }}
+  document.querySelectorAll('.driver-input-row[data-driver-drilldown="' + driverKey + '"]').forEach(tr => {{
+    tr.classList.toggle('is-selected', tr.dataset.inputKey === inputKey);
+  }});
+
+  if (state.chart) state.chart.destroy();
+  state.chart = new Chart(canvas, {{
+    type: 'line',
+    data: {{
+      labels: dates,
+      datasets: [{{
+        label: row.label,
+        data: values,
+        borderColor: cfg.color, borderWidth: 1.6,
+        pointRadius: 0, pointHoverRadius: 3, tension: 0.1, spanGaps: true,
+      }}],
+    }},
+    options: {{
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: {{ mode: 'index', intersect: false }},
+      plugins: {{
+        legend: {{ display: false }},
+        tooltip: {{
+          backgroundColor: '#1a1a1a', borderColor: '#333', borderWidth: 1,
+          titleColor: '#999', bodyColor: '#e0e0e0',
+          titleFont: {{ size: 11 }}, bodyFont: {{ size: 11, family: "'SF Mono', Menlo, monospace" }},
+          padding: 8,
+          callbacks: {{
+            label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? ctx.parsed.y.toFixed(4) : '—'),
+          }},
+        }},
+      }},
+      scales: {{
+        x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 10, maxRotation: 0 }}, grid: {{ display: false }} }},
+        y: {{ ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 6 }}, grid: {{ color: '#1a1a1a' }} }},
+      }},
+    }},
+  }});
+}}
+
+function ensureDriverInputChart(driverKey) {{
+  const state = driverInputState[driverKey] || (driverInputState[driverKey] = {{}});
+  if (state.built) return;
+  const select = document.getElementById(driverKey + '-input-select');
+  if (!select) return;
+  const firstKey = select.value || (select.options[0] && select.options[0].value);
+  if (firstKey) buildDriverInputChart(driverKey, firstKey);
+}}
+
+function rebuildDriverInputCharts() {{
+  Object.keys(driverInputState).forEach(driverKey => {{
+    const state = driverInputState[driverKey];
+    if (state && state.built && state.currentKey) buildDriverInputChart(driverKey, state.currentKey);
+  }});
+}}
+
+Object.keys(DRIVER_DRILLDOWN_CONFIG).forEach(driverKey => {{
+  const details = document.querySelector('details.driver-drilldown[data-driver-drilldown="' + driverKey + '"]');
+  const select = document.getElementById(driverKey + '-input-select');
+  if (details) {{
+    details.addEventListener('toggle', () => {{ if (details.open) ensureDriverInputChart(driverKey); }});
+    if (details.open) ensureDriverInputChart(driverKey);
+  }}
+  if (select) select.addEventListener('change', e => buildDriverInputChart(driverKey, e.target.value));
+}});
+
+document.querySelectorAll('.driver-input-row').forEach(tr => {{
+  tr.addEventListener('click', e => {{
+    if (e.target.closest('.growth-info-icon')) return;
+    const driverKey = tr.dataset.driverDrilldown;
+    const inputKey = tr.dataset.inputKey;
+    if (!driverKey || !inputKey) return;
+    const details = document.querySelector('details.driver-drilldown[data-driver-drilldown="' + driverKey + '"]');
+    const select = document.getElementById(driverKey + '-input-select');
+    if (select) select.value = inputKey;
+    if (details && !details.open) details.open = true;
+    buildDriverInputChart(driverKey, inputKey);
   }});
 }});
 

@@ -1,6 +1,6 @@
 {
   "date": "2026-05-26",
-  "build_time_utc": "2026-05-26 10:58 UTC",
+  "build_time_utc": "2026-05-26 11:08 UTC",
   "mrmi": {
     "composite": 0.3653574025382012,
     "state": "green"
@@ -200,6 +200,164 @@
       "Growth Impulses is accelerating at +0.20, so the market-growth pulse is helping MMI.",
       "Sorted by 7-day contribution proxy, WEI is lifting the latest 7-day GII move; current support is led by WEI, while HYG is the biggest drag.",
       "Under the hood, 7 of 10 inputs have positive current z-scores; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through."
+    ]
+  },
+  "sector_breadth_drilldown": {
+    "intro": "Sector Breadth asks whether cyclical equity participation is broadening or narrowing.",
+    "sort_note": "Rows sort by absolute 7-day contribution to the latest Breadth move, proxied as each input's 7-day z-score change divided by the 7 sector breadth components.",
+    "score": 0.5991,
+    "supportive_count": 4,
+    "drag_count": 3,
+    "rows": [
+      {
+        "key": "XRT",
+        "label": "XRT",
+        "group": "Retail",
+        "source": "SPDR Retail ETF",
+        "explanation": "Retail reflects consumer-facing cyclical participation beyond defensive staples.",
+        "unit": "price",
+        "current": 82.54,
+        "z_21d": -0.0267,
+        "z_change_7d": 0.3388,
+        "z_change_30d": -0.1402,
+        "contribution_7d": 0.0484
+      },
+      {
+        "key": "XHB",
+        "label": "XHB",
+        "group": "Housing",
+        "source": "SPDR Homebuilders ETF",
+        "explanation": "Homebuilders are rate-sensitive cyclicals and often react early to financial conditions.",
+        "unit": "price",
+        "current": 100.01,
+        "z_21d": -0.5487,
+        "z_change_7d": 0.1493,
+        "z_change_30d": -0.0006,
+        "contribution_7d": 0.021329
+      },
+      {
+        "key": "SMH",
+        "label": "SMH",
+        "group": "Semiconductors",
+        "source": "VanEck Semiconductor ETF",
+        "explanation": "Semiconductors are a high-beta cyclical leadership group; strength broadens risk appetite.",
+        "unit": "price",
+        "current": 576.32,
+        "z_21d": 1.6428,
+        "z_change_7d": -0.1436,
+        "z_change_30d": -0.7771,
+        "contribution_7d": -0.020514
+      },
+      {
+        "key": "KBE",
+        "label": "KBE",
+        "group": "Banks",
+        "source": "SPDR Bank ETF",
+        "explanation": "Banks capture credit-cycle health, yield-curve sensitivity, and domestic risk appetite.",
+        "unit": "price",
+        "current": 63.54,
+        "z_21d": 0.8193,
+        "z_change_7d": 0.0433,
+        "z_change_30d": 0.099,
+        "contribution_7d": 0.006186
+      },
+      {
+        "key": "IWM",
+        "label": "IWM",
+        "group": "Small caps",
+        "source": "iShares Russell 2000 ETF",
+        "explanation": "Small caps reflect domestic cyclical participation and financing sensitivity.",
+        "unit": "price",
+        "current": 285.12,
+        "z_21d": 1.3665,
+        "z_change_7d": 0.0183,
+        "z_change_30d": -0.5966,
+        "contribution_7d": 0.002614
+      },
+      {
+        "key": "IBB",
+        "label": "IBB",
+        "group": "Biotech",
+        "source": "iShares Biotechnology ETF",
+        "explanation": "Biotech adds speculative growth participation outside mega-cap technology.",
+        "unit": "price",
+        "current": 168.79,
+        "z_21d": -0.0556,
+        "z_change_7d": 0.0144,
+        "z_change_30d": -0.1143,
+        "contribution_7d": 0.002057
+      },
+      {
+        "key": "IYT",
+        "label": "IYT",
+        "group": "Transports",
+        "source": "iShares Transportation ETF",
+        "explanation": "Transports track economically sensitive shipping, logistics, and travel activity.",
+        "unit": "price",
+        "current": 81.45,
+        "z_21d": 0.9958,
+        "z_change_7d": 0.0096,
+        "z_change_30d": 0.8261,
+        "contribution_7d": 0.001371
+      }
+    ],
+    "brief": [
+      "Sector Breadth is +0.60, so this driver is supportive for MMI.",
+      "Sorted by 7-day contribution proxy, XRT is lifting the latest 7-day Breadth move; current support is led by SMH, while XHB is the biggest drag.",
+      "Under the hood, 4 of 7 inputs have positive current z-scores; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through."
+    ]
+  },
+  "financial_conditions_drilldown": {
+    "intro": "Financial Conditions asks whether volatility and credit stress are loosening or tightening.",
+    "sort_note": "Rows sort by absolute 7-day contribution to the latest FinCon move, proxied as each input's 7-day z-score change divided by the 3 financial conditions components.",
+    "score": 0.2954,
+    "supportive_count": 2,
+    "drag_count": 1,
+    "rows": [
+      {
+        "key": "^MOVE",
+        "label": "MOVE",
+        "group": "Rates volatility",
+        "source": "ICE BofA MOVE Index",
+        "explanation": "Treasury-market implied volatility. The z-score is inverted, so calmer rate volatility is positive for financial conditions.",
+        "unit": "index",
+        "current": 78.43,
+        "z_21d": -0.5268,
+        "z_change_7d": 0.1241,
+        "z_change_30d": -0.1871,
+        "contribution_7d": 0.041367
+      },
+      {
+        "key": "^VIX",
+        "label": "VIX",
+        "group": "Equity volatility",
+        "source": "CBOE Volatility Index",
+        "explanation": "S&P 500 implied volatility. The z-score is inverted, so falling VIX loosens financial conditions and supports MMI.",
+        "unit": "index",
+        "current": 16.78,
+        "z_21d": 0.5468,
+        "z_change_7d": 0.0054,
+        "z_change_30d": 0.2155,
+        "contribution_7d": 0.0018
+      },
+      {
+        "key": "BAMLH0A0HYM2",
+        "label": "HY spread",
+        "group": "Credit stress",
+        "source": "BofA US High Yield OAS",
+        "explanation": "High-yield option-adjusted spread. The z-score is inverted, so tighter credit spreads read as looser conditions.",
+        "unit": "spread %",
+        "current": 2.78,
+        "z_21d": 0.8661,
+        "z_change_7d": -0.0003,
+        "z_change_30d": -0.0767,
+        "contribution_7d": -0.0001
+      }
+    ],
+    "brief": [
+      "Financial Conditions is +0.30, so this driver is supportive for MMI.",
+      "Sorted by 7-day contribution proxy, MOVE is lifting the latest 7-day FinCon move; current support is led by HY spread, while MOVE is the biggest drag.",
+      "Under the hood, 2 of 3 inputs have positive current z-scores; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through."
     ]
   },
   "mrmi_combined": {

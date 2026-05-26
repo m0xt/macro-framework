@@ -201,3 +201,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-26T11:08:50Z — Task 40 MMI driver drill-downs
+- What: Replicated the approved Growth Impulses drill-down pattern for Sector Breadth and Financial Conditions: compact contribution-sorted z-score tables, custom input tooltips, raw input history charts with select/click-row UX, deterministic mini-briefs, and backward-compatible lean snapshot payloads.
+- Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; tests/test_smoke.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

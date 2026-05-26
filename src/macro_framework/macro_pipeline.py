@@ -288,6 +288,92 @@ GROWTH_IMPULSE_SPECS = {
     },
 }
 
+
+FINANCIAL_CONDITIONS_SPECS = {
+    "^VIX": {
+        "label": "VIX",
+        "group": "Equity volatility",
+        "source": "CBOE Volatility Index",
+        "explanation": (
+            "S&P 500 implied volatility. The z-score is inverted, so falling VIX loosens "
+            "financial conditions and supports MMI."
+        ),
+        "unit": "index",
+    },
+    "^MOVE": {
+        "label": "MOVE",
+        "group": "Rates volatility",
+        "source": "ICE BofA MOVE Index",
+        "explanation": (
+            "Treasury-market implied volatility. The z-score is inverted, so calmer rate "
+            "volatility is positive for financial conditions."
+        ),
+        "unit": "index",
+    },
+    "BAMLH0A0HYM2": {
+        "label": "HY spread",
+        "group": "Credit stress",
+        "source": "BofA US High Yield OAS",
+        "explanation": (
+            "High-yield option-adjusted spread. The z-score is inverted, so tighter credit "
+            "spreads read as looser conditions."
+        ),
+        "unit": "spread %",
+    },
+}
+
+SECTOR_BREADTH_SPECS = {
+    "SMH": {
+        "label": "SMH",
+        "group": "Semiconductors",
+        "source": "VanEck Semiconductor ETF",
+        "explanation": "Semiconductors are a high-beta cyclical leadership group; strength broadens risk appetite.",
+        "unit": "price",
+    },
+    "IWM": {
+        "label": "IWM",
+        "group": "Small caps",
+        "source": "iShares Russell 2000 ETF",
+        "explanation": "Small caps reflect domestic cyclical participation and financing sensitivity.",
+        "unit": "price",
+    },
+    "IYT": {
+        "label": "IYT",
+        "group": "Transports",
+        "source": "iShares Transportation ETF",
+        "explanation": "Transports track economically sensitive shipping, logistics, and travel activity.",
+        "unit": "price",
+    },
+    "IBB": {
+        "label": "IBB",
+        "group": "Biotech",
+        "source": "iShares Biotechnology ETF",
+        "explanation": "Biotech adds speculative growth participation outside mega-cap technology.",
+        "unit": "price",
+    },
+    "XHB": {
+        "label": "XHB",
+        "group": "Housing",
+        "source": "SPDR Homebuilders ETF",
+        "explanation": "Homebuilders are rate-sensitive cyclicals and often react early to financial conditions.",
+        "unit": "price",
+    },
+    "KBE": {
+        "label": "KBE",
+        "group": "Banks",
+        "source": "SPDR Bank ETF",
+        "explanation": "Banks capture credit-cycle health, yield-curve sensitivity, and domestic risk appetite.",
+        "unit": "price",
+    },
+    "XRT": {
+        "label": "XRT",
+        "group": "Retail",
+        "source": "SPDR Retail ETF",
+        "explanation": "Retail reflects consumer-facing cyclical participation beyond defensive staples.",
+        "unit": "price",
+    },
+}
+
 GROWTH_IMPULSE_CHANGE_COMPONENTS = {"YC", "WEI", "BAML_INV", "VIX_INV", "BDI_SA"}
 
 def growth_impulse_components(data: pd.DataFrame) -> dict[str, pd.Series]:
@@ -504,6 +590,155 @@ def calc_growth_impulse(data: pd.DataFrame) -> pd.DataFrame:
 
     return pd.DataFrame({"fast": gii_fast, "slow": gii_slow}, index=data.index)
 
+def _raw_components_from_specs(data: pd.DataFrame, specs: dict[str, dict]) -> dict[str, pd.Series]:
+    return {key: data[key] for key in specs if key in data}
+
+
+def _z_components_from_raw(
+    components: dict[str, pd.Series],
+    lookback: int,
+    *,
+    invert: bool = False,
+) -> dict[str, pd.Series]:
+    sign = -1 if invert else 1
+    return {key: sign * zscore(series, lookback) for key, series in components.items()}
+
+
+def _mmi_driver_drilldown(
+    *,
+    driver_name: str,
+    driver_short: str,
+    intro: str,
+    specs: dict[str, dict],
+    raw_components: dict[str, pd.Series],
+    z_components: dict[str, pd.Series],
+    composite: pd.DataFrame | None = None,
+    include_values: bool = True,
+) -> dict:
+    rows = []
+    chart_index = composite.index if composite is not None and len(composite.index) else None
+    if chart_index is None:
+        first = next(iter(raw_components.values()), None)
+        chart_index = first.index if first is not None else pd.Index([])
+    component_count = len(specs) or 1
+
+    for key, spec in specs.items():
+        raw = raw_components.get(key)
+        z = z_components.get(key)
+        if raw is None or z is None:
+            continue
+        z_change_7d = _component_delta(z, 5)
+        z_change_30d = _component_delta(z, 21)
+        contribution_7d = (
+            round(float(z_change_7d) / component_count, 6) if z_change_7d is not None else None
+        )
+        row = {
+            "key": key,
+            "label": spec["label"],
+            "group": spec["group"],
+            "source": spec["source"],
+            "explanation": spec["explanation"],
+            "unit": spec["unit"],
+            "current": _latest_component_value(raw),
+            "z_21d": _latest_component_value(z),
+            "z_change_7d": z_change_7d,
+            "z_change_30d": z_change_30d,
+            "contribution_7d": contribution_7d,
+        }
+        if include_values:
+            row["values"] = _component_values(raw, chart_index)
+        rows.append(row)
+
+    spec_order = list(specs)
+    rows = sorted(
+        rows,
+        key=lambda r: (-abs(r["contribution_7d"] or 0), spec_order.index(r["key"])),
+    )
+
+    score = (
+        _latest_component_value(composite["composite"])
+        if composite is not None and "composite" in composite
+        else None
+    )
+    valid = [r for r in rows if r["z_21d"] is not None]
+    supportive = sum(1 for r in valid if r["z_21d"] > 0)
+    drag = sum(1 for r in valid if r["z_21d"] < 0)
+    movers = [r for r in rows if r["contribution_7d"] is not None]
+    top_mover = movers[0] if movers else None
+    top_support = max(valid, key=lambda r: r["z_21d"], default=None)
+    top_drag = min(valid, key=lambda r: r["z_21d"], default=None)
+
+    if score is None:
+        brief = [f"{driver_name} does not yet have enough valid component history for a full read."]
+    else:
+        direction = "supportive" if score > 0 else "a drag"
+        support_text = top_support["label"] if top_support else "none"
+        drag_text = top_drag["label"] if top_drag else "none"
+        mover_text = "none"
+        if top_mover and top_mover["contribution_7d"]:
+            mover_dir = "lifting" if top_mover["contribution_7d"] > 0 else "pulling down"
+            mover_text = f"{top_mover['label']} is {mover_dir} the latest 7-day {driver_short} move"
+        brief = [
+            f"{driver_name} is {score:+.2f}, so this driver is {direction} for MMI.",
+            f"Sorted by 7-day contribution proxy, {mover_text}; current support is led by {support_text}, while {drag_text} is the biggest drag.",
+            f"Under the hood, {supportive} of {len(valid)} inputs have positive current z-scores; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through.",
+        ]
+
+    return {
+        "intro": intro,
+        "sort_note": (
+            f"Rows sort by absolute 7-day contribution to the latest {driver_short} move, "
+            f"proxied as each input's 7-day z-score change divided by the "
+            f"{component_count} {driver_name.lower()} components."
+        ),
+        "score": score,
+        "supportive_count": supportive,
+        "drag_count": drag,
+        "rows": rows,
+        "brief": brief,
+    }
+
+
+def financial_conditions_drilldown(
+    data: pd.DataFrame,
+    fincon: pd.DataFrame | None = None,
+    *,
+    include_values: bool = True,
+) -> dict:
+    raw_components = _raw_components_from_specs(data, FINANCIAL_CONDITIONS_SPECS)
+    z_components = _z_components_from_raw(raw_components, 252, invert=True)
+    return _mmi_driver_drilldown(
+        driver_name="Financial Conditions",
+        driver_short="FinCon",
+        intro="Financial Conditions asks whether volatility and credit stress are loosening or tightening.",
+        specs=FINANCIAL_CONDITIONS_SPECS,
+        raw_components=raw_components,
+        z_components=z_components,
+        composite=fincon,
+        include_values=include_values,
+    )
+
+
+def sector_breadth_drilldown(
+    data: pd.DataFrame,
+    breadth: pd.DataFrame | None = None,
+    *,
+    include_values: bool = True,
+) -> dict:
+    raw_components = _raw_components_from_specs(data, SECTOR_BREADTH_SPECS)
+    z_components = _z_components_from_raw(raw_components, 90)
+    return _mmi_driver_drilldown(
+        driver_name="Sector Breadth",
+        driver_short="Breadth",
+        intro="Sector Breadth asks whether cyclical equity participation is broadening or narrowing.",
+        specs=SECTOR_BREADTH_SPECS,
+        raw_components=raw_components,
+        z_components=z_components,
+        composite=breadth,
+        include_values=include_values,
+    )
+
+
 def calc_financial_conditions(data: pd.DataFrame) -> pd.DataFrame:
     """
     Financial Conditions Composite — equal-weight z-score, INVERTED.
@@ -515,7 +750,7 @@ def calc_financial_conditions(data: pd.DataFrame) -> pd.DataFrame:
 
     # Optimized: VIX + MOVE + HY only (drop IG/BAMLC0A0CM)
     # Negate each component so higher = lower stress = better
-    for col in ["^VIX", "^MOVE", "BAMLH0A0HYM2"]:
+    for col in FINANCIAL_CONDITIONS_SPECS:
         if col in data:
             components[col] = -zscore(data[col], LOOKBACK)
 
@@ -532,7 +767,7 @@ def calc_sector_breadth(data: pd.DataFrame) -> pd.DataFrame:
     US Equity Sector Breadth — equal-weight z-score of 8 sector ETFs.
     """
     LOOKBACK = 90   # optimized for drawdown: was 63 (originally 252)
-    tickers = ["SMH", "IWM", "IYT", "IBB", "XHB", "KBE", "XRT"]  # optimized: drop SLX
+    tickers = list(SECTOR_BREADTH_SPECS)  # optimized: drop SLX
     components = {}
 
     for t in tickers:
@@ -1053,6 +1288,8 @@ def prepare_chart_data(data, composite, gii, fincon, breadth, business_cycle, in
         "spx": to_list(spx),
         "iwm": to_list(iwm),
         "growth_impulse": growth_impulse_drilldown(data, gii),
+        "sector_breadth": sector_breadth_drilldown(data, breadth),
+        "financial_conditions": financial_conditions_drilldown(data, fincon),
         "composite": {
             "value": to_list(composite.reindex(gii.index)),
             "bg": bg_colors_single(composite.reindex(gii.index), green_above=True),
@@ -1264,6 +1501,8 @@ def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, ma
         },
         "inflation": _latest(infl_ctx["composite"]) if "composite" in infl_ctx else None,
         "growth_impulse_drilldown": growth_impulse_drilldown(data, gii, include_values=False),
+        "sector_breadth_drilldown": sector_breadth_drilldown(data, breadth, include_values=False),
+        "financial_conditions_drilldown": financial_conditions_drilldown(data, fincon, include_values=False),
     }
 
     # Milk Road Macro Index (combined headline signal)

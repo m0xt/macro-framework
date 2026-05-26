@@ -303,6 +303,8 @@ def test_save_snapshot_schema_uses_actual_current_keys(tmp_path: Path, monkeypat
         "macro",
         "underliers",
         "growth_impulse_drilldown",
+        "sector_breadth_drilldown",
+        "financial_conditions_drilldown",
     } <= snapshot.keys()
     assert {"gii_fast", "fincon", "breadth"} <= snapshot["components"].keys()
     assert {
@@ -321,6 +323,8 @@ def test_save_snapshot_schema_uses_actual_current_keys(tmp_path: Path, monkeypat
         "macro"
     ].keys()
     assert {"intro", "score", "rows", "brief"} <= snapshot["growth_impulse_drilldown"].keys()
+    assert {"intro", "score", "rows", "brief"} <= snapshot["sector_breadth_drilldown"].keys()
+    assert {"intro", "score", "rows", "brief"} <= snapshot["financial_conditions_drilldown"].keys()
 
 
 def test_growth_impulse_drilldown_exposes_all_current_inputs() -> None:
@@ -350,6 +354,49 @@ def test_growth_impulse_drilldown_exposes_all_current_inputs() -> None:
             "z_126d",
         } <= row.keys()
         assert row["explanation"]
+
+
+def test_mmi_driver_drilldowns_expose_all_current_inputs() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    data_path = ROOT / ".cache" / "raw_data.pkl"
+    assert data_path.exists(), "raw_data.pkl is required for the dashboard drill-down smoke test"
+    data = pd.read_pickle(data_path)
+
+    cases = [
+        (
+            macro_pipeline.sector_breadth_drilldown(data, macro_pipeline.calc_sector_breadth(data)),
+            set(macro_pipeline.SECTOR_BREADTH_SPECS),
+            7,
+        ),
+        (
+            macro_pipeline.financial_conditions_drilldown(
+                data, macro_pipeline.calc_financial_conditions(data)
+            ),
+            set(macro_pipeline.FINANCIAL_CONDITIONS_SPECS),
+            3,
+        ),
+    ]
+    for payload, expected_keys, expected_count in cases:
+        rows = payload["rows"]
+        assert {row["key"] for row in rows} == expected_keys
+        assert len(rows) == expected_count
+        assert payload["brief"]
+        assert "contribution" in payload["sort_note"]
+        for row in rows:
+            assert {
+                "group",
+                "label",
+                "source",
+                "explanation",
+                "current",
+                "z_21d",
+                "z_change_7d",
+                "z_change_30d",
+                "contribution_7d",
+                "values",
+            } <= row.keys()
+            assert row["explanation"]
+
 
 
 def _function_source(module_text: str, name: str, next_name: str) -> str:
