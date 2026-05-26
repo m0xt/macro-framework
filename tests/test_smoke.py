@@ -265,14 +265,17 @@ def test_reference_library_exposes_official_inflation_and_ism_metadata() -> None
         "CPIAUCSL": np.linspace(100.0, 112.0, len(idx)),
         "CPILFESL": np.linspace(100.0, 110.0, len(idx)),
         "PPIACO": np.linspace(100.0, 115.0, len(idx)),
-        "NAPM": np.linspace(48.0, 52.0, len(idx)),
+        "ISM_PMI": np.linspace(48.0, 52.0, len(idx)),
     }, index=idx)
 
     library = build.build_library_indicators(data, idx)
 
     assert "PPIACO" in macro_pipeline.FRED_SERIES
+    assert "ISM_PMI" in macro_pipeline.NON_FRED_SERIES
     assert library["ism_mfg"]["available"] is True
     assert library["ism_mfg"]["ref_line"] == 50
+    assert "DBnomics mirror" in library["ism_mfg"]["notes"]
+    assert library["ism_mfg"]["values"][-1] is not None
     assert library["cpi_headline"]["label"] == "Official CPI Headline"
     assert library["cpi_core"]["label"] == "Official Core CPI"
     assert library["ppi_all_commodities"]["label"] == "Official PPI All Commodities"
@@ -280,6 +283,38 @@ def test_reference_library_exposes_official_inflation_and_ism_metadata() -> None
     assert library["cpi_core"]["unit"] == "%"
     assert library["ppi_all_commodities"]["unit"] == "%"
     assert library["ppi_all_commodities"]["values"][-1] is not None
+
+
+def test_fetch_dbnomics_ism_pmi_filters_suspicious_tail(monkeypatch: pytest.MonkeyPatch) -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+
+    class FakeResponse:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "series": {
+                    "docs": [{
+                        "period": ["2025-07", "2025-08", "2025-09"],
+                        "value": [48.0, 48.7, 11.1],
+                    }]
+                }
+            }
+
+    def fake_get(url: str, timeout: int) -> FakeResponse:
+        assert url == macro_pipeline.DBNOMICS_ISM_PMI_URL
+        assert timeout == 20
+        return FakeResponse()
+
+    monkeypatch.setattr(macro_pipeline.requests, "get", fake_get)
+
+    df = macro_pipeline.fetch_dbnomics_ism_pmi(start="2025-01-01")
+
+    assert list(df.columns) == ["ISM_PMI"]
+    assert df.loc[pd.Timestamp("2025-08-01"), "ISM_PMI"] == pytest.approx(48.7)
+    assert pd.isna(df.loc[pd.Timestamp("2025-09-01"), "ISM_PMI"])
+    assert df["ISM_PMI"].dropna().empty is False
 
 
 def test_save_snapshot_schema_uses_actual_current_keys(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

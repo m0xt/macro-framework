@@ -164,13 +164,11 @@ def build_library_indicators(data, dates_index):
         notes="Monetary fuel for risk assets · expanding = tailwind")
 
     # Activity
-    # FRED's old ISM Manufacturing PMI/NAPM redistribution endpoint now returns 404;
-    # keep the expected Reference Library row explicit rather than silently proxying it.
     add("ism_mfg", "ISM Manufacturing PMI", "Activity",
-        data["NAPM"] if "NAPM" in data else None,
+        data["ISM_PMI"] if "ISM_PMI" in data else None,
         transform="raw", ref_line=50, ref_label="expansion/contraction",
-        desc="ISM Manufacturing PMI (diffusion index; >50 = manufacturing expansion, <50 = contraction). FRED's legacy NAPM endpoint is not currently available, so the row only renders if an official NAPM series is present in the local data cache.",
-        notes="Official ISM/NAPM feed unavailable via current FRED CSV")
+        desc="ISM Manufacturing PMI (diffusion index; >50 = manufacturing expansion, <50 = contraction), sourced from the Institute for Supply Management via DBnomics mirror because FRED's legacy NAPM CSV endpoint now returns 404.",
+        notes="Institute for Supply Management · DBnomics mirror")
 
     add("gdpnow", "Atlanta Fed GDPNow", "Activity",
         data["GDPNOW"] if "GDPNOW" in data else None,

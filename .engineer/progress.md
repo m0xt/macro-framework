@@ -240,3 +240,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Official ISM Manufacturing PMI/NAPM data is not currently available via FRED CSV (NAPM returns 404); use an ISM-licensed feed or approve a clearly-labeled proxy if Martin needs this chart populated.
+
+## 2026-05-26T12:07:26Z — Task 45a Reference Library ISM PMI source
+- What: Added DBnomics ISM/pmi/pm fetch for ISM Manufacturing PMI as `ISM_PMI`, wired cache expected-series refresh and the Reference Library row/chart, and filtered DBnomics' suspicious Sep-Dec 2025 low-teens tail so the dashboard charts the last plausible PMI value instead of bad mirror data. Fresh build shows ISM Manufacturing PMI 48.70 from the DBnomics mirror; latest valid source month is 2025-08 before the filtered tail.
+- Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; tests/test_smoke.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: DBnomics currently exposes suspicious 2025-09..2025-12 values (11.1/10.0/10.0/10.3), so the helper filters out-of-range PMI values and carries forward 2025-08=48.7 until the mirror is corrected or a better licensed ISM feed is available.

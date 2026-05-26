@@ -1,14 +1,14 @@
 {
   "date": "2026-05-26",
-  "build_time_utc": "2026-05-26 11:57 UTC",
+  "build_time_utc": "2026-05-26 12:05 UTC",
   "mrmi": {
-    "composite": 0.36820326407898296,
+    "composite": 0.36607123802430364,
     "state": "green"
   },
   "components": {
-    "gii_fast": 0.20052033249822293,
-    "fincon": 0.305016589040725,
-    "breadth": 0.599072870698001
+    "gii_fast": 0.19938880948386978,
+    "fincon": 0.29975203389130023,
+    "breadth": 0.5990728706977408
   },
   "mrci": {
     "composite": 0.6872249052349158,
@@ -21,7 +21,7 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": 0.2005,
+    "score": 0.1994,
     "supportive_count": 7,
     "drag_count": 3,
     "rows": [
@@ -50,14 +50,14 @@
         "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
         "unit": "price",
         "trend_type": "roc",
-        "current": 6.3755,
-        "trend_21d": 7.2775,
-        "trend_126d": 10.4365,
-        "z_21d": 0.7005,
-        "z_126d": 0.1218,
-        "z_change_7d": 0.2185,
-        "z_change_30d": 1.239,
-        "contribution_7d": 0.02185
+        "current": 6.375,
+        "trend_21d": 7.2691,
+        "trend_126d": 10.4279,
+        "z_21d": 0.6994,
+        "z_126d": 0.1209,
+        "z_change_7d": 0.2173,
+        "z_change_30d": 1.2378,
+        "contribution_7d": 0.02173
       },
       {
         "key": "HYG",
@@ -135,14 +135,14 @@
         "explanation": "Equity volatility, inverted so lower volatility is positive for risk appetite.",
         "unit": "index",
         "trend_type": "change",
-        "current": -16.67,
-        "trend_21d": 0.71,
-        "trend_126d": 3.42,
-        "z_21d": 0.1203,
-        "z_126d": 0.5436,
-        "z_change_7d": 0.094,
-        "z_change_30d": -0.0743,
-        "contribution_7d": 0.0094
+        "current": -16.73,
+        "trend_21d": 0.65,
+        "trend_126d": 3.36,
+        "z_21d": 0.1102,
+        "z_126d": 0.5359,
+        "z_change_7d": 0.0838,
+        "z_change_30d": -0.0845,
+        "contribution_7d": 0.00838
       },
       {
         "key": "SPHB_SPLV",
@@ -316,7 +316,7 @@
   "financial_conditions_drilldown": {
     "intro": "Financial Conditions asks whether volatility and credit stress are loosening or tightening.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative FinCon signals rise first; 7-day contribution is still proxied as each input's 7-day z-score change divided by the 3 financial conditions components.",
-    "score": 0.305,
+    "score": 0.2998,
     "supportive_count": 2,
     "drag_count": 1,
     "rows": [
@@ -340,11 +340,11 @@
         "source": "CBOE Volatility Index",
         "explanation": "S&P 500 implied volatility. The z-score is inverted, so falling VIX loosens financial conditions and supports MMI.",
         "unit": "index",
-        "current": 16.67,
-        "z_21d": 0.5758,
-        "z_change_7d": 0.0344,
-        "z_change_30d": 0.2444,
-        "contribution_7d": 0.011467
+        "current": 16.73,
+        "z_21d": 0.56,
+        "z_change_7d": 0.0186,
+        "z_change_30d": 0.2286,
+        "contribution_7d": 0.0062
       },
       {
         "key": "^MOVE",
@@ -363,20 +363,20 @@
     "brief": [
       "Financial Conditions improved over the latest week, led by MOVE (+0.04 contribution points).",
       "At +0.30, FinCon is currently supporting MMI.",
-      "Support currently comes from HY spread (+0.87z) and VIX (+0.58z).",
+      "Support currently comes from HY spread (+0.87z) and VIX (+0.56z).",
       "The main drag is MOVE (-0.53z).",
       "Input breadth is broadly constructive: 2 of 3 inputs are positive and 1 input is negative.",
       "The next read improves if MOVE stops acting as a drag and more inputs join the positive side; it weakens if HY spread rolls over."
     ]
   },
   "mrmi_combined": {
-    "value": 0.07744866531600114,
+    "value": 0.07531663926132182,
     "state": "CAUTION",
     "legacy_state": "LONG",
     "exposure": 0.75,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": 0.36820326407898296,
+    "momentum": 0.36607123802430364,
     "stress_intensity": 0.08150919752596358,
     "stress_score": 0.8150919752596358,
     "growth_weakness": 0.6717163195228619,
@@ -406,13 +406,13 @@
   "underliers": {
     "^GSPC": 7473.47021484375,
     "IWM": 285.1199951171875,
-    "BTC-USD": 77115.2734375,
-    "^VIX": 16.670000076293945,
+    "BTC-USD": 77150.0078125,
+    "^VIX": 16.729999542236328,
     "^MOVE": 78.43000030517578,
     "^TNX": 4.558000087738037,
     "HYG": 79.91000366210938,
-    "HG=F": 6.375500202178955,
-    "GC=F": 4510.7998046875,
+    "HG=F": 6.375,
+    "GC=F": 4508.7998046875,
     "DBC": 30.540000915527344,
     "DGS10": 4.57,
     "DGS2": 4.08,

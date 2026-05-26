@@ -73,6 +73,11 @@ FRED_SERIES = {
     "RPI": "Real Personal Income",
 }
 
+DBNOMICS_ISM_PMI_URL = "https://api.db.nomics.world/v22/series/ISM/pmi/pm?observations=1"
+NON_FRED_SERIES = {
+    "ISM_PMI": "ISM Manufacturing PMI (via DBnomics mirror)",
+}
+
 def fetch_yfinance(tickers: list[str], period: str = "10y") -> pd.DataFrame:
     """Fetch close prices for all tickers from Yahoo Finance."""
     print(f"  Fetching {len(tickers)} tickers from Yahoo Finance...", end=" ", flush=True)
@@ -115,6 +120,52 @@ def fetch_fred(series_ids: list[str], start: str = "2016-01-01") -> pd.DataFrame
     print(f"OK ({len(result)} rows)")
     return result
 
+def fetch_dbnomics_ism_pmi(start: str = "2016-01-01") -> pd.DataFrame:
+    """Fetch ISM Manufacturing PMI from DBnomics' ISM mirror.
+
+    FRED's legacy NAPM CSV endpoint currently returns 404, but DBnomics exposes
+    the Institute for Supply Management monthly PMI series. DBnomics' current
+    mirror has a suspicious low-value tail in late 2025, so implausible PMI
+    readings are treated as missing instead of charting bad data.
+    """
+    print("  Fetching ISM Manufacturing PMI from DBnomics...", end=" ", flush=True)
+    try:
+        response = requests.get(DBNOMICS_ISM_PMI_URL, timeout=20)
+        response.raise_for_status()
+        payload = response.json()
+        docs = payload.get("series", {}).get("docs", [])
+        if not docs:
+            raise ValueError("DBnomics response did not include series docs")
+
+        doc = docs[0]
+        periods = doc.get("period", [])
+        values = doc.get("value", [])
+        if len(periods) != len(values):
+            raise ValueError("DBnomics period/value lengths differ")
+
+        idx = pd.to_datetime(periods, format="%Y-%m")
+        series = pd.Series(pd.to_numeric(values, errors="coerce"), index=idx, name="ISM_PMI")
+        series = series[series.index >= pd.Timestamp(start)]
+
+        # PMI is a diffusion index centered on 50. Values in the low teens are
+        # incompatible with recent official ISM releases and reflect a mirror
+        # data-quality issue, not a manufacturing depression.
+        suspicious = series.notna() & ((series < 30.0) | (series > 80.0))
+        if suspicious.any():
+            print(f"filtered {int(suspicious.sum())} suspicious point(s);", end=" ", flush=True)
+            series = series.mask(suspicious)
+
+        result = series.to_frame()
+        print(f"OK ({int(series.notna().sum())} observations)")
+        return result
+    except Exception as e:
+        print(f"failed: {e}")
+        return pd.DataFrame({"ISM_PMI": pd.Series(dtype=float)})
+
+def fetch_non_fred_series() -> pd.DataFrame:
+    """Fetch supplementary non-FRED reference-library series."""
+    return fetch_dbnomics_ism_pmi()
+
 def fetch_all_data(use_cache: bool = True) -> pd.DataFrame:
     """Fetch and align all data into a single DataFrame."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -123,22 +174,28 @@ def fetch_all_data(use_cache: bool = True) -> pd.DataFrame:
         age_hours = (datetime.now().timestamp() - DATA_CACHE.stat().st_mtime) / 3600
         if age_hours < 12:
             cached = pd.read_pickle(DATA_CACHE)
-            expected_cols = set(YF_TICKERS) | set(FRED_SERIES)
+            expected_cols = set(YF_TICKERS) | set(FRED_SERIES) | set(NON_FRED_SERIES)
             missing_cols = sorted(expected_cols - set(cached.columns))
-            if not missing_cols:
+            empty_expected_cols = [
+                col for col in sorted(set(NON_FRED_SERIES) & set(cached.columns))
+                if cached[col].dropna().empty
+            ]
+            refresh_cols = missing_cols + empty_expected_cols
+            if not refresh_cols:
                 print(f"  Using cached data ({age_hours:.1f}h old)")
                 return cached
             print(
                 "  Cache missing expected series "
-                f"({', '.join(missing_cols[:8])}{'...' if len(missing_cols) > 8 else ''}); refreshing"
+                f"({', '.join(refresh_cols[:8])}{'...' if len(refresh_cols) > 8 else ''}); refreshing"
             )
 
     print("Fetching data...")
     yf_data = fetch_yfinance(YF_TICKERS)
     fred_data = fetch_fred(list(FRED_SERIES.keys()))
+    non_fred_data = fetch_non_fred_series()
 
     # Align to common daily index
-    combined = pd.concat([yf_data, fred_data], axis=1)
+    combined = pd.concat([yf_data, fred_data, non_fred_data], axis=1)
     combined = combined.sort_index()
 
     # Forward-fill gaps (FRED weekends, WEI weekly gaps)
