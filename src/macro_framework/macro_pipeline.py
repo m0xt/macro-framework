@@ -496,6 +496,12 @@ def mrmi_exposure(value: float | None) -> float | None:
         return 1.0
     return None
 
+def mrmi_legacy_state(value: float | None) -> str | None:
+    """Backward-compatible LONG/CASH state for constrained downstream schemas."""
+    exposure = mrmi_exposure(value)
+    if exposure is None:
+        return None
+    return "LONG" if exposure > 0 else "CASH"
 
 def _lagged(series: pd.Series, days: int) -> pd.Series:
     """Shift forward in time so each value first appears on its actual release date."""
@@ -1031,6 +1037,7 @@ def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, ma
         snapshot["mrmi_combined"] = {
             "value": mrmi_v,
             "state": mrmi_posture(mrmi_v),
+            "legacy_state": mrmi_legacy_state(mrmi_v),
             "exposure": mrmi_exposure(mrmi_v),
             "cash_threshold": MRMI_CASH_THRESHOLD,
             "long_threshold": MRMI_LONG_THRESHOLD,

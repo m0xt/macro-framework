@@ -39,7 +39,7 @@ def test_row_from_snapshot_maps_headline_to_mrmi_combined():
     assert row["date"] == "2026-05-11"
     assert row["mrmi"] == pytest.approx(1.0227)             # not 0.5227
     assert row["mrmi_state"] == "LONG"                      # not 'green'
-    assert row["mrmi_exposure"] == pytest.approx(1.0)
+    assert "mrmi_exposure" not in row                        # schema v3 hot fields stay backward-compatible
     assert row["mmi"] == pytest.approx(0.5227)              # from mrmi_combined.momentum
     assert row["stress_intensity"] == pytest.approx(0.4321)
     assert row["stress_score"] == pytest.approx(4.321)
@@ -61,19 +61,19 @@ def test_row_from_snapshot_embeds_full_blob():
     assert row["snapshot"]["underliers"]["^GSPC"] == 5000.0
 
 
-def test_row_from_snapshot_syncs_caution_posture_and_exposure():
+def test_row_from_snapshot_keeps_constrained_state_backward_compatible():
     snapshot = {
         **SAMPLE_SNAPSHOT,
         "mrmi_combined": {
             **SAMPLE_SNAPSHOT["mrmi_combined"],
             "value": 0.1,
             "state": "CAUTION",
+            "legacy_state": "LONG",
             "exposure": 0.75,
         },
     }
     row = row_from_snapshot(snapshot)
-    assert row["mrmi_state"] == "CAUTION"
-    assert row["mrmi_exposure"] == pytest.approx(0.75)
+    assert row["mrmi_state"] == "LONG"
     assert row["snapshot"]["mrmi_combined"]["state"] == "CAUTION"
     assert row["snapshot"]["mrmi_combined"]["exposure"] == pytest.approx(0.75)
 
@@ -108,11 +108,9 @@ def test_rows_from_backfill_series_basic():
     assert rows[0]["date"] == "2024-01-01"
     assert rows[0]["mrmi"] == 0.5
     assert rows[0]["mrmi_state"] == "LONG"      # mrmi > +0.25
-    assert rows[1]["mrmi_state"] == "CAUTION"   # investor caution zone
+    assert rows[1]["mrmi_state"] == "LONG"      # CAUTION, constrained hot field
     assert rows[2]["mrmi_state"] == "CASH"      # mrmi < -0.50
-    assert rows[0]["mrmi_exposure"] == pytest.approx(1.0)
-    assert rows[1]["mrmi_exposure"] == pytest.approx(0.75)
-    assert rows[2]["mrmi_exposure"] == pytest.approx(0.0)
+    assert "mrmi_exposure" not in rows[0]
     assert rows[0]["stress_score"] == pytest.approx(3.5)
     assert rows[1]["stress_growth_pressure"] == pytest.approx(7.0)
     assert rows[2]["stress_inflation_pressure"] == pytest.approx(6.0)
