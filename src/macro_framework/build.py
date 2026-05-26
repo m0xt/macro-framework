@@ -111,6 +111,26 @@ def to_list_safe(s):
     return [round(float(v), 4) if pd.notna(v) else None for v in s]
 
 
+def to_date_list_safe(index):
+    """Convert a datetime-like index to YYYY-MM-DD strings for chart payloads."""
+    return [pd.Timestamp(d).strftime("%Y-%m-%d") for d in index]
+
+
+def ffill_observation_points(series):
+    """Recover source observation points from a forward-filled series.
+
+    The production raw-data cache aligns mixed-frequency sources to a daily
+    index and forward-fills them. That is useful for calculations, but it makes
+    stale monthly reference-library sources look like flat daily observations.
+    For charting monthly context, keep only the first non-null point and later
+    value changes so the visible line ends at the latest real observation.
+    """
+    s = series.dropna().sort_index()
+    if s.empty:
+        return s
+    return s[s.ne(s.shift())]
+
+
 def build_library_indicators(data, dates_index):
     """
     Compute per-indicator series + display values for the Reference Library.
@@ -120,37 +140,44 @@ def build_library_indicators(data, dates_index):
     out = {}
 
     def add(key, label, category, raw_series, *,
-            transform="raw", unit="", ref_line=None, ref_label="", desc="", notes=""):
+            transform="raw", unit="", ref_line=None, ref_label="", desc="", notes="",
+            chart_series=None):
         if raw_series is None:
             out[key] = {
                 "label": label, "category": category,
-                "values": None, "display": "—",
+                "dates": None, "values": None, "display": "—",
                 "unit": unit, "ref_line": ref_line, "ref_label": ref_label,
                 "desc": desc, "notes": notes, "available": False,
             }
             return
 
         s = raw_series.reindex(dates_index)
+        chart_s = chart_series if chart_series is not None else s
         if transform == "yoy_pct":
             display_series = s.pct_change(YEAR) * 100
+            chart_display_series = chart_s.pct_change(YEAR) * 100
             unit_str = "%"
             fmt = lambda v: f"{'+' if v >= 0 else ''}{v:.1f}%"
         elif transform == "thousands":
             display_series = s / 1000.0
+            chart_display_series = chart_s / 1000.0
             unit_str = "K"
             fmt = lambda v: f"{v:,.0f}K"
         else:  # raw
             display_series = s
+            chart_display_series = chart_s
             unit_str = unit
             fmt = lambda v: f"{'+' if v >= 0 and key not in {'cfnai'} else ''}{v:.2f}{unit_str}" if unit_str else f"{v:.2f}"
 
         latest = display_series.dropna()
         latest_v = float(latest.iloc[-1]) if len(latest) else None
         display = fmt(latest_v) if latest_v is not None else "—"
+        chart_display_series = chart_display_series.dropna()
 
         out[key] = {
             "label": label, "category": category,
-            "values": to_list_safe(display_series),
+            "dates": to_date_list_safe(chart_display_series.index),
+            "values": to_list_safe(chart_display_series),
             "display": display, "unit": unit_str,
             "ref_line": ref_line, "ref_label": ref_label,
             "desc": desc, "notes": notes, "available": True,
@@ -164,9 +191,11 @@ def build_library_indicators(data, dates_index):
         notes="Monetary fuel for risk assets · expanding = tailwind")
 
     # Activity
+    ism_series = data["ISM_PMI"] if "ISM_PMI" in data else None
     add("ism_mfg", "ISM Manufacturing PMI", "Activity",
-        data["ISM_PMI"] if "ISM_PMI" in data else None,
+        ism_series,
         transform="raw", ref_line=50, ref_label="expansion/contraction",
+        chart_series=ffill_observation_points(ism_series) if ism_series is not None else None,
         desc="ISM Manufacturing PMI (diffusion index; >50 = manufacturing expansion, <50 = contraction), sourced from the Institute for Supply Management via DBnomics mirror because FRED's legacy NAPM CSV endpoint now returns 404.",
         notes="Institute for Supply Management · DBnomics mirror")
 
@@ -704,6 +733,7 @@ def render(snap, chart, raw_data=None):
     library_payload = {
         key: {
             "label": m["label"],
+            "dates": m["dates"],
             "values": m["values"],
             "unit": m["unit"],
             "ref_line": m["ref_line"],
@@ -2133,7 +2163,7 @@ function toggleLib(key) {{
 function createLibChart(key) {{
   const entry = (CHART_DATA.library || {{}})[key];
   if (!entry) return;
-  const dates = sliceRecent(CHART_DATA.dates, RANGE_BARS[currentRange]);
+  const dates = sliceRecent(entry.dates || CHART_DATA.dates, RANGE_BARS[currentRange]);
   const values = sliceRecent(entry.values, RANGE_BARS[currentRange]);
   const unit = entry.unit || '';
   const refLine = entry.ref_line;

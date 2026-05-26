@@ -247,3 +247,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: DBnomics currently exposes suspicious 2025-09..2025-12 values (11.1/10.0/10.0/10.3), so the helper filters out-of-range PMI values and carries forward 2025-08=48.7 until the mirror is corrected or a better licensed ISM feed is available.
+
+## 2026-05-26T12:16:09Z — Task 46a ISM reference chart history
+- What: Fixed the Reference Library ISM Manufacturing PMI chart to render recovered monthly observation points instead of the daily forward-filled tail; payload now carries per-library dates, preserves the 50 reference line, and stops ISM at the latest valid DBnomics observation (2025-08=48.7 after suspicious Sep-Dec tail filtering). Verified dashboard payload has 63 non-null ISM chart values, 49 distinct values, 2020-05-01=43.1 through 2025-08-01=48.7.
+- Files touched: src/macro_framework/build.py; tests/test_smoke.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: DBnomics still exposes suspicious 2025-09..2025-12 low-teens ISM values, so they remain filtered until the mirror is corrected or a better licensed ISM feed is available.

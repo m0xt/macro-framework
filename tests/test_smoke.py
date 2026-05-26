@@ -285,6 +285,28 @@ def test_reference_library_exposes_official_inflation_and_ism_metadata() -> None
     assert library["ppi_all_commodities"]["values"][-1] is not None
 
 
+def test_reference_library_ism_chart_uses_observation_points_not_ffilled_tail() -> None:
+    build = _import_module("macro_framework.build")
+    idx = pd.date_range("2024-10-01", "2025-12-31", freq="D")
+    monthly = pd.Series({
+        pd.Timestamp("2024-10-01"): 46.9,
+        pd.Timestamp("2024-11-01"): 48.4,
+        pd.Timestamp("2024-12-01"): 49.2,
+        pd.Timestamp("2025-01-01"): 50.9,
+        pd.Timestamp("2025-08-01"): 48.7,
+    }, name="ISM_PMI")
+    data = pd.DataFrame({"ISM_PMI": monthly.reindex(idx).ffill()}, index=idx)
+
+    library = build.build_library_indicators(data, idx)
+    ism = library["ism_mfg"]
+    visible_values = [v for v in ism["values"] if v is not None]
+
+    assert ism["dates"][-1] == "2025-08-01"
+    assert visible_values[-1] == pytest.approx(48.7)
+    assert len(visible_values) == 5
+    assert len(set(visible_values)) > 1
+
+
 def test_fetch_dbnomics_ism_pmi_filters_suspicious_tail(monkeypatch: pytest.MonkeyPatch) -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
 

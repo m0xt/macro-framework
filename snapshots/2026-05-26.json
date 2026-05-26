@@ -1,14 +1,14 @@
 {
   "date": "2026-05-26",
-  "build_time_utc": "2026-05-26 12:05 UTC",
+  "build_time_utc": "2026-05-26 12:15 UTC",
   "mrmi": {
-    "composite": 0.36607123802430364,
+    "composite": 0.36625692718098507,
     "state": "green"
   },
   "components": {
-    "gii_fast": 0.19938880948386978,
-    "fincon": 0.29975203389130023,
-    "breadth": 0.5990728706977408
+    "gii_fast": 0.20082338552312057,
+    "fincon": 0.2988745253219592,
+    "breadth": 0.5990728706978755
   },
   "mrci": {
     "composite": 0.6872249052349158,
@@ -21,7 +21,7 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": 0.1994,
+    "score": 0.2008,
     "supportive_count": 7,
     "drag_count": 3,
     "rows": [
@@ -50,14 +50,14 @@
         "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
         "unit": "price",
         "trend_type": "roc",
-        "current": 6.375,
-        "trend_21d": 7.2691,
-        "trend_126d": 10.4279,
-        "z_21d": 0.6994,
-        "z_126d": 0.1209,
-        "z_change_7d": 0.2173,
-        "z_change_30d": 1.2378,
-        "contribution_7d": 0.02173
+        "current": 6.382,
+        "trend_21d": 7.3868,
+        "trend_126d": 10.5491,
+        "z_21d": 0.7154,
+        "z_126d": 0.1328,
+        "z_change_7d": 0.2334,
+        "z_change_30d": 1.2539,
+        "contribution_7d": 0.02334
       },
       {
         "key": "HYG",
@@ -135,14 +135,14 @@
         "explanation": "Equity volatility, inverted so lower volatility is positive for risk appetite.",
         "unit": "index",
         "trend_type": "change",
-        "current": -16.73,
-        "trend_21d": 0.65,
-        "trend_126d": 3.36,
-        "z_21d": 0.1102,
-        "z_126d": 0.5359,
-        "z_change_7d": 0.0838,
-        "z_change_30d": -0.0845,
-        "contribution_7d": 0.00838
+        "current": -16.74,
+        "trend_21d": 0.64,
+        "trend_126d": 3.35,
+        "z_21d": 0.1085,
+        "z_126d": 0.5346,
+        "z_change_7d": 0.0821,
+        "z_change_30d": -0.0862,
+        "contribution_7d": 0.00821
       },
       {
         "key": "SPHB_SPLV",
@@ -199,7 +199,7 @@
     "brief": [
       "Growth Impulses improved over the latest week, led by WEI (+0.11 contribution points).",
       "At +0.20, GII is currently supporting MMI.",
-      "Support currently comes from WEI (+1.16z) and Copper (+0.70z).",
+      "Support currently comes from WEI (+1.16z) and Copper (+0.72z).",
       "The main drag is HYG (-0.41z) and Yield curve (-0.23z).",
       "Input breadth is broadly constructive: 7 of 10 inputs are positive and 3 inputs are negative.",
       "The next read improves if HYG stops acting as a drag and more inputs join the positive side; it weakens if WEI rolls over."
@@ -316,7 +316,7 @@
   "financial_conditions_drilldown": {
     "intro": "Financial Conditions asks whether volatility and credit stress are loosening or tightening.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative FinCon signals rise first; 7-day contribution is still proxied as each input's 7-day z-score change divided by the 3 financial conditions components.",
-    "score": 0.2998,
+    "score": 0.2989,
     "supportive_count": 2,
     "drag_count": 1,
     "rows": [
@@ -340,11 +340,11 @@
         "source": "CBOE Volatility Index",
         "explanation": "S&P 500 implied volatility. The z-score is inverted, so falling VIX loosens financial conditions and supports MMI.",
         "unit": "index",
-        "current": 16.73,
-        "z_21d": 0.56,
-        "z_change_7d": 0.0186,
-        "z_change_30d": 0.2286,
-        "contribution_7d": 0.0062
+        "current": 16.74,
+        "z_21d": 0.5573,
+        "z_change_7d": 0.016,
+        "z_change_30d": 0.226,
+        "contribution_7d": 0.005333
       },
       {
         "key": "^MOVE",
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": 0.07531663926132182,
+    "value": 0.0755023284180032,
     "state": "CAUTION",
     "legacy_state": "LONG",
     "exposure": 0.75,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": 0.36607123802430364,
+    "momentum": 0.36625692718098507,
     "stress_intensity": 0.08150919752596358,
     "stress_score": 0.8150919752596358,
     "growth_weakness": 0.6717163195228619,
@@ -406,13 +406,13 @@
   "underliers": {
     "^GSPC": 7473.47021484375,
     "IWM": 285.1199951171875,
-    "BTC-USD": 77150.0078125,
-    "^VIX": 16.729999542236328,
+    "BTC-USD": 76967.9375,
+    "^VIX": 16.739999771118164,
     "^MOVE": 78.43000030517578,
     "^TNX": 4.558000087738037,
     "HYG": 79.91000366210938,
-    "HG=F": 6.375,
-    "GC=F": 4508.7998046875,
+    "HG=F": 6.381999969482422,
+    "GC=F": 4508.7001953125,
     "DBC": 30.540000915527344,
     "DGS10": 4.57,
     "DGS2": 4.08,
