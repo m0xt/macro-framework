@@ -171,18 +171,90 @@ def clip_series(series: pd.Series, limit: float = 3.0) -> pd.Series:
     """Clip values to ±limit."""
     return series.clip(-limit, limit)
 
-def calc_growth_impulse(data: pd.DataFrame) -> pd.DataFrame:
-    """
-    Growth Impulses Index (GII) — Dual ROC composite.
-    Returns DataFrame with 'fast' and 'slow' columns.
-    """
-    FAST_ROC = 21      # optimized (was 42)
-    SLOW_ROC = 126     # optimized (was 252)
-    Z_LEN = 504
-    CLIP_Z = 3.0
-    EMA_LEN = 1        # optimized: no smoothing (was 21)
 
-    # Build component series
+GROWTH_IMPULSE_FAST_ROC = 21      # optimized (was 42)
+GROWTH_IMPULSE_SLOW_ROC = 126     # optimized (was 252)
+GROWTH_IMPULSE_Z_LEN = 504
+GROWTH_IMPULSE_CLIP_Z = 3.0
+GROWTH_IMPULSE_EMA_LEN = 1        # optimized: no smoothing (was 21)
+
+GROWTH_IMPULSE_SPECS = {
+    "HYG": {
+        "label": "HYG",
+        "group": "Credit/risk appetite",
+        "source": "HYG high-yield ETF",
+        "unit": "price",
+        "trend_type": "roc",
+    },
+    "BAML_INV": {
+        "label": "HY spread inverted",
+        "group": "Credit/risk appetite",
+        "source": "BAML HY OAS, inverted",
+        "unit": "%",
+        "trend_type": "change",
+    },
+    "XLY_XLP": {
+        "label": "XLY/XLP",
+        "group": "Credit/risk appetite",
+        "source": "Discretionary vs staples",
+        "unit": "ratio",
+        "trend_type": "roc",
+    },
+    "XLI_XLU": {
+        "label": "XLI/XLU",
+        "group": "Credit/risk appetite",
+        "source": "Industrials vs utilities",
+        "unit": "ratio",
+        "trend_type": "roc",
+    },
+    "SPHB_SPLV": {
+        "label": "SPHB/SPLV",
+        "group": "Credit/risk appetite",
+        "source": "High beta vs low volatility",
+        "unit": "ratio",
+        "trend_type": "roc",
+    },
+    "COPPER": {
+        "label": "Copper",
+        "group": "Growth/commodities",
+        "source": "HG=F copper futures",
+        "unit": "price",
+        "trend_type": "roc",
+    },
+    "BDI_SA": {
+        "label": "BDRY/BDI proxy",
+        "group": "Growth/commodities",
+        "source": "BDRY vs seasonal baseline",
+        "unit": "pct",
+        "trend_type": "change",
+    },
+    "WEI": {
+        "label": "WEI",
+        "group": "Growth/commodities",
+        "source": "Weekly Economic Index",
+        "unit": "index",
+        "trend_type": "change",
+    },
+    "VIX_INV": {
+        "label": "VIX inverted",
+        "group": "Vol/rates",
+        "source": "VIX, inverted",
+        "unit": "index",
+        "trend_type": "change",
+    },
+    "YC": {
+        "label": "Yield curve",
+        "group": "Vol/rates",
+        "source": "10Y minus 2Y Treasury yield",
+        "unit": "pp",
+        "trend_type": "change",
+    },
+}
+
+GROWTH_IMPULSE_CHANGE_COMPONENTS = {"YC", "WEI", "BAML_INV", "VIX_INV", "BDI_SA"}
+
+def growth_impulse_components(data: pd.DataFrame) -> dict[str, pd.Series]:
+    """Build the raw component series used by the Growth Impulses composite."""
     components = {}
 
     # 1. HYG
@@ -239,21 +311,91 @@ def calc_growth_impulse(data: pd.DataFrame) -> pd.DataFrame:
         baseline = baseline / count.replace(0, np.nan)
         components["BDI_SA"] = (bdry / baseline.replace(0, np.nan)) - 1.0
 
+    return components
+
+def _growth_impulse_component_signals(name: str, series: pd.Series) -> tuple[pd.Series, pd.Series]:
+    if name in GROWTH_IMPULSE_CHANGE_COMPONENTS:
+        return chg(series, GROWTH_IMPULSE_FAST_ROC), chg(series, GROWTH_IMPULSE_SLOW_ROC)
+    return roc(series, GROWTH_IMPULSE_FAST_ROC), roc(series, GROWTH_IMPULSE_SLOW_ROC)
+
+def _latest_component_value(series: pd.Series) -> float | None:
+    s = series.dropna()
+    if len(s) == 0:
+        return None
+    return round(float(s.iloc[-1]), 4)
+
+def growth_impulse_drilldown(data: pd.DataFrame, gii: pd.DataFrame | None = None) -> dict:
+    """Latest component evidence stack for the dashboard Growth Impulses drill-down."""
+    rows = []
+    components = growth_impulse_components(data)
+    for name, series in components.items():
+        sig_fast, sig_slow = _growth_impulse_component_signals(name, series)
+        z_fast = clip_series(zscore(sig_fast, GROWTH_IMPULSE_Z_LEN), GROWTH_IMPULSE_CLIP_Z)
+        z_slow = clip_series(zscore(sig_slow, GROWTH_IMPULSE_Z_LEN), GROWTH_IMPULSE_CLIP_Z)
+        spec = GROWTH_IMPULSE_SPECS[name]
+        rows.append({
+            "key": name,
+            "label": spec["label"],
+            "group": spec["group"],
+            "source": spec["source"],
+            "unit": spec["unit"],
+            "trend_type": spec["trend_type"],
+            "current": _latest_component_value(series),
+            "trend_21d": _latest_component_value(sig_fast),
+            "trend_126d": _latest_component_value(sig_slow),
+            "z_21d": _latest_component_value(z_fast),
+            "z_126d": _latest_component_value(z_slow),
+        })
+
+    group_order = {"Credit/risk appetite": 0, "Growth/commodities": 1, "Vol/rates": 2}
+    rows = sorted(rows, key=lambda r: (group_order.get(r["group"], 99), list(GROWTH_IMPULSE_SPECS).index(r["key"])))
+
+    score = _latest_component_value(gii["fast"]) if gii is not None and "fast" in gii else None
+    valid = [r for r in rows if r["z_21d"] is not None]
+    supportive = sum(1 for r in valid if r["z_21d"] > 0)
+    drag = sum(1 for r in valid if r["z_21d"] < 0)
+    top_support = max(valid, key=lambda r: r["z_21d"], default=None)
+    top_drag = min(valid, key=lambda r: r["z_21d"], default=None)
+
+    if score is None:
+        brief = ["Growth Impulses does not yet have enough valid component history for a full read."]
+    else:
+        direction = "accelerating" if score > 0 else "fading"
+        breadth_text = f"{supportive} of {len(valid)} inputs are positive on the 21-day z contribution"
+        support_text = top_support["label"] if top_support else "none"
+        drag_text = top_drag["label"] if top_drag else "none"
+        brief = [
+            f"Growth Impulses is {direction} at {score:+.2f}, so the market-growth pulse is {'helping' if score > 0 else 'dragging on'} MMI.",
+            f"Under the hood, {breadth_text}, with {support_text} doing the most support work and {drag_text} the biggest drag.",
+            "Use the 21-day columns for the fast meeting read and the 126-day columns to check whether that move is becoming durable.",
+        ]
+
+    return {
+        "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
+        "score": score,
+        "supportive_count": supportive,
+        "drag_count": drag,
+        "rows": rows,
+        "brief": brief,
+    }
+
+def calc_growth_impulse(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Growth Impulses Index (GII) — Dual ROC composite.
+    Returns DataFrame with 'fast' and 'slow' columns.
+    """
+    components = growth_impulse_components(data)
+    if not components:
+        return pd.DataFrame(index=data.index)
+
     # Compute z-scored ROCs for each component at both speeds
     fast_zs = []
     slow_zs = []
 
     for name, series in components.items():
-        # Use change instead of ROC for near-zero/negative series
-        if name in ("YC", "WEI", "BAML_INV", "VIX_INV", "BDI_SA"):
-            sig_fast = chg(series, FAST_ROC)
-            sig_slow = chg(series, SLOW_ROC)
-        else:
-            sig_fast = roc(series, FAST_ROC)
-            sig_slow = roc(series, SLOW_ROC)
-
-        z_fast = clip_series(zscore(sig_fast, Z_LEN), CLIP_Z)
-        z_slow = clip_series(zscore(sig_slow, Z_LEN), CLIP_Z)
+        sig_fast, sig_slow = _growth_impulse_component_signals(name, series)
+        z_fast = clip_series(zscore(sig_fast, GROWTH_IMPULSE_Z_LEN), GROWTH_IMPULSE_CLIP_Z)
+        z_slow = clip_series(zscore(sig_slow, GROWTH_IMPULSE_Z_LEN), GROWTH_IMPULSE_CLIP_Z)
 
         fast_zs.append(z_fast)
         slow_zs.append(z_slow)
@@ -266,8 +408,8 @@ def calc_growth_impulse(data: pd.DataFrame) -> pd.DataFrame:
     gii_slow_raw = slow_df.mean(axis=1, skipna=True)
 
     # EMA smooth (skip if EMA_LEN == 1)
-    gii_fast = ema(gii_fast_raw, EMA_LEN) if EMA_LEN > 1 else gii_fast_raw
-    gii_slow = ema(gii_slow_raw, EMA_LEN) if EMA_LEN > 1 else gii_slow_raw
+    gii_fast = ema(gii_fast_raw, GROWTH_IMPULSE_EMA_LEN) if GROWTH_IMPULSE_EMA_LEN > 1 else gii_fast_raw
+    gii_slow = ema(gii_slow_raw, GROWTH_IMPULSE_EMA_LEN) if GROWTH_IMPULSE_EMA_LEN > 1 else gii_slow_raw
 
     return pd.DataFrame({"fast": gii_fast, "slow": gii_slow}, index=data.index)
 
@@ -819,6 +961,7 @@ def prepare_chart_data(data, composite, gii, fincon, breadth, business_cycle, in
         "btc": to_list(btc),
         "spx": to_list(spx),
         "iwm": to_list(iwm),
+        "growth_impulse": growth_impulse_drilldown(data, gii),
         "composite": {
             "value": to_list(composite.reindex(gii.index)),
             "bg": bg_colors_single(composite.reindex(gii.index), green_above=True),
@@ -1029,6 +1172,7 @@ def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, ma
             "labor": _latest(biz_cycle["labor"]) if "labor" in biz_cycle else None,
         },
         "inflation": _latest(infl_ctx["composite"]) if "composite" in infl_ctx else None,
+        "growth_impulse_drilldown": growth_impulse_drilldown(data, gii),
     }
 
     # Milk Road Macro Index (combined headline signal)

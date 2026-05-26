@@ -18,6 +18,7 @@ Writes:
 """
 
 import glob
+import html
 import json
 import re
 import sys
@@ -263,6 +264,88 @@ def fmt_signed(v, decimals=2):
 
 def strip_html(s):
     return re.sub(r'<[^>]+>', '', s) if s else ""
+
+
+def _escape(s):
+    return html.escape(str(s), quote=True)
+
+
+def _fmt_growth_current(row):
+    v = row.get("current")
+    if v is None:
+        return "—"
+    unit = row.get("unit")
+    if unit == "%":
+        return f"{v:+.2f}%"
+    if unit == "pct":
+        return f"{v * 100:+.1f}%"
+    if unit == "pp":
+        return f"{v:+.2f}pp"
+    if unit == "index":
+        return f"{v:+.2f}"
+    return f"{v:.2f}"
+
+
+def _fmt_growth_trend(row, key):
+    v = row.get(key)
+    if v is None:
+        return "—"
+    if row.get("trend_type") == "roc":
+        return f"{v:+.1f}%"
+    if row.get("unit") == "pct":
+        return f"{v * 100:+.1f}pp"
+    if row.get("unit") in {"%", "pp"}:
+        return f"{v:+.2f}pp"
+    return f"{v:+.2f}"
+
+
+def _fmt_growth_z(v):
+    if v is None:
+        return "—"
+    return f"{v:+.2f}"
+
+
+def _growth_z_class(v):
+    if v is None:
+        return "neutral"
+    return "pos" if v > 0 else "neg" if v < 0 else "neutral"
+
+
+def _growth_impulse_drilldown_html(payload):
+    rows = payload.get("rows") or []
+    if not rows:
+        return ""
+    brief = payload.get("brief") or []
+    brief_html = "".join(f"<p>{_escape(sentence)}</p>" for sentence in brief[:4])
+    row_html = []
+    for row in rows:
+        z21 = row.get("z_21d")
+        z126 = row.get("z_126d")
+        row_html.append(f'''
+          <tr>
+            <td><span class="muted small">{_escape(row.get("group", ""))}</span></td>
+            <td><span class="sc-label">{_escape(row.get("label", ""))}</span><div class="muted small">{_escape(row.get("source", ""))}</div></td>
+            <td class="mono">{_fmt_growth_current(row)}</td>
+            <td class="mono">{_fmt_growth_trend(row, "trend_21d")}</td>
+            <td class="mono">{_fmt_growth_trend(row, "trend_126d")}</td>
+            <td><span class="val {_growth_z_class(z21)}">{_fmt_growth_z(z21)}</span></td>
+            <td><span class="val {_growth_z_class(z126)}">{_fmt_growth_z(z126)}</span></td>
+          </tr>''')
+    return f'''
+      <details class="growth-drilldown">
+        <summary>View Growth Impulses inputs <span class="muted small">· full evidence stack</span></summary>
+        <div class="growth-drilldown-body">
+          <p class="drivers-desc">{_escape(payload.get("intro", ""))}</p>
+          <div class="growth-mini-brief">
+            <div class="pillar-brief-eyebrow">Growth Impulses mini-brief</div>
+            {brief_html}
+          </div>
+          <table class="growth-inputs-table">
+            <thead><tr><th>Group</th><th>Input</th><th>Current</th><th>21d</th><th>126d</th><th>21d z</th><th>126d z</th></tr></thead>
+            <tbody>{''.join(row_html)}</tbody>
+          </table>
+        </div>
+      </details>'''
 
 
 def _make_scale_bar(mrmi_value, state_color):
@@ -543,6 +626,7 @@ def render(snap, chart, raw_data=None):
         "iwm": chart.get("iwm", []),
         "btc": chart.get("btc", []),
         "drivers": drivers_meta,
+        "growth_impulse": chart.get("growth_impulse") or {},
         "macro": {
             "real_economy_score": re_score_series,
             "inflation_dir_pp":   inf_dir_series,
@@ -554,6 +638,9 @@ def render(snap, chart, raw_data=None):
         "preview": preview_meta.get("chart") or {},
     }, separators=(",", ":"))
 
+    growth_drilldown_html = _growth_impulse_drilldown_html(
+        chart.get("growth_impulse") or snap.get("growth_impulse_drilldown") or {}
+    )
     info_svg = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="4" r="0.9" fill="currentColor"/><line x1="7" y1="6.5" x2="7" y2="10.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>'
 
     return f"""<!DOCTYPE html>
@@ -930,6 +1017,36 @@ def render(snap, chart, raw_data=None):
     margin-bottom: 4px;
   }}
   .drivers-desc strong {{ color: #999; }}
+  .growth-drilldown {{
+    margin-top: 14px; border-top: 1px solid #1a1a1a; padding-top: 10px;
+  }}
+  .growth-drilldown > summary {{
+    list-style: none; cursor: pointer; color: #aaa; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;
+    padding: 4px 0 8px;
+  }}
+  .growth-drilldown > summary::-webkit-details-marker {{ display: none; }}
+  .growth-drilldown > summary::after {{ content: "▾"; color: #555; margin-left: 8px; }}
+  .growth-drilldown[open] > summary::after {{ content: "▴"; }}
+  .growth-drilldown-body {{ padding-top: 4px; }}
+  .growth-mini-brief {{
+    margin: 10px 0 12px; padding: 12px 14px;
+    background: #0d0d0d; border: 1px solid #1c1c1c; border-left: 2px solid #4CAF50;
+    border-radius: 6px; color: #bdbdbd; font-size: 13px; line-height: 1.55;
+  }}
+  .growth-mini-brief p {{ margin: 0 0 8px; }}
+  .growth-mini-brief p:last-child {{ margin-bottom: 0; }}
+  .growth-inputs-table {{ width: 100%; border-collapse: collapse; }}
+  .growth-inputs-table th {{
+    text-align: left; padding: 8px 6px; border-bottom: 1px solid #222;
+    color: #555; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    font-weight: 600;
+  }}
+  .growth-inputs-table td {{
+    padding: 9px 6px; border-bottom: 1px solid #1a1a1a;
+    font-size: 12px; vertical-align: top;
+  }}
+  .growth-inputs-table th:first-child, .growth-inputs-table td:first-child {{ padding-left: 0; }}
 
   /* scorecard table */
   #scorecard-mrmi table {{ width: 100%; border-collapse: collapse; }}
@@ -1068,7 +1185,6 @@ def render(snap, chart, raw_data=None):
     color: #d4d4d4; font-size: 14px; line-height: 1.65;
     border-left-color: #cdaa6a; padding: 18px 20px;
   }}
-
   /* 4 — MACRO BACKDROP */
   .seasons {{
     background: #111; border: 1px solid #222; border-radius: 10px;
@@ -1313,6 +1429,7 @@ def render(snap, chart, raw_data=None):
   </summary>
   <div class="drivers-body">
     <div id="scorecard-mrmi"></div>
+{growth_drilldown_html}
   </div>
 </details>
 

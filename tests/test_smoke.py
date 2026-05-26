@@ -302,6 +302,7 @@ def test_save_snapshot_schema_uses_actual_current_keys(tmp_path: Path, monkeypat
         "mrmi_combined",
         "macro",
         "underliers",
+        "growth_impulse_drilldown",
     } <= snapshot.keys()
     assert {"gii_fast", "fincon", "breadth"} <= snapshot["components"].keys()
     assert {
@@ -319,6 +320,26 @@ def test_save_snapshot_schema_uses_actual_current_keys(tmp_path: Path, monkeypat
     assert {"real_economy_score", "inflation_dir_pp", "core_cpi_yoy_pct", "raw"} <= snapshot[
         "macro"
     ].keys()
+    assert {"intro", "score", "rows", "brief"} <= snapshot["growth_impulse_drilldown"].keys()
+
+
+def test_growth_impulse_drilldown_exposes_all_current_inputs() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    data_path = ROOT / ".cache" / "raw_data.pkl"
+    assert data_path.exists(), "raw_data.pkl is required for the dashboard drill-down smoke test"
+    data = pd.read_pickle(data_path)
+    gii = macro_pipeline.calc_growth_impulse(data)
+
+    payload = macro_pipeline.growth_impulse_drilldown(data, gii)
+    rows = payload["rows"]
+    keys = {row["key"] for row in rows}
+
+    assert keys == set(macro_pipeline.GROWTH_IMPULSE_SPECS)
+    assert len(rows) == 10
+    assert payload["score"] == pytest.approx(round(float(gii["fast"].dropna().iloc[-1]), 4))
+    assert payload["brief"]
+    for row in rows:
+        assert {"group", "label", "current", "trend_21d", "trend_126d", "z_21d", "z_126d"} <= row.keys()
 
 
 def _function_source(module_text: str, name: str, next_name: str) -> str:
