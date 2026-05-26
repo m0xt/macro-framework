@@ -1578,9 +1578,9 @@ def render(snap, chart, raw_data=None):
   </summary>
   <div class="drivers-body">
     <div id="scorecard-mrmi"></div>
-{growth_drilldown_html}
-{breadth_drilldown_html}
-{fincon_drilldown_html}
+    <template id="drilldown-template-gii_fast">{growth_drilldown_html}</template>
+    <template id="drilldown-template-breadth">{breadth_drilldown_html}</template>
+    <template id="drilldown-template-fincon">{fincon_drilldown_html}</template>
   </div>
 </details>
 
@@ -1849,11 +1849,21 @@ function buildScorecard() {{
     html += `<td>${{fmtChg(current, prev30)}}</td>`;
     html += `<td>${{signalHtml}}</td>`;
     html += `</tr>`;
-    html += `<tr class="expanded-row" id="exp-${{key}}"><td colspan="5"><div class="chart-wrap"><canvas id="canvas-${{key}}"></canvas></div><div class="chart-desc">${{entry.desc || ''}}</div></td></tr>`;
+    html += `<tr class="expanded-row" id="exp-${{key}}"><td colspan="5"><div class="chart-wrap"><canvas id="canvas-${{key}}"></canvas></div><div class="chart-desc">${{entry.desc || ''}}</div><div class="indicator-drilldown-slot" data-driver-key="${{key}}"></div></td></tr>`;
   }});
 
   html += '</tbody></table>';
   container.innerHTML = html;
+  attachDriverDrilldowns();
+}}
+
+function attachDriverDrilldowns() {{
+  document.querySelectorAll('.indicator-drilldown-slot').forEach(slot => {{
+    const driverKey = slot.dataset.driverKey;
+    const template = document.getElementById('drilldown-template-' + driverKey);
+    if (!template) return;
+    slot.replaceChildren(template.content.cloneNode(true));
+  }});
 }}
 
 function toggleDriver(key, forceOpen) {{
@@ -2428,29 +2438,28 @@ function ensureGrowthInputChart() {{
   buildGrowthInputChart(firstKey);
 }}
 
-const growthDetails = document.querySelector('details.growth-drilldown');
-if (growthDetails) {{
-  growthDetails.addEventListener('toggle', () => {{
-    if (growthDetails.open) ensureGrowthInputChart();
-  }});
-  if (growthDetails.open) ensureGrowthInputChart();
-}}
+document.addEventListener('toggle', e => {{
+  const details = e.target.closest && e.target.closest('details.growth-drilldown:not(.driver-drilldown)');
+  if (details && details.open) ensureGrowthInputChart();
+}}, true);
 
-const growthSelect = document.getElementById('growth-input-select');
-if (growthSelect) {{
-  growthSelect.addEventListener('change', e => buildGrowthInputChart(e.target.value));
-}}
+if (document.querySelector('details.growth-drilldown:not(.driver-drilldown)[open]')) ensureGrowthInputChart();
 
-document.querySelectorAll('.growth-input-row').forEach(tr => {{
-  tr.addEventListener('click', e => {{
-    if (e.target.closest('.growth-info-icon')) return;
-    const key = tr.dataset.growthKey;
-    if (!key) return;
-    if (growthSelect) growthSelect.value = key;
-    if (growthDetails && !growthDetails.open) growthDetails.open = true;
-    growthInputBuilt = true;
-    buildGrowthInputChart(key);
-  }});
+document.addEventListener('change', e => {{
+  if (e.target && e.target.id === 'growth-input-select') buildGrowthInputChart(e.target.value);
+}});
+
+document.addEventListener('click', e => {{
+  const tr = e.target.closest && e.target.closest('.growth-input-row');
+  if (!tr || e.target.closest('.growth-info-icon')) return;
+  const key = tr.dataset.growthKey;
+  if (!key) return;
+  const growthSelect = document.getElementById('growth-input-select');
+  const growthDetails = document.querySelector('details.growth-drilldown:not(.driver-drilldown)');
+  if (growthSelect) growthSelect.value = key;
+  if (growthDetails && !growthDetails.open) growthDetails.open = true;
+  growthInputBuilt = true;
+  buildGrowthInputChart(key);
 }});
 
 // Sector Breadth / Financial Conditions raw-input charts (same UX as Growth Impulses).
@@ -2543,28 +2552,34 @@ function rebuildDriverInputCharts() {{
   }});
 }}
 
+document.addEventListener('toggle', e => {{
+  const details = e.target.closest && e.target.closest('details.driver-drilldown[data-driver-drilldown]');
+  if (details && details.open) ensureDriverInputChart(details.dataset.driverDrilldown);
+}}, true);
+
 Object.keys(DRIVER_DRILLDOWN_CONFIG).forEach(driverKey => {{
   const details = document.querySelector('details.driver-drilldown[data-driver-drilldown="' + driverKey + '"]');
-  const select = document.getElementById(driverKey + '-input-select');
-  if (details) {{
-    details.addEventListener('toggle', () => {{ if (details.open) ensureDriverInputChart(driverKey); }});
-    if (details.open) ensureDriverInputChart(driverKey);
-  }}
-  if (select) select.addEventListener('change', e => buildDriverInputChart(driverKey, e.target.value));
+  if (details && details.open) ensureDriverInputChart(driverKey);
 }});
 
-document.querySelectorAll('.driver-input-row').forEach(tr => {{
-  tr.addEventListener('click', e => {{
-    if (e.target.closest('.growth-info-icon')) return;
-    const driverKey = tr.dataset.driverDrilldown;
-    const inputKey = tr.dataset.inputKey;
-    if (!driverKey || !inputKey) return;
-    const details = document.querySelector('details.driver-drilldown[data-driver-drilldown="' + driverKey + '"]');
-    const select = document.getElementById(driverKey + '-input-select');
-    if (select) select.value = inputKey;
-    if (details && !details.open) details.open = true;
-    buildDriverInputChart(driverKey, inputKey);
-  }});
+document.addEventListener('change', e => {{
+  const select = e.target && e.target.closest && e.target.closest('select[id$="-input-select"]');
+  if (!select || select.id === 'growth-input-select') return;
+  const driverKey = select.id.replace(/-input-select$/, '');
+  if (DRIVER_DRILLDOWN_CONFIG[driverKey]) buildDriverInputChart(driverKey, select.value);
+}});
+
+document.addEventListener('click', e => {{
+  const tr = e.target.closest && e.target.closest('.driver-input-row');
+  if (!tr || e.target.closest('.growth-info-icon')) return;
+  const driverKey = tr.dataset.driverDrilldown;
+  const inputKey = tr.dataset.inputKey;
+  if (!driverKey || !inputKey) return;
+  const details = document.querySelector('details.driver-drilldown[data-driver-drilldown="' + driverKey + '"]');
+  const select = document.getElementById(driverKey + '-input-select');
+  if (select) select.value = inputKey;
+  if (details && !details.open) details.open = true;
+  buildDriverInputChart(driverKey, inputKey);
 }});
 
 // Driver charts stay collapsed by default — click an individual row to expand it.

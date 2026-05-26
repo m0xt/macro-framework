@@ -208,3 +208,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-26T11:18:50Z — Task 41a MMI drill-down placement
+- What: Moved the Growth Impulses, Sector Breadth, and Financial Conditions input drill-downs into each indicator's expanded chart row, directly below the matching driver chart. Kept the drill-down bodies as reusable templates and switched input-chart handlers to delegated events so select changes and row-click chart selection still work after scorecard rebuilds.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Gates: `git diff --check` passed; `uv run pytest -q` passed (43 passed, 4 xfailed); `uv run ruff check .` passed; `uv run python -m macro_framework.build --use-cache` passed from cache and rebuilt outputs/dashboard.html + snapshots/2026-05-26.json.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
