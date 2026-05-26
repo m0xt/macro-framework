@@ -183,6 +183,10 @@ GROWTH_IMPULSE_SPECS = {
         "label": "HYG",
         "group": "Credit/risk appetite",
         "source": "HYG high-yield ETF",
+        "explanation": (
+            "High-yield bond ETF; rising HYG usually signals stronger risk appetite and "
+            "credit conditions."
+        ),
         "unit": "price",
         "trend_type": "roc",
     },
@@ -190,6 +194,10 @@ GROWTH_IMPULSE_SPECS = {
         "label": "HY spread inverted",
         "group": "Credit/risk appetite",
         "source": "BAML HY OAS, inverted",
+        "explanation": (
+            "High-yield credit spread, inverted so tighter spreads are positive for growth "
+            "and risk appetite."
+        ),
         "unit": "%",
         "trend_type": "change",
     },
@@ -197,6 +205,10 @@ GROWTH_IMPULSE_SPECS = {
         "label": "XLY/XLP",
         "group": "Credit/risk appetite",
         "source": "Discretionary vs staples",
+        "explanation": (
+            "Consumer discretionary versus staples; a higher ratio signals cyclical "
+            "consumer risk appetite."
+        ),
         "unit": "ratio",
         "trend_type": "roc",
     },
@@ -204,6 +216,10 @@ GROWTH_IMPULSE_SPECS = {
         "label": "XLI/XLU",
         "group": "Credit/risk appetite",
         "source": "Industrials vs utilities",
+        "explanation": (
+            "Industrials versus utilities; a higher ratio signals cyclicals beating "
+            "defensives."
+        ),
         "unit": "ratio",
         "trend_type": "roc",
     },
@@ -211,6 +227,10 @@ GROWTH_IMPULSE_SPECS = {
         "label": "SPHB/SPLV",
         "group": "Credit/risk appetite",
         "source": "High beta vs low volatility",
+        "explanation": (
+            "High-beta equities versus low-volatility equities; a higher ratio signals "
+            "investors favor riskier stocks."
+        ),
         "unit": "ratio",
         "trend_type": "roc",
     },
@@ -218,6 +238,7 @@ GROWTH_IMPULSE_SPECS = {
         "label": "Copper",
         "group": "Growth/commodities",
         "source": "HG=F copper futures",
+        "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
         "unit": "price",
         "trend_type": "roc",
     },
@@ -225,6 +246,10 @@ GROWTH_IMPULSE_SPECS = {
         "label": "BDRY/BDI proxy",
         "group": "Growth/commodities",
         "source": "BDRY vs seasonal baseline",
+        "explanation": (
+            "Dry-bulk shipping proxy; rising values can indicate stronger real-economy "
+            "trade and commodity demand."
+        ),
         "unit": "pct",
         "trend_type": "change",
     },
@@ -232,6 +257,10 @@ GROWTH_IMPULSE_SPECS = {
         "label": "WEI",
         "group": "Growth/commodities",
         "source": "Weekly Economic Index",
+        "explanation": (
+            "Weekly Economic Index; high, rising, or falling readings capture broad US "
+            "economic activity momentum."
+        ),
         "unit": "index",
         "trend_type": "change",
     },
@@ -239,6 +268,10 @@ GROWTH_IMPULSE_SPECS = {
         "label": "VIX inverted",
         "group": "Vol/rates",
         "source": "VIX, inverted",
+        "explanation": (
+            "Equity volatility, inverted so lower volatility is positive for risk "
+            "appetite."
+        ),
         "unit": "index",
         "trend_type": "change",
     },
@@ -246,6 +279,10 @@ GROWTH_IMPULSE_SPECS = {
         "label": "Yield curve",
         "group": "Vol/rates",
         "source": "10Y minus 2Y Treasury yield",
+        "explanation": (
+            "10Y minus 2Y Treasury yield; a steeper curve usually supports growth and "
+            "liquidity expectations."
+        ),
         "unit": "pp",
         "trend_type": "change",
     },
@@ -369,6 +406,7 @@ def growth_impulse_drilldown(
             "label": spec["label"],
             "group": spec["group"],
             "source": spec["source"],
+            "explanation": spec["explanation"],
             "unit": spec["unit"],
             "trend_type": spec["trend_type"],
             "current": _latest_component_value(series),

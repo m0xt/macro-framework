@@ -326,9 +326,17 @@ def _growth_impulse_drilldown_html(payload):
         z_now = row.get("z_21d")
         z7 = row.get("z_change_7d")
         z30 = row.get("z_change_30d")
+        label = _escape(row.get("label", ""))
+        explanation = _escape(row.get("explanation", ""))
         row_html.append(f'''
           <tr class="growth-input-row" data-growth-key="{_escape(row.get("key", ""))}">
-            <td><span class="sc-label">{_escape(row.get("label", ""))}</span><div class="muted small">{_escape(row.get("source", ""))}</div></td>
+            <td>
+              <div class="growth-input-name">
+                <span class="sc-label">{label}</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="{label}: {explanation}" title="{explanation}">i</span>
+              </div>
+              <div class="muted small">{_escape(row.get("source", ""))}</div>
+            </td>
             <td><span class="muted small">{_escape(row.get("group", ""))}</span></td>
             <td><span class="val {_growth_z_class(z7)}">{_fmt_growth_z(z7)}</span></td>
             <td><span class="val {_growth_z_class(z30)}">{_fmt_growth_z(z30)}</span></td>
@@ -1063,6 +1071,17 @@ def render(snap, chart, raw_data=None):
   }}
   .growth-inputs-table th:first-child, .growth-inputs-table td:first-child {{ padding-left: 0; }}
   .growth-inputs-table th[title] {{ cursor: help; border-bottom-style: dashed; }}
+  .growth-input-name {{ display: inline-flex; align-items: center; gap: 6px; }}
+  .growth-info-icon {{
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; border: 1px solid #333; border-radius: 50%;
+    color: #777; font-size: 9px; font-weight: 700; line-height: 1; cursor: help;
+    text-transform: lowercase; vertical-align: 1px;
+  }}
+  .growth-info-icon:hover, .growth-info-icon:focus {{
+    color: #ddd; border-color: #666; background: #1a1a1a; outline: none;
+  }}
+  .growth-info-icon:focus-visible {{ box-shadow: 0 0 0 2px #4CAF5055; }}
   .growth-input-row {{ cursor: pointer; transition: background 0.1s; }}
   .growth-input-row:hover {{ background: #161616; }}
   .growth-input-row.is-selected {{ background: #14171a; }}
@@ -2327,7 +2346,8 @@ if (growthSelect) {{
 }}
 
 document.querySelectorAll('.growth-input-row').forEach(tr => {{
-  tr.addEventListener('click', () => {{
+  tr.addEventListener('click', e => {{
+    if (e.target.closest('.growth-info-icon')) return;
     const key = tr.dataset.growthKey;
     if (!key) return;
     if (growthSelect) growthSelect.value = key;

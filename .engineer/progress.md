@@ -187,3 +187,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Martin to review the Growth Impulses UX iteration before replicating the drill-down pattern to Sector Breadth and Financial Conditions.
+
+## 2026-05-26T10:53:22Z — Task 38a Growth Impulses input tooltips
+- What: Added compact keyboard-focusable info icons beside each Growth Impulses input name, backed by concise per-input explanations in the drill-down payload; rebuilt dashboard/snapshot from cached data.
+- Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; tests/test_smoke.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

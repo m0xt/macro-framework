@@ -339,7 +339,17 @@ def test_growth_impulse_drilldown_exposes_all_current_inputs() -> None:
     assert payload["score"] == pytest.approx(round(float(gii["fast"].dropna().iloc[-1]), 4))
     assert payload["brief"]
     for row in rows:
-        assert {"group", "label", "current", "trend_21d", "trend_126d", "z_21d", "z_126d"} <= row.keys()
+        assert {
+            "group",
+            "label",
+            "explanation",
+            "current",
+            "trend_21d",
+            "trend_126d",
+            "z_21d",
+            "z_126d",
+        } <= row.keys()
+        assert row["explanation"]
 
 
 def _function_source(module_text: str, name: str, next_name: str) -> str:
