@@ -316,7 +316,7 @@ def _growth_impulse_drilldown_html(payload):
     if not rows:
         return ""
     brief = payload.get("brief") or []
-    brief_html = "".join(f"<p>{_escape(sentence)}</p>" for sentence in brief[:4])
+    brief_html = "".join(f"<p>{_escape(sentence)}</p>" for sentence in brief)
     options_html = "".join(
         f'<option value="{_escape(row.get("key", ""))}">{_escape(row.get("label", ""))}</option>'
         for row in rows
@@ -376,7 +376,7 @@ def _driver_drilldown_html(payload, *, dom_key, summary_label, brief_label, char
     if not rows:
         return ""
     brief = payload.get("brief") or []
-    brief_html = "".join(f"<p>{_escape(sentence)}</p>" for sentence in brief[:4])
+    brief_html = "".join(f"<p>{_escape(sentence)}</p>" for sentence in brief)
     options_html = "".join(
         f'<option value="{_escape(row.get("key", ""))}">{_escape(row.get("label", ""))}</option>'
         for row in rows

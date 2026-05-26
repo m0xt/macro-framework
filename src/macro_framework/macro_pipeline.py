@@ -459,6 +459,126 @@ def _component_values(series: pd.Series, index: pd.Index) -> list[float | None]:
     values = series.reindex(index)
     return [round(float(v), 4) if pd.notna(v) else None for v in values]
 
+
+def _driver_row_label(row: dict | None) -> str:
+    if not row:
+        return "none"
+    return str(row.get("label") or row.get("key") or "none")
+
+
+def _driver_row_z_text(row: dict) -> str:
+    label = _driver_row_label(row)
+    z_value = row.get("z_21d")
+    if z_value is None:
+        return label
+    return f"{label} ({float(z_value):+.2f}z)"
+
+
+def _driver_row_list(rows: list[dict], *, positive: bool) -> str:
+    filtered = [row for row in rows if row.get("z_21d") is not None]
+    if positive:
+        filtered = [row for row in filtered if row["z_21d"] > 0]
+        filtered = sorted(filtered, key=lambda row: row["z_21d"], reverse=True)
+    else:
+        filtered = [row for row in filtered if row["z_21d"] < 0]
+        filtered = sorted(filtered, key=lambda row: row["z_21d"])
+    if not filtered:
+        return "none"
+    return " and ".join(_driver_row_z_text(row) for row in filtered[:2])
+
+
+def _driver_breadth_sentence(
+    driver_name: str,
+    *,
+    score: float,
+    supportive: int,
+    drag: int,
+    valid_count: int,
+) -> str:
+    if valid_count == 0:
+        return f"The {driver_name} read is incomplete because no current input z-scores are valid."
+    support_share = supportive / valid_count
+    drag_share = drag / valid_count
+    if score > 0 and support_share >= 0.65:
+        character = "broadly constructive"
+    elif score < 0 and drag_share >= 0.65:
+        character = "broadly negative"
+    elif score > 0 and supportive <= drag:
+        character = "positive but fragile"
+    elif score < 0 and drag <= supportive:
+        character = "negative but fragile"
+    else:
+        character = "mixed"
+    drag_noun = "input is" if drag == 1 else "inputs are"
+    return (
+        f"Input breadth is {character}: {supportive} of {valid_count} inputs are positive "
+        f"and {drag} {drag_noun} negative."
+    )
+
+
+def _driver_next_watch_sentence(
+    *,
+    score: float,
+    support_label: str,
+    drag_label: str,
+) -> str:
+    if score >= 0:
+        return (
+            f"The next read improves if {drag_label} stops acting as a drag and more inputs "
+            f"join the positive side; it weakens if {support_label} rolls over."
+        )
+    return (
+        f"The next read improves if {drag_label} mean-reverts and support broadens; it gets "
+        f"worse if {support_label} fails to hold or the current drags deepen."
+    )
+
+
+def _driver_brief(
+    *,
+    driver_name: str,
+    driver_short: str,
+    score: float,
+    valid: list[dict],
+    supportive: int,
+    drag: int,
+    top_mover: dict | None,
+    top_support: dict | None,
+    top_drag: dict | None,
+) -> list[str]:
+    if top_mover and top_mover.get("contribution_7d"):
+        mover_dir = "improved" if top_mover["contribution_7d"] > 0 else "deteriorated"
+        mover_tail = (
+            f"led by {_driver_row_label(top_mover)} "
+            f"({float(top_mover['contribution_7d']):+.2f} contribution points)."
+        )
+    else:
+        mover_dir = "was little changed"
+        mover_tail = "with no single input making a measurable 7-day contribution."
+    support_label = _driver_row_label(top_support)
+    drag_label = _driver_row_label(top_drag)
+    current_direction = "supporting" if score > 0 else "weighing on"
+    support_text = _driver_row_list(valid, positive=True)
+    drag_text = _driver_row_list(valid, positive=False)
+    return [
+        f"{driver_name} {mover_dir} over the latest week, {mover_tail}",
+        f"At {score:+.2f}, {driver_short} is currently {current_direction} MMI.",
+        f"Support currently comes from {support_text}.",
+        f"The main drag is {drag_text}.",
+        _driver_breadth_sentence(
+            driver_name,
+            score=score,
+            supportive=supportive,
+            drag=drag,
+            valid_count=len(valid),
+        ),
+        _driver_next_watch_sentence(
+            score=score,
+            support_label=support_label,
+            drag_label=drag_label,
+        ),
+    ]
+
+
 def growth_impulse_drilldown(
     data: pd.DataFrame,
     gii: pd.DataFrame | None = None,
@@ -528,19 +648,17 @@ def growth_impulse_drilldown(
     if score is None:
         brief = ["Growth Impulses does not yet have enough valid component history for a full read."]
     else:
-        direction = "accelerating" if score > 0 else "fading"
-        breadth_text = f"{supportive} of {len(valid)} inputs have positive current z-scores"
-        support_text = top_support["label"] if top_support else "none"
-        drag_text = top_drag["label"] if top_drag else "none"
-        mover_text = "none"
-        if top_mover and top_mover["contribution_7d"]:
-            mover_dir = "lifting" if top_mover["contribution_7d"] > 0 else "pulling down"
-            mover_text = f"{top_mover['label']} is {mover_dir} the latest 7-day GII move"
-        brief = [
-            f"Growth Impulses is {direction} at {score:+.2f}, so the market-growth pulse is {'helping' if score > 0 else 'dragging on'} MMI.",
-            f"Sorted by 7-day contribution proxy, {mover_text}; current support is led by {support_text}, while {drag_text} is the biggest drag.",
-            f"Under the hood, {breadth_text}; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through.",
-        ]
+        brief = _driver_brief(
+            driver_name="Growth Impulses",
+            driver_short="GII",
+            score=score,
+            valid=valid,
+            supportive=supportive,
+            drag=drag,
+            top_mover=top_mover,
+            top_support=top_support,
+            top_drag=top_drag,
+        )
 
     return {
         "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
@@ -671,18 +789,17 @@ def _mmi_driver_drilldown(
     if score is None:
         brief = [f"{driver_name} does not yet have enough valid component history for a full read."]
     else:
-        direction = "supportive" if score > 0 else "a drag"
-        support_text = top_support["label"] if top_support else "none"
-        drag_text = top_drag["label"] if top_drag else "none"
-        mover_text = "none"
-        if top_mover and top_mover["contribution_7d"]:
-            mover_dir = "lifting" if top_mover["contribution_7d"] > 0 else "pulling down"
-            mover_text = f"{top_mover['label']} is {mover_dir} the latest 7-day {driver_short} move"
-        brief = [
-            f"{driver_name} is {score:+.2f}, so this driver is {direction} for MMI.",
-            f"Sorted by 7-day contribution proxy, {mover_text}; current support is led by {support_text}, while {drag_text} is the biggest drag.",
-            f"Under the hood, {supportive} of {len(valid)} inputs have positive current z-scores; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through.",
-        ]
+        brief = _driver_brief(
+            driver_name=driver_name,
+            driver_short=driver_short,
+            score=score,
+            valid=valid,
+            supportive=supportive,
+            drag=drag,
+            top_mover=top_mover,
+            top_support=top_support,
+            top_drag=top_drag,
+        )
 
     return {
         "intro": intro,

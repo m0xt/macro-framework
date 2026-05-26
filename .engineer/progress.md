@@ -216,3 +216,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-26T11:36:28Z — Task 42a MMI driver mini-brief depth
+- What: Deepened Growth Impulses, Sector Breadth, and Financial Conditions mini-briefs into deterministic 6-sentence bottom-up reads: latest top mover, current MMI support/drag, leading supporters, leading drags, breadth/fragility classification, and next-watch conditions. Dashboard now renders the full generated brief instead of truncating at four sentences.
+- Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Gates: `git diff --check` passed; `uv run pytest -q` passed (43 passed, 4 xfailed); `uv run ruff check .` passed; `uv run python -m macro_framework.build --use-cache` passed from cache and rebuilt outputs/dashboard.html + snapshots/2026-05-26.json.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

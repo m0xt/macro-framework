@@ -1,6 +1,6 @@
 {
   "date": "2026-05-26",
-  "build_time_utc": "2026-05-26 11:18 UTC",
+  "build_time_utc": "2026-05-26 11:36 UTC",
   "mrmi": {
     "composite": 0.3653574025382012,
     "state": "green"
@@ -197,9 +197,12 @@
       }
     ],
     "brief": [
-      "Growth Impulses is accelerating at +0.20, so the market-growth pulse is helping MMI.",
-      "Sorted by 7-day contribution proxy, WEI is lifting the latest 7-day GII move; current support is led by WEI, while HYG is the biggest drag.",
-      "Under the hood, 7 of 10 inputs have positive current z-scores; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through."
+      "Growth Impulses improved over the latest week, led by WEI (+0.11 contribution points).",
+      "At +0.20, GII is currently supporting MMI.",
+      "Support currently comes from WEI (+1.16z) and Copper (+0.73z).",
+      "The main drag is HYG (-0.41z) and Yield curve (-0.23z).",
+      "Input breadth is broadly constructive: 7 of 10 inputs are positive and 3 inputs are negative.",
+      "The next read improves if HYG stops acting as a drag and more inputs join the positive side; it weakens if WEI rolls over."
     ]
   },
   "sector_breadth_drilldown": {
@@ -302,9 +305,12 @@
       }
     ],
     "brief": [
-      "Sector Breadth is +0.60, so this driver is supportive for MMI.",
-      "Sorted by 7-day contribution proxy, XRT is lifting the latest 7-day Breadth move; current support is led by SMH, while XHB is the biggest drag.",
-      "Under the hood, 4 of 7 inputs have positive current z-scores; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through."
+      "Sector Breadth improved over the latest week, led by XRT (+0.05 contribution points).",
+      "At +0.60, Breadth is currently supporting MMI.",
+      "Support currently comes from SMH (+1.64z) and IWM (+1.37z).",
+      "The main drag is XHB (-0.55z) and IBB (-0.06z).",
+      "Input breadth is mixed: 4 of 7 inputs are positive and 3 inputs are negative.",
+      "The next read improves if XHB stops acting as a drag and more inputs join the positive side; it weakens if SMH rolls over."
     ]
   },
   "financial_conditions_drilldown": {
@@ -355,9 +361,12 @@
       }
     ],
     "brief": [
-      "Financial Conditions is +0.30, so this driver is supportive for MMI.",
-      "Sorted by 7-day contribution proxy, MOVE is lifting the latest 7-day FinCon move; current support is led by HY spread, while MOVE is the biggest drag.",
-      "Under the hood, 2 of 3 inputs have positive current z-scores; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through."
+      "Financial Conditions improved over the latest week, led by MOVE (+0.04 contribution points).",
+      "At +0.30, FinCon is currently supporting MMI.",
+      "Support currently comes from HY spread (+0.87z) and VIX (+0.55z).",
+      "The main drag is MOVE (-0.53z).",
+      "Input breadth is broadly constructive: 2 of 3 inputs are positive and 1 input is negative.",
+      "The next read improves if MOVE stops acting as a drag and more inputs join the positive side; it weakens if HY spread rolls over."
     ]
   },
   "mrmi_combined": {
