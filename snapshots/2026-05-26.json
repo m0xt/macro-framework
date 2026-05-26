@@ -1,6 +1,6 @@
 {
   "date": "2026-05-26",
-  "build_time_utc": "2026-05-26 09:00 UTC",
+  "build_time_utc": "2026-05-26 09:02 UTC",
   "mrmi": {
     "composite": 0.3653574025382012,
     "state": "green"
@@ -21,6 +21,7 @@
   "mrmi_combined": {
     "value": 0.07460280377521933,
     "state": "CAUTION",
+    "legacy_state": "LONG",
     "exposure": 0.75,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,

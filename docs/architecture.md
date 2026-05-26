@@ -4,7 +4,7 @@
 
 ## MRMI formula
 
-MRMI (Milk Road Macro Index) is the headline LONG/CASH signal. It combines fast market momentum with a slow macro-stress buffer:
+MRMI (Milk Road Macro Index) is the headline allocation posture index. It combines fast market momentum with a slow macro-stress buffer:
 
 ```text
 g                = max(0, -Real_Economy)
@@ -14,8 +14,9 @@ Stress_intensity = clip(Stress_raw / stress_p99, 0, 1)     # stress_p99=10.0083
 Macro_buffer     = buffer_size * (1 - Stress_intensity)   # buffer_size=0.5
 MRMI             = MMI + Macro_buffer - threshold          # threshold=0.75
 
-MRMI > 0 -> LONG
-MRMI < 0 -> CASH
+MRMI < -0.50 -> CASH (0% exposure)
+-0.50 <= MRMI <= +0.25 -> CAUTION (75% exposure)
+MRMI > +0.25 -> LONG (100% exposure)
 ```
 
 - `MMI` is the equal-weighted Market Momentum Index: Growth Impulse Index, Sector Breadth, and Financial Conditions.
@@ -54,7 +55,7 @@ The buffer is intentionally pro-risk by default: MMI weakness alone is not enoug
 
 The dashboard is a four-step walkthrough wrapped by a hero:
 
-1. Hero: headline MRMI value, LONG/CASH state, scale bar, pillar states, and the top weekly brief.
+1. Hero: headline MRMI value, LONG/CAUTION/CASH posture, scale bar, pillar states, and the top weekly brief.
 2. MRMI history: regime shading plus SPX/Russell/BTC overlays.
 3. Market pillar: MMI history, weekly market brief, and GII/Breadth/FinCon driver cards.
 4. Economy pillar: Real Economy Score and Inflation Direction chart, weekly economy brief, and driver cards.

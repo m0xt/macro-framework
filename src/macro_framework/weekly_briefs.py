@@ -43,12 +43,14 @@ Style: clear, direct, no fluff. Lead with the most important observation —
 do not open with "In today's..." or similar. Flowing prose only — no bullets.
 Include markdown links to sources inline where relevant.
 
-Framework context: MRMI is the headline regime signal (LONG vs CASH). It
-combines MMI (market momentum from credit / breadth / volatility) with a
-macro stress buffer drawn from growth and inflation conditions. Discuss
-growth, inflation, and stress in plain terms — do NOT use season metaphors
-(no "Spring/Summer/Fall/Winter") and do NOT use the term "MRCI". Refer to
-the growth axis simply as "growth".\
+Framework context: MRMI is the headline allocation posture index: LONG
+(100% exposure), CAUTION (75% exposure), or CASH (0% exposure). It combines
+MMI (market momentum from credit / breadth / volatility) with a macro stress
+buffer drawn from growth and inflation conditions, then maps the MRMI value
+to CASH below -0.50, CAUTION from -0.50 to +0.25, and LONG above +0.25.
+Discuss growth, inflation, and stress in plain terms — do NOT use season
+metaphors (no "Spring/Summer/Fall/Winter") and do NOT use the term "MRCI".
+Refer to the growth axis simply as "growth".\
 """
 
 SYSTEM_MARKET = SYSTEM_BASE + """
@@ -292,14 +294,16 @@ def _top_context(latest: dict) -> str:
     mrmi_combined = latest.get("mrmi_combined") or {}
     mrmi_value = mrmi_combined.get("value")
     mrmi_state = mrmi_combined.get("state", "?")
+    exposure = mrmi_combined.get("exposure")
     momentum = mrmi_combined.get("momentum")
     macro_buffer = mrmi_combined.get("macro_buffer")
     stress = mrmi_combined.get("stress_score")
 
+    exposure_label = f"{exposure:.0%} exposure" if isinstance(exposure, (int, float)) else "exposure n/a"
     return (
         f"Date: {latest.get('date', '?')}\n\n"
         f"=== HEADLINE ===\n"
-        f"MRMI {_fmt(mrmi_value)} ({mrmi_state})\n"
+        f"MRMI {_fmt(mrmi_value)} ({mrmi_state}, {exposure_label})\n"
         f"  MMI (momentum): {_fmt(momentum)}\n"
         f"  Macro buffer: {_fmt(macro_buffer)}\n"
         f"  Stress score: {_fmt(stress)}\n"

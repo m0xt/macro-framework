@@ -266,29 +266,35 @@ def strip_html(s):
 
 
 def _make_scale_bar(mrmi_value, state_color):
-    """Horizontal bar showing where MRMI sits on a -3 to +5 scale, with threshold at 0."""
+    """Horizontal bar showing MRMI's cash / caution / long posture zones."""
     if mrmi_value is None:
         return ""
     SCALE_MIN, SCALE_MAX = -3.0, 5.0
     clamped = max(SCALE_MIN, min(SCALE_MAX, mrmi_value))
     pct = (clamped - SCALE_MIN) / (SCALE_MAX - SCALE_MIN) * 100
-    zero_pct = (0 - SCALE_MIN) / (SCALE_MAX - SCALE_MIN) * 100
+    cash_pct = (MRMI_CASH_THRESHOLD - SCALE_MIN) / (SCALE_MAX - SCALE_MIN) * 100
+    long_pct = (MRMI_LONG_THRESHOLD - SCALE_MIN) / (SCALE_MAX - SCALE_MIN) * 100
+    caution_width = long_pct - cash_pct
     return f"""
   <div class="scale-bar">
     <div class="scale-track">
-      <div class="scale-zone-cash" style="width: {zero_pct}%;"></div>
-      <div class="scale-zone-long" style="width: {100 - zero_pct}%;"></div>
-      <div class="scale-zero" style="left: {zero_pct}%;"></div>
+      <div class="scale-zone-cash" style="width: {cash_pct}%;"></div>
+      <div class="scale-zone-caution" style="width: {caution_width}%;"></div>
+      <div class="scale-zone-long" style="width: {100 - long_pct}%;"></div>
+      <div class="scale-threshold" style="left: {cash_pct}%;"></div>
+      <div class="scale-threshold" style="left: {long_pct}%;"></div>
       <div class="scale-marker" style="left: {pct}%; background: {state_color}; box-shadow: 0 0 0 4px {state_color}33;"></div>
     </div>
     <div class="scale-axis">
       <span style="left: 0%;">−3</span>
-      <span style="left: {zero_pct}%; color: #888;">0 · threshold</span>
+      <span style="left: {cash_pct}%; color: #888;">−0.50 · cash</span>
+      <span style="left: {long_pct}%; color: #888;">+0.25 · long</span>
       <span style="left: 100%;">+5</span>
     </div>
     <div class="scale-legend">
-      <span class="scale-cash-label">CASH ↓</span>
-      <span class="scale-long-label">↑ LONG</span>
+      <span class="scale-cash-label">CASH · 0%</span>
+      <span class="scale-caution-label">CAUTION · 75%</span>
+      <span class="scale-long-label">LONG · 100%</span>
     </div>
   </div>"""
 
@@ -297,7 +303,7 @@ def render(snap, chart, raw_data=None):
     # === NEW unified Milk Road Macro Index (MRMI) ===
     mrmi_combined = snap.get("mrmi_combined") or {}
     mrmi_value = mrmi_combined.get("value")
-    mrmi_state = mrmi_combined.get("state")  # "LONG" or "CASH"
+    mrmi_state = mrmi_combined.get("state")  # "LONG", "CAUTION", or "CASH"
     mmi_value = mrmi_combined.get("momentum")
     macro_buffer = mrmi_combined.get("macro_buffer")
     stress_intensity = mrmi_combined.get("stress_intensity") or 0.0
@@ -387,9 +393,10 @@ def render(snap, chart, raw_data=None):
 
     # === Headline action driven by NEW MRMI ===
     is_long = mrmi_state == "LONG"
-    state_color = "#4CAF50" if is_long else "#E84B5A"
-    state_label = "STAY LONG" if is_long else "CASH"
-    state_subtitle = "100% position" if is_long else "0% position"
+    is_caution = mrmi_state == "CAUTION"
+    state_color = "#4CAF50" if is_long else "#cdaa6a" if is_caution else "#E84B5A"
+    state_label = "LONG" if is_long else "CAUTION" if is_caution else "CASH"
+    state_subtitle = "100% exposure" if is_long else "75% exposure" if is_caution else "0% exposure"
     mrmi_value_str = f"{'+' if (mrmi_value or 0) >= 0 else ''}{mrmi_value:.2f}" if mrmi_value is not None else "—"
 
     # State-aware story for the banner — translates the numbers into plain English
@@ -402,13 +409,13 @@ def render(snap, chart, raw_data=None):
         macro_state_word = "calm stress"
 
     if is_long and (stress_score or 0) < BUCKET_CUTOFF_CALM_WATCH and state == "green":
-        banner_story = "Market signals are healthy and macro stress is calm. Framework recommends staying fully invested in risk assets."
-    elif is_long and state == "green":
-        banner_story = f"Market signals are healthy. Macro shows {macro_state_word} but doesn't override the buffer — stay invested."
-    elif is_long and state != "green":
-        banner_story = "Market signals are softening but macro stress is not confirming danger. The buffer keeps you long for now — watch for further deterioration."
+        banner_story = "Market signals are healthy and macro stress is calm. Framework supports full risk exposure."
+    elif is_long:
+        banner_story = f"Market signals are healthy enough for full exposure. Macro shows {macro_state_word}, but not enough to cut risk."
+    elif is_caution:
+        banner_story = "MRMI is in the investor caution zone. Stay invested, but reduce aggressiveness to 75% exposure and pay attention."
     else:  # CASH
-        banner_story = "Market signals AND macro conditions are both flashing danger. Framework recommends stepping aside until at least one signal recovers."
+        banner_story = "Market signals and macro conditions are hostile enough to prioritize capital preservation at 0% exposure."
 
     # AI-generated briefs: pillar briefs first, then top brief that consumes them.
     # Lazy weekly cadence (regenerates if latest archive folder is older than most recent Tuesday).
@@ -459,17 +466,17 @@ def render(snap, chart, raw_data=None):
             f'{preview_meta.get("label", "new strategy formula")} · output only, production dashboard unchanged</div>'
         )
     backtest_card_html = preview_meta.get("backtest_card_html") or '''
-    <!-- Backtest figures source: reports/task-34-stress-unification-backtest.md Test 1 -->
+    <!-- Backtest figures source: reports/task-35-investor-grade-thresholds.md recommendation -->
     <details class="backtest-toggle">
       <summary>How well does this work historically? <span class="muted small">(click)</span></summary>
       <div class="backtest-toggle-body">
-        <p class="muted small" style="margin-bottom: 8px;">Full-sample unified-stress backtest (2017–2026), no leverage:</p>
+        <p class="muted small" style="margin-bottom: 8px;">Full-sample investor-grade posture backtest (2017–2026), no leverage:</p>
         <ul class="backtest-list">
-          <li><span class="bt-asset-inline">SPX</span> +20.96% annual return · max drawdown −6.23% · Calmar 3.37</li>
-          <li><span class="bt-asset-inline">Russell 2000</span> +26.87% annual return · max drawdown −7.49% · Calmar 3.59</li>
-          <li><span class="bt-asset-inline">Bitcoin</span> +42.66% annual return · max drawdown −60.92% · Calmar 0.70</li>
+          <li><span class="bt-asset-inline">SPX</span> +20.9% annual return · max drawdown −7.3% · Calmar 2.88</li>
+          <li><span class="bt-asset-inline">Russell 2000</span> +25.6% annual return · max drawdown −10.0% · Calmar 2.57</li>
+          <li><span class="bt-asset-inline">Bitcoin</span> +39.3% annual return · max drawdown −58.6% · Calmar 0.67</li>
         </ul>
-        <p class="muted small" style="margin-top: 8px;">Active 51.6% of the time (cash 48.4%). OOS Calmar: SPX 8.22, Russell 4.57, BTC 2.03.</p>
+        <p class="muted small" style="margin-top: 8px;">Average exposure 62.9% of the time (cash 27.9%, caution 36.6%).</p>
       </div>
     </details>'''
 
@@ -722,11 +729,15 @@ def render(snap, chart, raw_data=None):
     background: linear-gradient(to right, #E84B5A22, #E84B5A11);
     height: 100%;
   }}
+  .scale-zone-caution {{
+    background: linear-gradient(to right, #cdaa6a22, #cdaa6a18);
+    height: 100%;
+  }}
   .scale-zone-long {{
     background: linear-gradient(to right, #4CAF5011, #4CAF5022);
     height: 100%;
   }}
-  .scale-zero {{
+  .scale-threshold {{
     position: absolute; top: -3px; bottom: -3px;
     width: 1px; background: #444;
   }}
@@ -749,6 +760,7 @@ def render(snap, chart, raw_data=None):
     text-transform: uppercase; font-weight: 600;
   }}
   .scale-cash-label {{ color: #E84B5A88; }}
+  .scale-caution-label {{ color: #cdaa6a99; }}
   .scale-long-label {{ color: #4CAF5088; }}
 
   /* Composition (just two pillars, no MRMI repeat) */
@@ -1243,7 +1255,7 @@ def render(snap, chart, raw_data=None):
           <span class="hero-pillar-value mono">{stress_value_str}</span>
         </span>
       </div>
-      <div class="hero-pillar-note">MRMI = MMI + macro buffer. Cash only when both turn against you.</div>
+      <div class="hero-pillar-note">MRMI = MMI + macro buffer. Posture is LONG above +0.25, CAUTION from −0.50 to +0.25, CASH below −0.50.</div>
     </aside>
   </div>
 
@@ -1258,7 +1270,7 @@ def render(snap, chart, raw_data=None):
 <div class="mrmi-chart">
   <div class="mrmi-chart-header">
     <h3>Milk Road Macro Index (MRMI)
-      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>How it's built:</strong> MRMI combines MMI (market momentum from credit, breadth and volatility) with a macro buffer that erodes when growth and inflation both deteriorate. The buffer keeps us invested by default; only when the market signal turns red <em>and</em> macro stress builds does MRMI cross below zero and trigger CASH.</p><p><strong>Reading the chart:</strong> white line is the MRMI value over time. Green shading = LONG regime, red = CASH. Notice the cash episodes around 2018 (vol spike), 2020 (COVID), and 2022 (bear market) — that's when both pillars confirmed danger. Toggle assets in the legend to overlay SPX / Russell / BTC.</p><p><strong>Next:</strong> open <em>MMI Drivers</em> below to see what's behind the market signal, then <em>Macro Backdrop</em> for the economy signal.</p></span></span>
+      <span class="info-icon">{info_svg}<span class="tip-pop tip-pop-wide"><p><strong>How it's built:</strong> MRMI combines MMI (market momentum from credit, breadth and volatility) with a macro buffer that erodes when growth and inflation both deteriorate. The formula is unchanged; the production posture layer maps MRMI to LONG, CAUTION, or CASH.</p><p><strong>Reading the chart:</strong> white line is the MRMI value over time. Green zone = LONG above +0.25, amber = CAUTION from −0.50 to +0.25, red = CASH below −0.50. Toggle assets in the legend to overlay SPX / Russell / BTC.</p><p><strong>Next:</strong> open <em>MMI Drivers</em> below to see what's behind the market signal, then <em>Macro Backdrop</em> for the economy signal.</p></span></span>
     </h3>
     <div class="range-tabs">
       <button data-range="1y" class="active">1Y</button>
@@ -1267,7 +1279,7 @@ def render(snap, chart, raw_data=None):
       <button data-range="all">ALL</button>
     </div>
   </div>
-  <p class="mrmi-chart-subtitle">A single regime signal: above zero stay long, below zero move to cash. Built from market momentum plus a macro stress buffer.</p>
+  <p class="mrmi-chart-subtitle">An allocation posture index: LONG above +0.25, CAUTION (75% exposure) from −0.50 to +0.25, CASH below −0.50.</p>
   <div class="legend">
     <span class="legend-item" data-series="mrmi"><span class="legend-dot" style="background:#fff"></span>MRMI (headline)</span>
     <span class="legend-item inactive" data-series="mmi"><span class="legend-dot" style="background:#888"></span>MMI (momentum only)</span>
@@ -1355,7 +1367,7 @@ def render(snap, chart, raw_data=None):
     </tbody>
   </table>
   <div class="library-footer">
-    Library entries don't drive the binary call — they're context that explains narrative shifts. Most need data wiring before they can populate.
+    Library entries don't drive the headline posture — they're context that explains narrative shifts. Most need data wiring before they can populate.
   </div>
 </div>
 
@@ -1405,7 +1417,6 @@ function buildMrmiChart(rangeKey) {{
       label: 'MRMI', data: mrmi_series,
       borderColor: '#ffffff', borderWidth: 2.0,
       pointRadius: 0, tension: 0.1, spanGaps: true,
-      fill: {{ target: 'origin', above: 'rgba(76,175,80,0.22)', below: 'rgba(232,75,90,0.22)' }},
       order: 0,
   }});
 
@@ -1432,7 +1443,11 @@ function buildMrmiChart(rangeKey) {{
         }},
         annotation: {{
           annotations: {{
-            zero: {{ type: 'line', yMin: 0, yMax: 0, borderColor: '#333', borderWidth: 1, scaleID: 'y' }},
+            cashBand: {{ type: 'box', yMin: -10, yMax: {MRMI_CASH_THRESHOLD:.2f}, backgroundColor: 'rgba(232,75,90,0.10)', borderWidth: 0, scaleID: 'y' }},
+            cautionBand: {{ type: 'box', yMin: {MRMI_CASH_THRESHOLD:.2f}, yMax: {MRMI_LONG_THRESHOLD:.2f}, backgroundColor: 'rgba(205,170,106,0.10)', borderWidth: 0, scaleID: 'y' }},
+            longBand: {{ type: 'box', yMin: {MRMI_LONG_THRESHOLD:.2f}, yMax: 10, backgroundColor: 'rgba(76,175,80,0.10)', borderWidth: 0, scaleID: 'y' }},
+            cashLine: {{ type: 'line', yMin: {MRMI_CASH_THRESHOLD:.2f}, yMax: {MRMI_CASH_THRESHOLD:.2f}, borderColor: 'rgba(232,75,90,0.65)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y', label: {{ display: true, content: 'CASH −0.50', position: 'start', backgroundColor: 'transparent', color: '#9a3d47', font: {{ size: 9 }} }} }},
+            longLine: {{ type: 'line', yMin: {MRMI_LONG_THRESHOLD:.2f}, yMax: {MRMI_LONG_THRESHOLD:.2f}, borderColor: 'rgba(76,175,80,0.65)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y', label: {{ display: true, content: 'LONG +0.25', position: 'start', backgroundColor: 'transparent', color: '#4CAF50', font: {{ size: 9 }} }} }},
           }},
         }},
       }},
@@ -2101,9 +2116,10 @@ def build_dashboard(use_cache: bool = True) -> Path:
     mrmi_series = mrmi_combined['mrmi'].dropna()
     if len(mrmi_series):
         latest = mrmi_series.iloc[-1]
-        state = "STAY LONG" if latest > 0 else "CASH"
+        state = mrmi_posture(latest)
+        exposure = mrmi_exposure(latest)
         stress_score_now = mrmi_combined['stress_score'].dropna().iloc[-1] if len(mrmi_combined['stress_score'].dropna()) else 0
-        print(f"  ▶ MRMI:     {latest:+.2f} → {state}  (Momentum {composite.dropna().iloc[-1]:+.2f}  Buffer {mrmi_combined['macro_buffer'].dropna().iloc[-1]:+.2f}  Stress score {stress_score_now:.1f})")
+        print(f"  ▶ MRMI:     {latest:+.2f} → {state} ({exposure:.0%} exposure)  (Momentum {composite.dropna().iloc[-1]:+.2f}  Buffer {mrmi_combined['macro_buffer'].dropna().iloc[-1]:+.2f}  Stress score {stress_score_now:.1f})")
     re_score = macro_ctx['real_economy_score'].dropna()
     inf_dir = macro_ctx['inflation_dir_pp'].dropna()
     if len(re_score):

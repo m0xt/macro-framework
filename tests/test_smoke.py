@@ -186,7 +186,19 @@ def test_stress_score_bucket_boundaries_match_supabase_constraint() -> None:
     assert macro_pipeline.stress_score_bucket(7.0) == "elevated"
 
 
-def test_canonical_backtest_matches_task34_phase1_calmar() -> None:
+def test_mrmi_posture_boundaries_match_investor_grade_zone() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    assert macro_pipeline.mrmi_posture(-0.501) == "CASH"
+    assert macro_pipeline.mrmi_exposure(-0.501) == 0.0
+    assert macro_pipeline.mrmi_posture(-0.50) == "CAUTION"
+    assert macro_pipeline.mrmi_exposure(-0.50) == 0.75
+    assert macro_pipeline.mrmi_posture(0.25) == "CAUTION"
+    assert macro_pipeline.mrmi_exposure(0.25) == 0.75
+    assert macro_pipeline.mrmi_posture(0.251) == "LONG"
+    assert macro_pipeline.mrmi_exposure(0.251) == 1.0
+
+
+def test_canonical_backtest_matches_task35_investor_posture_calmar() -> None:
     backtest = _import_module("macro_framework.backtest_production")
     data_path = ROOT / ".cache" / "raw_data.pkl"
     assert data_path.exists(), "raw_data.pkl is required for the canonical backtest smoke test"
@@ -198,7 +210,7 @@ def test_canonical_backtest_matches_task34_phase1_calmar() -> None:
         "btc": data["BTC-USD"].pct_change(),
     }
 
-    expected = {"spx": 3.37, "iwm": 3.59, "btc": 0.70}
+    expected = {"spx": 2.88, "iwm": 2.57, "btc": 0.67}
     for asset, expected_calmar in expected.items():
         result = backtest.backtest_signal(mrmi, asset_rets[asset])
         assert result is not None

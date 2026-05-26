@@ -24,7 +24,11 @@ import pandas as pd
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
-from macro_framework.macro_pipeline import UNIFIED_STRESS_ALPHA, UNIFIED_STRESS_BETA
+from macro_framework.macro_pipeline import (
+    UNIFIED_STRESS_ALPHA,
+    UNIFIED_STRESS_BETA,
+    mrmi_legacy_state,
+)
 
 EXPECTED_SCHEMA_VERSION = 3
 SCHEMA_VERSION_KEY = "schema_version"
@@ -101,7 +105,7 @@ def row_from_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
     return {
         "date": snapshot["date"],
         "mrmi": mrmi_c["value"],
-        "mrmi_state": mrmi_c["state"],
+        "mrmi_state": mrmi_c.get("legacy_state") or mrmi_legacy_state(mrmi_c["value"]),
         "mmi": mrmi_c["momentum"],
         # New unified-stress semantics: normalized 0–1 stress_score / 10.
         "stress_intensity": mrmi_c["stress_intensity"],
@@ -128,7 +132,7 @@ def rows_from_backfill_series(series: dict[str, pd.Series]) -> list[dict[str, An
     """Build macro_snapshots rows from per-column daily series.
 
     Skips rows where mrmi is NaN (pre-warmup dates). Derives mrmi_state
-    from mrmi sign: LONG if mrmi > 0 else CASH.
+    as backward-compatible LONG/CASH for the existing Supabase constraint.
     """
     mrmi = series["mrmi"]
     rows: list[dict[str, Any]] = []
@@ -138,7 +142,7 @@ def rows_from_backfill_series(series: dict[str, pd.Series]) -> list[dict[str, An
             continue
         row: dict[str, Any] = {
             "date": pd.Timestamp(date).strftime("%Y-%m-%d"),
-            "mrmi_state": "LONG" if value > 0 else "CASH",
+            "mrmi_state": mrmi_legacy_state(value),
             "snapshot": None,
         }
         for col in _HOT_COLUMNS:

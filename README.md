@@ -1,6 +1,6 @@
 # Macro Framework
 
-Macro regime dashboard for deciding LONG vs CASH. It ingests Yahoo/FRED data, computes MRMI from market momentum plus macro stress, writes daily snapshots, renders a self-contained dashboard, syncs optional Supabase hot fields, and refreshes Claude weekly briefs on the first successful build on/after Tuesday.
+Macro allocation-posture dashboard for deciding LONG (100% exposure), CAUTION (75% exposure), or CASH (0% exposure). It ingests Yahoo/FRED data, computes MRMI from market momentum plus macro stress, writes daily snapshots, renders a self-contained dashboard, syncs optional Supabase hot fields, and refreshes Claude weekly briefs on the first successful build on/after Tuesday.
 
 ## Quick start
 

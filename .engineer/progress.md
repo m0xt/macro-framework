@@ -162,3 +162,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Martin/DGal decision on whether to implement the recommended asymmetric caution interpretation in production dashboard/snapshot/Supabase semantics.
+
+## 2026-05-26T09:00:33Z — Task 35b investor-grade caution posture
+- What: Finished the asymmetric investor-grade MRMI posture implementation without changing the unified-stress formula: MRMI < -0.50 = CASH/0%, -0.50..+0.25 = CAUTION/75%, > +0.25 = LONG/100%; updated dashboard scale/hero/chart framing, snapshot JSON fields, backtest exposure semantics, Supabase backward-compatible state handling, weekly brief context, docs, and tests. Verified 2026-05-25 MRMI +0.1343 now maps to CAUTION/75% in snapshot JSON; cached 2026-05-26 dashboard/snapshot reads MRMI +0.0738 → CAUTION/75%.
+- Gates: `uv run ruff check .` passed; `uv run pytest` passed (41 passed, 4 xfailed); `uv run python -m macro_framework.build` passed from cache and wrote outputs/dashboard.html + snapshots/2026-05-26.json; `uv run python -m macro_framework.backtest_production` passed from cache (full-sample SPX/IWM/BTC Calmar 2.88/2.57/0.67, avg exposure 62.9%).
+- Files touched: DECISIONS.md; README.md; GUIDE.md; docs/PRESENTATION.html; docs/architecture.md; src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; src/macro_framework/backtest_production.py; src/macro_framework/sync_to_supabase.py; src/macro_framework/weekly_briefs.py; tests/test_smoke.py; tests/test_sync_to_supabase.py; outputs/dashboard.html; snapshots/2026-05-25.json; snapshots/2026-05-26.json; briefs/2026-05-26/*; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Supabase `mrmi_state` hot column remains backward-compatible LONG/CASH (`CAUTION` maps to `LONG`) because no migration was necessary or added; three-state posture/exposure lives in snapshot JSON until Martin approves a native schema change.

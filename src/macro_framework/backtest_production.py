@@ -7,7 +7,7 @@ with accurate, current results. Uses the production-level signal:
     Stress = clip((0.75·g + 0.50·i + 10·g·i) / 10.0083, 0, 1)
     MRMI   = MMI + 0.5 × (1 - Stress) − 0.75
 
-Strategy: invested when MRMI > 0, cash when MRMI < 0.
+Strategy: MRMI < -0.50 = cash, -0.50..+0.25 = 75% exposure, MRMI > +0.25 = full exposure.
 
 Reports:
   1. Headline backtest (IS / OOS, all 3 assets)
@@ -32,25 +32,30 @@ from macro_framework.build import (
     calc_milk_road_macro_index,
     calc_sector_breadth,
     fetch_all_data,
+    mrmi_exposure,
 )
 
 # ── core backtest helpers ──────────────────────────────────────────────────
 
 def backtest_signal(signal: pd.Series, ret: pd.Series,
-                    delay: int = 0, cost_per_flip: float = 0.0) -> dict | None:
-    """Backtest a binary signal (>0 = invested) on one asset's daily returns."""
+                    delay: int = 0, cost_per_flip: float = 0.0,
+                    interpretation: str = "mrmi") -> dict | None:
+    """Backtest a signal on one asset's daily returns."""
     sig = signal.shift(delay) if delay > 0 else signal
     df = pd.DataFrame({"sig": sig, "ret": ret}).dropna()
     if len(df) < 100:
         return None
 
-    invested = df["sig"] > 0
+    if interpretation == "binary":
+        exposure = (df["sig"] > 0).astype(float)
+    else:
+        exposure = df["sig"].map(mrmi_exposure).astype(float)
     n_years = len(df) / 252
 
-    strat_ret = df["ret"].where(invested, 0.0)
+    strat_ret = df["ret"] * exposure
+    exposure_changes = exposure.diff().abs().fillna(0)
     if cost_per_flip > 0:
-        flips = invested.astype(int).diff().abs().fillna(0)
-        strat_ret = strat_ret - flips * cost_per_flip
+        strat_ret = strat_ret - exposure_changes * cost_per_flip
 
     bh_cum = (1 + df["ret"]).cumprod()
     strat_cum = (1 + strat_ret).cumprod()
@@ -63,12 +68,15 @@ def backtest_signal(signal: pd.Series, ret: pd.Series,
     bh_dd = ((bh_cum / bh_cum.cummax()) - 1).min() * 100
     strat_dd = ((strat_cum / strat_cum.cummax()) - 1).min() * 100
 
-    n_flips = invested.astype(int).diff().abs().sum()
+    n_flips = (exposure_changes > 0).sum()
     return {
         "bh_ann": float(bh_ann), "strat_ann": float(strat_ann),
         "alpha": float(strat_ann - bh_ann),
         "bh_dd": float(bh_dd), "strat_dd": float(strat_dd),
-        "green_pct": float(invested.mean() * 100),
+        "green_pct": float(exposure.mean() * 100),
+        "full_cash_pct": float((exposure == 0.0).mean() * 100),
+        "caution_pct": float((exposure == 0.75).mean() * 100),
+        "avg_exposure_pct": float(exposure.mean() * 100),
         "flips_yr": float(n_flips / n_years),
         "avg_dur": float(len(df) / max(n_flips, 1)) if n_flips else float(len(df)),
         "n_years": n_years,
@@ -112,15 +120,15 @@ def fmt_pct(v: float, dec: int = 1) -> str:
 
 def print_headline(label: str, results: dict) -> None:
     print(f"\n  {label}")
-    print(f"    {'asset':<8} {'B&H ann':>8} {'strat ann':>10} {'alpha':>8} {'B&H DD':>9} {'strat DD':>10} {'green%':>7}")
-    print(f"    {'-'*8} {'-'*8} {'-'*10} {'-'*8} {'-'*9} {'-'*10} {'-'*7}")
+    print(f"    {'asset':<8} {'B&H ann':>8} {'strat ann':>10} {'alpha':>8} {'B&H DD':>9} {'strat DD':>10} {'exposure%':>9}")
+    print(f"    {'-'*8} {'-'*8} {'-'*10} {'-'*8} {'-'*9} {'-'*10} {'-'*9}")
     for asset in ("spx", "iwm", "btc"):
         r = results[asset]
         if r is None:
             continue
         print(f"    {asset.upper():<8} {fmt_pct(r['bh_ann']):>8} {fmt_pct(r['strat_ann']):>10} "
               f"{fmt_pct(r['alpha']):>8} {fmt_pct(r['bh_dd']):>9} {fmt_pct(r['strat_dd']):>10} "
-              f"{r['green_pct']:>6.1f}%")
+              f"{r['avg_exposure_pct']:>8.1f}%")
     if "spx" in results and results["spx"]:
         print(f"    flips/yr: {results['spx']['flips_yr']:.1f}   avg duration: {results['spx']['avg_dur']:.0f}d")
 
@@ -168,16 +176,18 @@ def test_individual_indicators(data: pd.DataFrame, asset_rets: dict, split_idx: 
         "MRMI (prod)": mrmi,
     }
 
-    print(f"\n    {'indicator':<14} {'SPX α':>8} {'IWM α':>8} {'BTC α':>8} {'green%':>8} {'flips/y':>8}")
+    print(f"\n    {'indicator':<14} {'SPX α':>8} {'IWM α':>8} {'BTC α':>8} {'exposure%':>9} {'flips/y':>8}")
     print(f"    {'-'*14} {'-'*8} {'-'*8} {'-'*8} {'-'*8} {'-'*8}")
     out = {}
     for name, sig in indicators.items():
         oos_sig = sig.iloc[split_idx:]
         row = {}
         for asset in ("spx", "iwm", "btc"):
-            r = backtest_signal(oos_sig, asset_rets[asset].iloc[split_idx:])
+            r = backtest_signal(oos_sig, asset_rets[asset].iloc[split_idx:],
+                                interpretation="mrmi" if name == "MRMI (prod)" else "binary")
             row[asset] = r["alpha"] if r else None
-        ref = backtest_signal(oos_sig, asset_rets["spx"].iloc[split_idx:])
+        ref = backtest_signal(oos_sig, asset_rets["spx"].iloc[split_idx:],
+                              interpretation="mrmi" if name == "MRMI (prod)" else "binary")
         green = ref["green_pct"] if ref else None
         flips = ref["flips_yr"] if ref else None
         out[name] = {**row, "green_pct": green, "flips_yr": flips}
@@ -238,12 +248,13 @@ def test_benchmarks(data: pd.DataFrame, mrmi: pd.Series, asset_rets: dict) -> di
         "SPX > 200d SMA": (spx - sma200),  # >0 when above SMA
     }
 
-    print(f"\n    {'strategy':<18} {'SPX ann':>9} {'SPX α':>8} {'SPX DD':>9} {'BTC α':>8} {'flips/y':>8} {'green%':>8}")
+    print(f"\n    {'strategy':<18} {'SPX ann':>9} {'SPX α':>8} {'SPX DD':>9} {'BTC α':>8} {'flips/y':>8} {'exposure%':>9}")
     print(f"    {'-'*18} {'-'*9} {'-'*8} {'-'*9} {'-'*8} {'-'*8} {'-'*8}")
     out = {}
     for name, sig in benchmarks.items():
-        r_spx = backtest_signal(sig, asset_rets["spx"])
-        r_btc = backtest_signal(sig, asset_rets["btc"])
+        interp = "mrmi" if name == "MRMI (prod)" else "binary"
+        r_spx = backtest_signal(sig, asset_rets["spx"], interpretation=interp)
+        r_btc = backtest_signal(sig, asset_rets["btc"], interpretation=interp)
         if r_spx:
             print(f"    {name:<18} {fmt_pct(r_spx['strat_ann']):>9} {fmt_pct(r_spx['alpha']):>8} "
                   f"{fmt_pct(r_spx['strat_dd']):>9} {fmt_pct(r_btc['alpha'] if r_btc else None):>8} "
@@ -253,7 +264,7 @@ def test_benchmarks(data: pd.DataFrame, mrmi: pd.Series, asset_rets: dict) -> di
                           "btc_alpha": r_btc["alpha"] if r_btc else None,
                           "flips_yr": r_spx["flips_yr"], "green_pct": r_spx["green_pct"]}
     # Buy & hold reference
-    bh_only = backtest_signal(pd.Series(1.0, index=mrmi.index), asset_rets["spx"])
+    bh_only = backtest_signal(pd.Series(1.0, index=mrmi.index), asset_rets["spx"], interpretation="binary")
     if bh_only:
         print(f"    {'Buy & Hold':<18} {fmt_pct(bh_only['strat_ann']):>9} {'0.0%':>8} "
               f"{fmt_pct(bh_only['strat_dd']):>9} {'—':>8} {0:>8} {'100.0%':>8}")

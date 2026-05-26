@@ -22,14 +22,14 @@ The dashboard is a four-step walkthrough wrapped by a hero with the headline num
 The first thing you see, designed so anyone in a Tuesday meeting can read it in 10 seconds:
 
 - **Big number** (e.g. `+1.14`) — the current MRMI value.
-- **State** — `STAY LONG` (green) or `CASH` (red), with `100% position` or `0% position`.
-- **Scale bar** — visual showing where the value sits between −3 and +5, with the `0 · threshold` line marked.
+- **State** — `LONG` (100% exposure), `CAUTION` (75% exposure), or `CASH` (0% exposure).
+- **Scale bar** — visual showing where the value sits between −3 and +5, with `−0.50 · cash` and `+0.25 · long` threshold lines marked.
 - **What's behind it** — the two pillar states side-by-side: MMI (`GREEN +0.64`) and Macro Stress (`OFF`).
 - **This week's read** — AI-generated weekly brief (5–7 sentences) synthesizing the cross-pillar story.
 
 ### Step 1 — How the index has evolved
 
-MRMI history chart. White line = MRMI value over time. Green shading = LONG regime, red = CASH. Range tabs (1Y / 2Y / 5Y / ALL). The legend lets you toggle SPX, Russell, BTC, and the underlying MMI line as overlays. Backtest stats sit in a click-to-expand panel below the chart.
+MRMI history chart. White line = MRMI value over time. Green zone = LONG, amber = CAUTION, red = CASH. Range tabs (1Y / 2Y / 5Y / ALL). The legend lets you toggle SPX, Russell, BTC, and the underlying MMI line as overlays. Backtest stats sit in a click-to-expand panel below the chart.
 
 This is the chart you walk into the meeting with. Everyone glances at it, sees where the regime has been, and the conversation starts.
 
@@ -56,20 +56,23 @@ Supplementary indicators that round out the picture but aren't in the formal sig
 ## How MRMI is Computed
 
 ```
-Stress_intensity = min(1, max(0, −Real_Economy) × max(0, Inflation_Direction))
-Macro_buffer     = buffer_size × (1 − Stress_intensity)         # buffer_size = 1.0
-MRMI             = MMI + Macro_buffer − threshold                # threshold = 0.5
+g                = max(0, −Real_Economy)
+i                = max(0, Inflation_Direction)
+Stress_intensity = min(1, (0.75 × g + 0.50 × i + 10 × g × i) / 10.0083)
+Macro_buffer     = buffer_size × (1 − Stress_intensity)         # buffer_size = 0.5
+MRMI             = MMI + Macro_buffer − threshold                # threshold = 0.75
 
-MRMI > 0  → LONG  (stay invested)
-MRMI < 0  → CASH  (step aside)
+MRMI < -0.50           → CASH    (0% exposure / capital preservation)
+-0.50 <= MRMI <= +0.25 → CAUTION (75% exposure / stay invested but less aggressive)
+MRMI > +0.25           → LONG    (100% exposure / full risk exposure)
 ```
 
 The mechanics:
 
-- When the economy is healthy (`Real_Economy ≥ 0` *or* `Inflation_Direction ≤ 0`), `Stress_intensity = 0` and the macro buffer is at full strength. MRMI ≈ MMI + 0.5, so MMI has to be deeply negative (below −0.5) before MRMI flips to CASH.
-- When stress builds (both conditions adverse), `Stress_intensity` rises toward 1.0, eroding the buffer. At full stress, MRMI ≈ MMI − 0.5, so even moderately negative MMI flips the signal to CASH.
+- When the economy is healthy (`Real_Economy ≥ 0` *or* `Inflation_Direction ≤ 0`), `Stress_intensity = 0` and the macro buffer is at full strength. MRMI ≈ MMI + 0.5, so MMI has to be deeply negative before posture falls all the way to CASH.
+- When stress builds (both conditions adverse), `Stress_intensity` rises toward 1.0, eroding the buffer. At full stress, MRMI ≈ MMI − 0.5, so weak MMI can move the posture through CAUTION and into CASH.
 
-The multiplicative AND gate is what makes the system honest: stress can only build when the economy is *both* weakening and seeing rising inflation. Either alone is not enough. Markets can flash false alarms; the buffer keeps you long until fundamentals confirm.
+The unified OR+AND stress formula is what makes the system honest: stress can build when either growth weakens or inflation rises, and it builds fastest when both hit together. Markets can flash false alarms; the posture layer keeps the index investor-grade instead of forcing a binary trading call around zero.
 
 ---
 
@@ -202,7 +205,7 @@ The historical evidence: backtested 2016–2026, the production framework (equal
 - **Predict** — it reacts to current conditions. The signal lags economic releases by their natural cadence.
 - **Asset selection** — it tells you risk-on or risk-off, not which assets to buy within a regime.
 - **Position sizing** — that's a separate decision.
-- **Sub-regime nuance** — it's binary (LONG / CASH). Magnitude tells you confidence, not allocation.
+- **Short-term trading precision** — it is an allocation posture index, not a short-term trading signal.
 
 ---
 

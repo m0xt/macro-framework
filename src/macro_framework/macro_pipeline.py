@@ -471,6 +471,32 @@ STRESS_SCORE_BUCKETS = {
     "elevated": (BUCKET_CUTOFF_BUILDING_ELEV, 10.0),
 }
 
+MRMI_CASH_THRESHOLD = -0.50
+MRMI_LONG_THRESHOLD = 0.25
+MRMI_CAUTION_EXPOSURE = 0.75
+
+def mrmi_posture(value: float | None) -> str | None:
+    """Map MRMI value to the production allocation posture."""
+    if value is None or pd.isna(value):
+        return None
+    if value < MRMI_CASH_THRESHOLD:
+        return "CASH"
+    if value > MRMI_LONG_THRESHOLD:
+        return "LONG"
+    return "CAUTION"
+
+def mrmi_exposure(value: float | None) -> float | None:
+    """Map MRMI value to the production exposure weight."""
+    posture = mrmi_posture(value)
+    if posture == "CASH":
+        return 0.0
+    if posture == "CAUTION":
+        return MRMI_CAUTION_EXPOSURE
+    if posture == "LONG":
+        return 1.0
+    return None
+
+
 def _lagged(series: pd.Series, days: int) -> pd.Series:
     """Shift forward in time so each value first appears on its actual release date."""
     if days <= 0:
@@ -496,7 +522,7 @@ def calc_milk_road_macro_index(momentum: pd.Series, macro_ctx: dict,
     Milk Road Macro Index (MRMI) — single quantified signal that combines:
       · Momentum Score (MMI — composite of GII / Breadth / FinCon)
       · Unified Macro Stress (growth weakness OR rising inflation, amplified when both hit)
-      · Action threshold (subtracted from the raw score so MRMI > 0 means LONG)
+      · Action threshold (subtracted from the raw score before posture mapping)
 
     Formula:
         g              = max(0, -Real_Economy_score)
@@ -506,9 +532,10 @@ def calc_milk_road_macro_index(momentum: pd.Series, macro_ctx: dict,
         macro_buffer   = buffer_size × (1 − stress_norm)
         MRMI           = MMI + macro_buffer − threshold
 
-    Action:
-        MRMI > 0 → STAY LONG  (raw > threshold)
-        MRMI < 0 → CASH       (raw < threshold)
+    Production posture:
+        MRMI < -0.50          → CASH    (0% exposure)
+        -0.50 <= MRMI <= 0.25 → CAUTION (75% exposure)
+        MRMI > 0.25           → LONG    (100% exposure)
 
     Defaults are locked task-34 production parameters selected by Calmar grid
     search and IS/OOS validation across SPX/IWM/BTC.
@@ -1003,8 +1030,10 @@ def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, ma
         mrmi_v = _latest(mrmi_combined["mrmi"])
         snapshot["mrmi_combined"] = {
             "value": mrmi_v,
-            "state": ("LONG" if (mrmi_v is not None and mrmi_v > 0)
-                      else "CASH" if mrmi_v is not None else None),
+            "state": mrmi_posture(mrmi_v),
+            "exposure": mrmi_exposure(mrmi_v),
+            "cash_threshold": MRMI_CASH_THRESHOLD,
+            "long_threshold": MRMI_LONG_THRESHOLD,
             "momentum": _latest(mrmi_combined["momentum"]),
             "stress_intensity": _latest(mrmi_combined["stress_intensity"]),
             "stress_score": _latest(mrmi_combined["stress_score"]),

@@ -1,5 +1,9 @@
 # Decisions
 
+## 2026-05-26 — MRMI production posture is investor-grade three-state
+Reason: Task-35 backtests showed the task-34 binary zero trigger spent ~48% of history in cash, which read too tactical for an investor-facing allocation index. Production keeps the unified-stress MRMI formula unchanged but maps MRMI < -0.50 to CASH / 0% exposure, -0.50 through +0.25 to CAUTION / 75% exposure, and MRMI > +0.25 to LONG / 100% exposure.
+Status: stable; migration 0004 expands Supabase `mrmi_state` to LONG/CAUTION/CASH and adds the `mrmi_exposure` hot field.
+
 ## 2026-05-15 — MRMI parameter reconciliation follows production code
 Reason: `src/macro_framework/macro_pipeline.py` has used Sector Breadth `LOOKBACK = 90` since commit `9f124cf` with the inline provenance "optimized for drawdown: was 63 (originally 252)." README/CLAUDE/GUIDE still said 63, and no newer reproducible research result supported reverting production math. We kept the production value, updated docs only, and locked the documented parameters in tests.
 
