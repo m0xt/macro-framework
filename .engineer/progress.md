@@ -155,3 +155,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: 4519bc0
 - Status: completed
 - Open thread for next dispatch: Bob should run `uv run python -m macro_framework.sync_to_supabase backfill` after pulling this commit; no SQL migration was added.
+
+## 2026-05-26T08:14:38Z — Task 35a investor-grade threshold backtests
+- What: Backtested current unified-stress MRMI interpretation alternatives across binary lower cash cuts, symmetric caution bands, and asymmetric investor-friendly caution zones; recommended asymmetric -0.50/+0.25 with 75% caution as the product-default candidate because it cuts full-cash time from 48.4% to 27.9% while keeping the formula unchanged.
+- Files touched: reports/task-35-investor-grade-thresholds.md; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Martin/DGal decision on whether to implement the recommended asymmetric caution interpretation in production dashboard/snapshot/Supabase semantics.
