@@ -257,6 +257,31 @@ def test_prepare_chart_data_uses_release_lagged_macro_values() -> None:
     assert pce_yoy[425] == pytest.approx(round(float(macro_ctx["real_economy_raw"]["pce_yoy"].iloc[425]), 4))
 
 
+def test_reference_library_exposes_official_inflation_and_ism_metadata() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    build = _import_module("macro_framework.build")
+    idx = pd.date_range("2025-01-01", periods=430, freq="D")
+    data = pd.DataFrame({
+        "CPIAUCSL": np.linspace(100.0, 112.0, len(idx)),
+        "CPILFESL": np.linspace(100.0, 110.0, len(idx)),
+        "PPIACO": np.linspace(100.0, 115.0, len(idx)),
+        "NAPM": np.linspace(48.0, 52.0, len(idx)),
+    }, index=idx)
+
+    library = build.build_library_indicators(data, idx)
+
+    assert "PPIACO" in macro_pipeline.FRED_SERIES
+    assert library["ism_mfg"]["available"] is True
+    assert library["ism_mfg"]["ref_line"] == 50
+    assert library["cpi_headline"]["label"] == "Official CPI Headline"
+    assert library["cpi_core"]["label"] == "Official Core CPI"
+    assert library["ppi_all_commodities"]["label"] == "Official PPI All Commodities"
+    assert library["cpi_headline"]["unit"] == "%"
+    assert library["cpi_core"]["unit"] == "%"
+    assert library["ppi_all_commodities"]["unit"] == "%"
+    assert library["ppi_all_commodities"]["values"][-1] is not None
+
+
 def test_save_snapshot_schema_uses_actual_current_keys(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
     idx = pd.date_range("2026-01-01", periods=3, freq="D")

@@ -232,3 +232,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-26T11:57:28Z — Task 44a Reference Library ISM/CPI/PPI
+- What: Added Reference Library official inflation charts for headline CPI, core CPI, and broad PPI (PPIACO) as YoY rates; added PPIACO to the FRED fetch set and made cache use refresh if a cached payload is missing expected series. Verified FRED's legacy NAPM/ISM Manufacturing PMI CSV endpoint is unavailable, so ISM remains an explicit unavailable row unless an official NAPM series exists in local data.
+- Files touched: src/macro_framework/build.py; src/macro_framework/macro_pipeline.py; tests/test_smoke.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Gates: `git diff --check` passed; `uv run pytest -q` passed (44 passed, 4 xfailed); `uv run ruff check .` passed; `uv run python -m macro_framework.build --no-cache` refreshed PPIACO; `uv run python -m macro_framework.build --use-cache` passed from refreshed cache.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Official ISM Manufacturing PMI/NAPM data is not currently available via FRED CSV (NAPM returns 404); use an ISM-licensed feed or approve a clearly-labeled proxy if Martin needs this chart populated.

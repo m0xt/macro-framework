@@ -164,10 +164,13 @@ def build_library_indicators(data, dates_index):
         notes="Monetary fuel for risk assets · expanding = tailwind")
 
     # Activity
+    # FRED's old ISM Manufacturing PMI/NAPM redistribution endpoint now returns 404;
+    # keep the expected Reference Library row explicit rather than silently proxying it.
     add("ism_mfg", "ISM Manufacturing PMI", "Activity",
-        None,  # not on FRED
-        desc="ISM Manufacturing PMI is no longer redistributed via FRED (ISM licensing). Could substitute Empire State or Philly Fed manufacturing surveys as proxies.",
-        notes="Data pending — ISM doesn't redistribute via FRED")
+        data["NAPM"] if "NAPM" in data else None,
+        transform="raw", ref_line=50, ref_label="expansion/contraction",
+        desc="ISM Manufacturing PMI (diffusion index; >50 = manufacturing expansion, <50 = contraction). FRED's legacy NAPM endpoint is not currently available, so the row only renders if an official NAPM series is present in the local data cache.",
+        notes="Official ISM/NAPM feed unavailable via current FRED CSV")
 
     add("gdpnow", "Atlanta Fed GDPNow", "Activity",
         data["GDPNOW"] if "GDPNOW" in data else None,
@@ -198,6 +201,25 @@ def build_library_indicators(data, dates_index):
         transform="thousands", ref_line=None,
         desc="Building Permits (thousands of units, SAAR). Leads housing starts by 1–2 months — even more forward-looking on construction activity.",
         notes="Permits lead starts by 1–2 months")
+
+    # Inflation — official BLS/FRED indexes shown as YoY inflation rates.
+    add("cpi_headline", "Official CPI Headline", "Inflation",
+        data["CPIAUCSL"] if "CPIAUCSL" in data else None,
+        transform="yoy_pct", ref_line=2.0, ref_label="2% target area",
+        desc="Official headline Consumer Price Index for All Urban Consumers (FRED CPIAUCSL), shown as YoY % inflation. Includes food and energy.",
+        notes="BLS/FRED · headline consumer inflation YoY")
+
+    add("cpi_core", "Official Core CPI", "Inflation",
+        data["CPILFESL"] if "CPILFESL" in data else None,
+        transform="yoy_pct", ref_line=2.0, ref_label="2% target area",
+        desc="Official Core CPI excluding food and energy (FRED CPILFESL), shown as YoY % inflation. This is the dashboard's inflation-direction anchor.",
+        notes="BLS/FRED · core consumer inflation YoY")
+
+    add("ppi_all_commodities", "Official PPI All Commodities", "Inflation",
+        data["PPIACO"] if "PPIACO" in data else None,
+        transform="yoy_pct", ref_line=0.0, ref_label="no producer-price inflation",
+        desc="Official Producer Price Index by Commodity: All Commodities (FRED PPIACO), shown as YoY %. Broad upstream producer-price pressure, more volatile than CPI.",
+        notes="BLS/FRED · broad producer prices YoY")
 
     # Labor
     add("initial_claims", "Initial Jobless Claims", "Labor",

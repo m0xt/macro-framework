@@ -62,6 +62,7 @@ FRED_SERIES = {
     "DGS3MO": "3M Treasury",
     "CPIAUCSL": "CPI All Items",
     "CPILFESL": "CPI Core (ex food & energy)",
+    "PPIACO": "Producer Price Index: All Commodities",
     "PCEPILFE": "Core PCE",
     "GDPC1": "Real GDP (chained 2017 dollars)",
     "GDPPOT": "Real Potential GDP (CBO, chained 2017 dollars)",
@@ -121,8 +122,16 @@ def fetch_all_data(use_cache: bool = True) -> pd.DataFrame:
     if use_cache and DATA_CACHE.exists():
         age_hours = (datetime.now().timestamp() - DATA_CACHE.stat().st_mtime) / 3600
         if age_hours < 12:
-            print(f"  Using cached data ({age_hours:.1f}h old)")
-            return pd.read_pickle(DATA_CACHE)
+            cached = pd.read_pickle(DATA_CACHE)
+            expected_cols = set(YF_TICKERS) | set(FRED_SERIES)
+            missing_cols = sorted(expected_cols - set(cached.columns))
+            if not missing_cols:
+                print(f"  Using cached data ({age_hours:.1f}h old)")
+                return cached
+            print(
+                "  Cache missing expected series "
+                f"({', '.join(missing_cols[:8])}{'...' if len(missing_cols) > 8 else ''}); refreshing"
+            )
 
     print("Fetching data...")
     yf_data = fetch_yfinance(YF_TICKERS)
