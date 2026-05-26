@@ -20,7 +20,7 @@
   "inflation": 0.7817200324314089,
   "mrmi_combined": {
     "value": 0.1342540656699387,
-    "state": "LONG",
+    "state": "CAUTION",
     "momentum": 0.4255900975347064,
     "stress_intensity": 0.08267206372953538,
     "stress_score": 0.8267206372953538,
@@ -29,7 +29,11 @@
     "stress_score_bucket": "calm",
     "macro_buffer": 0.4586639681352323,
     "buffer_size": 0.5,
-    "threshold": 0.75
+    "threshold": 0.75,
+    "legacy_state": "LONG",
+    "exposure": 0.75,
+    "cash_threshold": -0.5,
+    "long_threshold": 0.25
   },
   "macro": {
     "real_economy_score": -0.6815603029860267,
