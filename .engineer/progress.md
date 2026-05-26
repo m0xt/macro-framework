@@ -254,3 +254,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: DBnomics still exposes suspicious 2025-09..2025-12 low-teens ISM values, so they remain filtered until the mirror is corrected or a better licensed ISM feed is available.
+
+## 2026-05-26T12:29:03Z — Task 47a high-level brief simplification
+- What: Reworked the weekly brief generation prompts for the top, market, and economy dashboard briefs toward plain-English explanations for non-macro colleagues, then force-regenerated the 2026-05-26 briefs and rebuilt the dashboard/snapshot from cache.
+- Files touched: src/macro_framework/weekly_briefs.py; briefs/2026-05-26/top.md; briefs/2026-05-26/market.md; briefs/2026-05-26/economy.md; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
