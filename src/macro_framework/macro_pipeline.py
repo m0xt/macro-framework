@@ -324,16 +324,47 @@ def _latest_component_value(series: pd.Series) -> float | None:
         return None
     return round(float(s.iloc[-1]), 4)
 
-def growth_impulse_drilldown(data: pd.DataFrame, gii: pd.DataFrame | None = None) -> dict:
-    """Latest component evidence stack for the dashboard Growth Impulses drill-down."""
+
+def _component_delta(series: pd.Series, periods: int) -> float | None:
+    s = series.dropna()
+    if len(s) <= periods:
+        return None
+    return round(float(s.iloc[-1] - s.iloc[-(periods + 1)]), 4)
+
+
+def _component_values(series: pd.Series, index: pd.Index) -> list[float | None]:
+    values = series.reindex(index)
+    return [round(float(v), 4) if pd.notna(v) else None for v in values]
+
+def growth_impulse_drilldown(
+    data: pd.DataFrame,
+    gii: pd.DataFrame | None = None,
+    *,
+    include_values: bool = True,
+) -> dict:
+    """Latest component evidence stack for the dashboard Growth Impulses drill-down.
+
+    GII = mean of per-component clipped z-scored ROCs (fast leg).  Each row's
+    ``contribution_7d`` is the per-input share of the latest 7-day ΔGII proxy:
+    ``Δz_fast_i / N`` with ``N`` = number of growth-impulse components.  Rows
+    are sorted by ``|contribution_7d|`` descending so the biggest drivers of
+    the latest move surface first.
+    """
     rows = []
     components = growth_impulse_components(data)
+    chart_index = gii.index if gii is not None and len(gii.index) else data.index
+    component_count = len(GROWTH_IMPULSE_SPECS) or 1
     for name, series in components.items():
         sig_fast, sig_slow = _growth_impulse_component_signals(name, series)
         z_fast = clip_series(zscore(sig_fast, GROWTH_IMPULSE_Z_LEN), GROWTH_IMPULSE_CLIP_Z)
         z_slow = clip_series(zscore(sig_slow, GROWTH_IMPULSE_Z_LEN), GROWTH_IMPULSE_CLIP_Z)
+        z_change_7d = _component_delta(z_fast, 5)
+        z_change_30d = _component_delta(z_fast, 21)
+        contribution_7d = (
+            round(float(z_change_7d) / component_count, 6) if z_change_7d is not None else None
+        )
         spec = GROWTH_IMPULSE_SPECS[name]
-        rows.append({
+        row = {
             "key": name,
             "label": spec["label"],
             "group": spec["group"],
@@ -345,15 +376,28 @@ def growth_impulse_drilldown(data: pd.DataFrame, gii: pd.DataFrame | None = None
             "trend_126d": _latest_component_value(sig_slow),
             "z_21d": _latest_component_value(z_fast),
             "z_126d": _latest_component_value(z_slow),
-        })
+            "z_change_7d": z_change_7d,
+            "z_change_30d": z_change_30d,
+            "contribution_7d": contribution_7d,
+        }
+        if include_values:
+            row["values"] = _component_values(series, chart_index)
+        rows.append(row)
 
-    group_order = {"Credit/risk appetite": 0, "Growth/commodities": 1, "Vol/rates": 2}
-    rows = sorted(rows, key=lambda r: (group_order.get(r["group"], 99), list(GROWTH_IMPULSE_SPECS).index(r["key"])))
+    rows = sorted(
+        rows,
+        key=lambda r: (
+            -abs(r["contribution_7d"] or 0),
+            list(GROWTH_IMPULSE_SPECS).index(r["key"]),
+        ),
+    )
 
     score = _latest_component_value(gii["fast"]) if gii is not None and "fast" in gii else None
     valid = [r for r in rows if r["z_21d"] is not None]
     supportive = sum(1 for r in valid if r["z_21d"] > 0)
     drag = sum(1 for r in valid if r["z_21d"] < 0)
+    movers = [r for r in rows if r["contribution_7d"] is not None]
+    top_mover = movers[0] if movers else None
     top_support = max(valid, key=lambda r: r["z_21d"], default=None)
     top_drag = min(valid, key=lambda r: r["z_21d"], default=None)
 
@@ -361,17 +405,26 @@ def growth_impulse_drilldown(data: pd.DataFrame, gii: pd.DataFrame | None = None
         brief = ["Growth Impulses does not yet have enough valid component history for a full read."]
     else:
         direction = "accelerating" if score > 0 else "fading"
-        breadth_text = f"{supportive} of {len(valid)} inputs are positive on the 21-day z contribution"
+        breadth_text = f"{supportive} of {len(valid)} inputs have positive current z-scores"
         support_text = top_support["label"] if top_support else "none"
         drag_text = top_drag["label"] if top_drag else "none"
+        mover_text = "none"
+        if top_mover and top_mover["contribution_7d"]:
+            mover_dir = "lifting" if top_mover["contribution_7d"] > 0 else "pulling down"
+            mover_text = f"{top_mover['label']} is {mover_dir} the latest 7-day GII move"
         brief = [
             f"Growth Impulses is {direction} at {score:+.2f}, so the market-growth pulse is {'helping' if score > 0 else 'dragging on'} MMI.",
-            f"Under the hood, {breadth_text}, with {support_text} doing the most support work and {drag_text} the biggest drag.",
-            "Use the 21-day columns for the fast meeting read and the 126-day columns to check whether that move is becoming durable.",
+            f"Sorted by 7-day contribution proxy, {mover_text}; current support is led by {support_text}, while {drag_text} is the biggest drag.",
+            f"Under the hood, {breadth_text}; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through.",
         ]
 
     return {
         "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
+        "sort_note": (
+            "Rows sort by absolute 7-day contribution to the latest GII move, "
+            f"proxied as each input's 7-day fast z-score change divided by the "
+            f"{component_count} growth-impulse components."
+        ),
         "score": score,
         "supportive_count": supportive,
         "drag_count": drag,
@@ -1172,7 +1225,7 @@ def save_snapshot(data, composite, gii, fincon, breadth, biz_cycle, infl_ctx, ma
             "labor": _latest(biz_cycle["labor"]) if "labor" in biz_cycle else None,
         },
         "inflation": _latest(infl_ctx["composite"]) if "composite" in infl_ctx else None,
-        "growth_impulse_drilldown": growth_impulse_drilldown(data, gii),
+        "growth_impulse_drilldown": growth_impulse_drilldown(data, gii, include_values=False),
     }
 
     # Milk Road Macro Index (combined headline signal)

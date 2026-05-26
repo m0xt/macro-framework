@@ -317,36 +317,51 @@ def _growth_impulse_drilldown_html(payload):
         return ""
     brief = payload.get("brief") or []
     brief_html = "".join(f"<p>{_escape(sentence)}</p>" for sentence in brief[:4])
+    options_html = "".join(
+        f'<option value="{_escape(row.get("key", ""))}">{_escape(row.get("label", ""))}</option>'
+        for row in rows
+    )
     row_html = []
     for row in rows:
-        z21 = row.get("z_21d")
-        z126 = row.get("z_126d")
+        z_now = row.get("z_21d")
+        z7 = row.get("z_change_7d")
+        z30 = row.get("z_change_30d")
         row_html.append(f'''
-          <tr>
-            <td><span class="muted small">{_escape(row.get("group", ""))}</span></td>
+          <tr class="growth-input-row" data-growth-key="{_escape(row.get("key", ""))}">
             <td><span class="sc-label">{_escape(row.get("label", ""))}</span><div class="muted small">{_escape(row.get("source", ""))}</div></td>
-            <td class="mono">{_fmt_growth_current(row)}</td>
-            <td class="mono">{_fmt_growth_trend(row, "trend_21d")}</td>
-            <td class="mono">{_fmt_growth_trend(row, "trend_126d")}</td>
-            <td><span class="val {_growth_z_class(z21)}">{_fmt_growth_z(z21)}</span></td>
-            <td><span class="val {_growth_z_class(z126)}">{_fmt_growth_z(z126)}</span></td>
+            <td><span class="muted small">{_escape(row.get("group", ""))}</span></td>
+            <td><span class="val {_growth_z_class(z7)}">{_fmt_growth_z(z7)}</span></td>
+            <td><span class="val {_growth_z_class(z30)}">{_fmt_growth_z(z30)}</span></td>
+            <td><span class="val {_growth_z_class(z_now)}">{_fmt_growth_z(z_now)}</span></td>
           </tr>''')
     return f'''
       <details class="growth-drilldown">
-        <summary>View Growth Impulses inputs <span class="muted small">· full evidence stack</span></summary>
+        <summary>View Growth Impulses inputs <span class="muted small">· sorted by 7-day contribution</span></summary>
         <div class="growth-drilldown-body">
-          <p class="drivers-desc">{_escape(payload.get("intro", ""))}</p>
+          <p class="drivers-desc">{_escape(payload.get("intro", ""))}<br><span class="muted small">{_escape(payload.get("sort_note", ""))}</span></p>
           <div class="growth-mini-brief">
             <div class="pillar-brief-eyebrow">Growth Impulses mini-brief</div>
             {brief_html}
           </div>
           <table class="growth-inputs-table">
-            <thead><tr><th>Group</th><th>Input</th><th>Current</th><th>21d</th><th>126d</th><th>21d z</th><th>126d z</th></tr></thead>
+            <thead><tr>
+              <th>Input</th><th>Group</th>
+              <th title="Fast z-score change over the latest 7 trading days — main sort key">7d zΔ</th>
+              <th title="Fast z-score change over the latest 30 trading days — durability check">30d zΔ</th>
+              <th title="Current clipped z-score of the fast ROC leg">Current z</th>
+            </tr></thead>
             <tbody>{''.join(row_html)}</tbody>
           </table>
+          <div class="growth-input-chart-panel">
+            <div class="growth-input-chart-header">
+              <span class="growth-input-chart-title">Raw input history</span>
+              <select id="growth-input-select" aria-label="Growth Impulses input chart">{options_html}</select>
+            </div>
+            <div class="chart-wrap growth-input-chart-wrap"><canvas id="chart-growth-input"></canvas></div>
+            <div id="growth-input-chart-desc" class="chart-desc"></div>
+          </div>
         </div>
       </details>'''
-
 
 def _make_scale_bar(mrmi_value, state_color):
     """Horizontal bar showing MRMI's cash / caution / long posture zones."""
@@ -1047,6 +1062,28 @@ def render(snap, chart, raw_data=None):
     font-size: 12px; vertical-align: top;
   }}
   .growth-inputs-table th:first-child, .growth-inputs-table td:first-child {{ padding-left: 0; }}
+  .growth-inputs-table th[title] {{ cursor: help; border-bottom-style: dashed; }}
+  .growth-input-row {{ cursor: pointer; transition: background 0.1s; }}
+  .growth-input-row:hover {{ background: #161616; }}
+  .growth-input-row.is-selected {{ background: #14171a; }}
+  .growth-input-chart-panel {{
+    margin-top: 18px; padding: 12px 14px; background: #0d0d0d;
+    border: 1px solid #1c1c1c; border-radius: 6px;
+  }}
+  .growth-input-chart-header {{
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 10px;
+  }}
+  .growth-input-chart-title {{
+    color: #aaa; font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;
+  }}
+  .growth-input-chart-header select {{
+    background: #1a1a1a; color: #ccc; border: 1px solid #2a2a2a; border-radius: 4px;
+    font-size: 12px; padding: 4px 8px; font-family: inherit; cursor: pointer;
+    max-width: 60%;
+  }}
+  .growth-input-chart-header select:hover {{ border-color: #3a3a3a; }}
+  .growth-input-chart-wrap {{ height: 180px; padding: 0; }}
 
   /* scorecard table */
   #scorecard-mrmi table {{ width: 100%; border-collapse: collapse; }}
@@ -1780,6 +1817,7 @@ document.querySelectorAll('.range-tabs button').forEach(btn => {{
         Object.keys(driverCharts).forEach(k => createDriverChart(k));
     Object.keys(macroDriverCharts).forEach(k => createMacroDriverChart(k));
     Object.keys(libCharts).forEach(k => createLibChart(k));
+    if (growthInputBuilt && growthInputCurrentKey) buildGrowthInputChart(growthInputCurrentKey);
   }});
 }});
 
@@ -2198,6 +2236,106 @@ buildMacroDriversScorecard();
 buildMacroChart();
 buildStressHistoryChart();
 buildStressInputsChart();
+
+// Growth Impulses raw-input chart (built lazily on first <details> open).
+let growthInputChart = null;
+let growthInputBuilt = false;
+let growthInputCurrentKey = null;
+const GROWTH_ROWS_BY_KEY = (() => {{
+  const map = {{}};
+  const rows = ((CHART_DATA.growth_impulse || {{}}).rows) || [];
+  rows.forEach(r => {{ if (r && r.key) map[r.key] = r; }});
+  return map;
+}})();
+
+function buildGrowthInputChart(key) {{
+  const canvas = document.getElementById('chart-growth-input');
+  if (!canvas) return;
+  const row = GROWTH_ROWS_BY_KEY[key];
+  if (!row) return;
+  growthInputCurrentKey = key;
+  const n = RANGE_BARS[currentRange] ?? 252;
+  const dates = sliceRecent(CHART_DATA.dates, n);
+  const values = sliceRecent(row.values || [], n);
+  const desc = document.getElementById('growth-input-chart-desc');
+  if (desc) {{
+    const unit = row.unit ? ' (' + row.unit + ')' : '';
+    const z = row.z_21d != null ? ((row.z_21d >= 0 ? '+' : '') + row.z_21d.toFixed(2)) : '—';
+    const z7 = row.z_change_7d != null ? ((row.z_change_7d >= 0 ? '+' : '') + row.z_change_7d.toFixed(2)) : '—';
+    desc.textContent = row.source + ' · current z ' + z + ' · 7d zΔ ' + z7 + unit;
+  }}
+  document.querySelectorAll('.growth-input-row').forEach(tr => {{
+    tr.classList.toggle('is-selected', tr.dataset.growthKey === key);
+  }});
+
+  if (growthInputChart) growthInputChart.destroy();
+  growthInputChart = new Chart(canvas, {{
+    type: 'line',
+    data: {{
+      labels: dates,
+      datasets: [{{
+        label: row.label,
+        data: values,
+        borderColor: '#4CAF50', borderWidth: 1.6,
+        pointRadius: 0, pointHoverRadius: 3, tension: 0.1, spanGaps: true,
+      }}],
+    }},
+    options: {{
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: {{ mode: 'index', intersect: false }},
+      plugins: {{
+        legend: {{ display: false }},
+        tooltip: {{
+          backgroundColor: '#1a1a1a', borderColor: '#333', borderWidth: 1,
+          titleColor: '#999', bodyColor: '#e0e0e0',
+          titleFont: {{ size: 11 }}, bodyFont: {{ size: 11, family: "'SF Mono', Menlo, monospace" }},
+          padding: 8,
+          callbacks: {{
+            label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? ctx.parsed.y.toFixed(4) : '—'),
+          }},
+        }},
+      }},
+      scales: {{
+        x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 10, maxRotation: 0 }}, grid: {{ display: false }} }},
+        y: {{ ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 6 }}, grid: {{ color: '#1a1a1a' }} }},
+      }},
+    }},
+  }});
+}}
+
+function ensureGrowthInputChart() {{
+  if (growthInputBuilt) return;
+  const select = document.getElementById('growth-input-select');
+  if (!select) return;
+  const firstKey = select.value || (select.options[0] && select.options[0].value);
+  if (!firstKey) return;
+  growthInputBuilt = true;
+  buildGrowthInputChart(firstKey);
+}}
+
+const growthDetails = document.querySelector('details.growth-drilldown');
+if (growthDetails) {{
+  growthDetails.addEventListener('toggle', () => {{
+    if (growthDetails.open) ensureGrowthInputChart();
+  }});
+  if (growthDetails.open) ensureGrowthInputChart();
+}}
+
+const growthSelect = document.getElementById('growth-input-select');
+if (growthSelect) {{
+  growthSelect.addEventListener('change', e => buildGrowthInputChart(e.target.value));
+}}
+
+document.querySelectorAll('.growth-input-row').forEach(tr => {{
+  tr.addEventListener('click', () => {{
+    const key = tr.dataset.growthKey;
+    if (!key) return;
+    if (growthSelect) growthSelect.value = key;
+    if (growthDetails && !growthDetails.open) growthDetails.open = true;
+    growthInputBuilt = true;
+    buildGrowthInputChart(key);
+  }});
+}});
 
 // Driver charts stay collapsed by default — click an individual row to expand it.
 </script>

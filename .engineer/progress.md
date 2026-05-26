@@ -177,3 +177,13 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: 627503b
 - Status: completed
 - Open thread for next dispatch: Review Growth Impulses drill-down UX before copying the pattern to Sector Breadth and Financial Conditions.
+
+## 2026-05-26T11:55:00Z — Task 37a Growth Impulses drill-down UX polish
+- What: Polished Growth Impulses drill-down per Martin's review. Sorted rows by |contribution_7d| (proxy = per-input 7d fast-z change divided by the 10 growth-impulse components). Simplified columns to Input / Group / 7d zΔ / 30d zΔ / Current z (dropped the raw absolute-value columns and redundant direction chip). Added a per-input raw-history chart inside the drilldown body with a `<select>` dropdown, lazy-build on first `<details>` open, click-to-select on table rows, and rebuild on range-tab switch. Mini-brief now names the top 7-day mover plus the leading supporter/drag. Snapshot stays lean: `growth_impulse_drilldown` continues to live in JSON but `values` arrays are only emitted into the chart payload via `include_values=True`.
+- Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Gates: `git diff --check` clean; `uv run ruff check .` passed; `uv run pytest -q` passed (42 passed, 4 xfailed); `uv run python -m macro_framework.build --use-cache` rebuilt outputs/dashboard.html + snapshots/2026-05-26.json from cache.
+- UX summary: drilldown summary now reads "sorted by 7-day contribution"; intro paragraph carries an inline sort-note; the chart panel sits below the table with a labelled select, title row, 180px canvas, and a sub-line showing source + current z + 7d zΔ. Today's snapshot ranks WEI / SPHB/SPLV / BDRY first by |contribution|, brief reads "WEI is lifting the latest 7-day GII move; current support is led by WEI, while HYG is the biggest drag."
+- Pattern readiness: Growth Impulses drilldown is now the reference pattern. Sector Breadth and Financial Conditions can follow once Martin signs off on this iteration; the helper API is `<pillar>_drilldown(data, comp, include_values=...)` returning `{intro, sort_note, score, supportive_count, drag_count, rows, brief}` with `values` reserved for chart payloads only.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Martin to review the Growth Impulses UX iteration before replicating the drill-down pattern to Sector Breadth and Financial Conditions.

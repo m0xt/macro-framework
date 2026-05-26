@@ -1,6 +1,6 @@
 {
   "date": "2026-05-26",
-  "build_time_utc": "2026-05-26 09:40 UTC",
+  "build_time_utc": "2026-05-26 09:57 UTC",
   "mrmi": {
     "composite": 0.3653574025382012,
     "state": "green"
@@ -20,61 +20,26 @@
   "inflation": 0.7791051337729699,
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
+    "sort_note": "Rows sort by absolute 7-day contribution to the latest GII move, proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
     "score": 0.2016,
     "supportive_count": 7,
     "drag_count": 3,
     "rows": [
       {
-        "key": "HYG",
-        "label": "HYG",
-        "group": "Credit/risk appetite",
-        "source": "HYG high-yield ETF",
-        "unit": "price",
-        "trend_type": "roc",
-        "current": 79.91,
-        "trend_21d": -0.0125,
-        "trend_126d": 0.7854,
-        "z_21d": -0.4144,
-        "z_126d": -0.94
-      },
-      {
-        "key": "BAML_INV",
-        "label": "HY spread inverted",
-        "group": "Credit/risk appetite",
-        "source": "BAML HY OAS, inverted",
-        "unit": "%",
+        "key": "WEI",
+        "label": "WEI",
+        "group": "Growth/commodities",
+        "source": "Weekly Economic Index",
+        "unit": "index",
         "trend_type": "change",
-        "current": -2.78,
-        "trend_21d": -0.01,
-        "trend_126d": -0.05,
-        "z_21d": -0.038,
-        "z_126d": -0.0667
-      },
-      {
-        "key": "XLY_XLP",
-        "label": "XLY/XLP",
-        "group": "Credit/risk appetite",
-        "source": "Discretionary vs staples",
-        "unit": "ratio",
-        "trend_type": "roc",
-        "current": 1.4054,
-        "trend_21d": 0.0593,
-        "trend_126d": -3.1782,
-        "z_21d": 0.026,
-        "z_126d": -0.3751
-      },
-      {
-        "key": "XLI_XLU",
-        "label": "XLI/XLU",
-        "group": "Credit/risk appetite",
-        "source": "Industrials vs utilities",
-        "unit": "ratio",
-        "trend_type": "roc",
-        "current": 3.7877,
-        "trend_21d": 1.8696,
-        "trend_126d": -0.91,
-        "z_21d": 0.3974,
-        "z_126d": -0.461
+        "current": 2.99,
+        "trend_21d": 0.39,
+        "trend_126d": 0.82,
+        "z_21d": 1.1574,
+        "z_126d": 1.5589,
+        "z_change_7d": 1.0541,
+        "z_change_30d": 1.5806,
+        "contribution_7d": 0.10541
       },
       {
         "key": "SPHB_SPLV",
@@ -87,20 +52,10 @@
         "trend_21d": 2.3513,
         "trend_126d": 15.4449,
         "z_21d": 0.0917,
-        "z_126d": 0.485
-      },
-      {
-        "key": "COPPER",
-        "label": "Copper",
-        "group": "Growth/commodities",
-        "source": "HG=F copper futures",
-        "unit": "price",
-        "trend_type": "roc",
-        "current": 6.3885,
-        "trend_21d": 7.4962,
-        "trend_126d": 10.6617,
-        "z_21d": 0.7303,
-        "z_126d": 0.1437
+        "z_126d": 0.485,
+        "z_change_7d": -0.425,
+        "z_change_30d": -1.1149,
+        "contribution_7d": -0.0425
       },
       {
         "key": "BDI_SA",
@@ -113,33 +68,10 @@
         "trend_21d": 0.0556,
         "trend_126d": 0.0196,
         "z_21d": 0.1907,
-        "z_126d": -0.5348
-      },
-      {
-        "key": "WEI",
-        "label": "WEI",
-        "group": "Growth/commodities",
-        "source": "Weekly Economic Index",
-        "unit": "index",
-        "trend_type": "change",
-        "current": 2.99,
-        "trend_21d": 0.39,
-        "trend_126d": 0.82,
-        "z_21d": 1.1574,
-        "z_126d": 1.5589
-      },
-      {
-        "key": "VIX_INV",
-        "label": "VIX inverted",
-        "group": "Vol/rates",
-        "source": "VIX, inverted",
-        "unit": "index",
-        "trend_type": "change",
-        "current": -16.78,
-        "trend_21d": 0.6,
-        "trend_126d": 3.31,
-        "z_21d": 0.1017,
-        "z_126d": 0.5295
+        "z_126d": -0.5348,
+        "z_change_7d": -0.3303,
+        "z_change_30d": 0.1486,
+        "contribution_7d": -0.03303
       },
       {
         "key": "YC",
@@ -152,13 +84,112 @@
         "trend_21d": -0.01,
         "trend_126d": -0.21,
         "z_21d": -0.2265,
-        "z_126d": -2.2838
+        "z_126d": -2.2838,
+        "z_change_7d": 0.2597,
+        "z_change_30d": -0.022,
+        "contribution_7d": 0.02597
+      },
+      {
+        "key": "COPPER",
+        "label": "Copper",
+        "group": "Growth/commodities",
+        "source": "HG=F copper futures",
+        "unit": "price",
+        "trend_type": "roc",
+        "current": 6.3885,
+        "trend_21d": 7.4962,
+        "trend_126d": 10.6617,
+        "z_21d": 0.7303,
+        "z_126d": 0.1437,
+        "z_change_7d": 0.2483,
+        "z_change_30d": 1.2688,
+        "contribution_7d": 0.02483
+      },
+      {
+        "key": "BAML_INV",
+        "label": "HY spread inverted",
+        "group": "Credit/risk appetite",
+        "source": "BAML HY OAS, inverted",
+        "unit": "%",
+        "trend_type": "change",
+        "current": -2.78,
+        "trend_21d": -0.01,
+        "trend_126d": -0.05,
+        "z_21d": -0.038,
+        "z_126d": -0.0667,
+        "z_change_7d": -0.1903,
+        "z_change_30d": -0.2742,
+        "contribution_7d": -0.01903
+      },
+      {
+        "key": "VIX_INV",
+        "label": "VIX inverted",
+        "group": "Vol/rates",
+        "source": "VIX, inverted",
+        "unit": "index",
+        "trend_type": "change",
+        "current": -16.78,
+        "trend_21d": 0.6,
+        "trend_126d": 3.31,
+        "z_21d": 0.1017,
+        "z_126d": 0.5295,
+        "z_change_7d": 0.0753,
+        "z_change_30d": -0.0929,
+        "contribution_7d": 0.00753
+      },
+      {
+        "key": "HYG",
+        "label": "HYG",
+        "group": "Credit/risk appetite",
+        "source": "HYG high-yield ETF",
+        "unit": "price",
+        "trend_type": "roc",
+        "current": 79.91,
+        "trend_21d": -0.0125,
+        "trend_126d": 0.7854,
+        "z_21d": -0.4144,
+        "z_126d": -0.94,
+        "z_change_7d": 0.0657,
+        "z_change_30d": 0.158,
+        "contribution_7d": 0.00657
+      },
+      {
+        "key": "XLI_XLU",
+        "label": "XLI/XLU",
+        "group": "Credit/risk appetite",
+        "source": "Industrials vs utilities",
+        "unit": "ratio",
+        "trend_type": "roc",
+        "current": 3.7877,
+        "trend_21d": 1.8696,
+        "trend_126d": -0.91,
+        "z_21d": 0.3974,
+        "z_126d": -0.461,
+        "z_change_7d": 0.0345,
+        "z_change_30d": 0.5471,
+        "contribution_7d": 0.00345
+      },
+      {
+        "key": "XLY_XLP",
+        "label": "XLY/XLP",
+        "group": "Credit/risk appetite",
+        "source": "Discretionary vs staples",
+        "unit": "ratio",
+        "trend_type": "roc",
+        "current": 1.4054,
+        "trend_21d": 0.0593,
+        "trend_126d": -3.1782,
+        "z_21d": 0.026,
+        "z_126d": -0.3751,
+        "z_change_7d": 0.0324,
+        "z_change_30d": 0.37,
+        "contribution_7d": 0.00324
       }
     ],
     "brief": [
       "Growth Impulses is accelerating at +0.20, so the market-growth pulse is helping MMI.",
-      "Under the hood, 7 of 10 inputs are positive on the 21-day z contribution, with WEI doing the most support work and HYG the biggest drag.",
-      "Use the 21-day columns for the fast meeting read and the 126-day columns to check whether that move is becoming durable."
+      "Sorted by 7-day contribution proxy, WEI is lifting the latest 7-day GII move; current support is led by WEI, while HYG is the biggest drag.",
+      "Under the hood, 7 of 10 inputs have positive current z-scores; use 7-day and 30-day z-score changes to separate fresh impulse from durable follow-through."
     ]
   },
   "mrmi_combined": {
