@@ -194,3 +194,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-26T10:58:24Z — Task 39a Growth Impulses tooltip fix
+- What: Replaced native `title`-only Growth Impulses input hints with a custom CSS tooltip driven by `data-tooltip`, visible on hover and keyboard focus; icons remain compact `i` badges and row click-to-select skips icon clicks. Rebuilt dashboard/snapshot from cached data and confirmed HYG, HY spread inverted, WEI, and Yield curve explanations are present in outputs/dashboard.html.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

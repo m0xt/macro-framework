@@ -403,16 +403,32 @@
   }
   .growth-inputs-table th:first-child, .growth-inputs-table td:first-child { padding-left: 0; }
   .growth-inputs-table th[title] { cursor: help; border-bottom-style: dashed; }
-  .growth-input-name { display: inline-flex; align-items: center; gap: 6px; }
+  .growth-input-name { display: inline-flex; align-items: center; gap: 6px; position: relative; }
   .growth-info-icon {
     display: inline-flex; align-items: center; justify-content: center;
     width: 14px; height: 14px; border: 1px solid #333; border-radius: 50%;
-    color: #777; font-size: 9px; font-weight: 700; line-height: 1; cursor: help;
-    text-transform: lowercase; vertical-align: 1px;
+    color: #8a8a8a; font-size: 9px; font-weight: 800; line-height: 1; cursor: help;
+    text-transform: lowercase; vertical-align: 1px; position: relative; flex: 0 0 auto;
+  }
+  .growth-info-icon::after {
+    content: attr(data-tooltip); position: absolute; left: 50%; bottom: calc(100% + 8px);
+    transform: translateX(-50%); width: max-content; max-width: min(280px, 70vw);
+    padding: 8px 10px; background: #111; color: #ddd; border: 1px solid #333;
+    border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.42); font-size: 11px;
+    font-weight: 500; line-height: 1.45; text-transform: none; white-space: normal;
+    opacity: 0; visibility: hidden; pointer-events: none; z-index: 30;
+  }
+  .growth-info-icon::before {
+    content: ""; position: absolute; left: 50%; bottom: calc(100% + 3px);
+    transform: translateX(-50%) rotate(45deg); width: 8px; height: 8px;
+    background: #111; border-right: 1px solid #333; border-bottom: 1px solid #333;
+    opacity: 0; visibility: hidden; pointer-events: none; z-index: 31;
   }
   .growth-info-icon:hover, .growth-info-icon:focus {
-    color: #ddd; border-color: #666; background: #1a1a1a; outline: none;
+    color: #f1f1f1; border-color: #777; background: #1a1a1a; outline: none;
   }
+  .growth-info-icon:hover::after, .growth-info-icon:focus::after,
+  .growth-info-icon:hover::before, .growth-info-icon:focus::before { opacity: 1; visibility: visible; }
   .growth-info-icon:focus-visible { box-shadow: 0 0 0 2px #4CAF5055; }
   .growth-input-row { cursor: pointer; transition: background 0.1s; }
   .growth-input-row:hover { background: #161616; }
@@ -722,7 +738,7 @@
 
 <div class="meta-bar">
   <span class="brand">MILK ROAD · MACRO DASHBOARD v2</span>
-  <span>2026-05-26 · built 2026-05-26 10:53 UTC</span>
+  <span>2026-05-26 · built 2026-05-26 10:58 UTC</span>
 </div>
 
 
@@ -878,7 +894,7 @@
             <td>
               <div class="growth-input-name">
                 <span class="sc-label">WEI</span>
-                <span class="growth-info-icon" tabindex="0" role="img" aria-label="WEI: Weekly Economic Index; high, rising, or falling readings capture broad US economic activity momentum." title="Weekly Economic Index; high, rising, or falling readings capture broad US economic activity momentum.">i</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="WEI: Weekly Economic Index; high, rising, or falling readings capture broad US economic activity momentum." data-tooltip="Weekly Economic Index; high, rising, or falling readings capture broad US economic activity momentum.">i</span>
               </div>
               <div class="muted small">Weekly Economic Index</div>
             </td>
@@ -891,7 +907,7 @@
             <td>
               <div class="growth-input-name">
                 <span class="sc-label">SPHB/SPLV</span>
-                <span class="growth-info-icon" tabindex="0" role="img" aria-label="SPHB/SPLV: High-beta equities versus low-volatility equities; a higher ratio signals investors favor riskier stocks." title="High-beta equities versus low-volatility equities; a higher ratio signals investors favor riskier stocks.">i</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="SPHB/SPLV: High-beta equities versus low-volatility equities; a higher ratio signals investors favor riskier stocks." data-tooltip="High-beta equities versus low-volatility equities; a higher ratio signals investors favor riskier stocks.">i</span>
               </div>
               <div class="muted small">High beta vs low volatility</div>
             </td>
@@ -904,7 +920,7 @@
             <td>
               <div class="growth-input-name">
                 <span class="sc-label">BDRY/BDI proxy</span>
-                <span class="growth-info-icon" tabindex="0" role="img" aria-label="BDRY/BDI proxy: Dry-bulk shipping proxy; rising values can indicate stronger real-economy trade and commodity demand." title="Dry-bulk shipping proxy; rising values can indicate stronger real-economy trade and commodity demand.">i</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="BDRY/BDI proxy: Dry-bulk shipping proxy; rising values can indicate stronger real-economy trade and commodity demand." data-tooltip="Dry-bulk shipping proxy; rising values can indicate stronger real-economy trade and commodity demand.">i</span>
               </div>
               <div class="muted small">BDRY vs seasonal baseline</div>
             </td>
@@ -917,7 +933,7 @@
             <td>
               <div class="growth-input-name">
                 <span class="sc-label">Yield curve</span>
-                <span class="growth-info-icon" tabindex="0" role="img" aria-label="Yield curve: 10Y minus 2Y Treasury yield; a steeper curve usually supports growth and liquidity expectations." title="10Y minus 2Y Treasury yield; a steeper curve usually supports growth and liquidity expectations.">i</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="Yield curve: 10Y minus 2Y Treasury yield; a steeper curve usually supports growth and liquidity expectations." data-tooltip="10Y minus 2Y Treasury yield; a steeper curve usually supports growth and liquidity expectations.">i</span>
               </div>
               <div class="muted small">10Y minus 2Y Treasury yield</div>
             </td>
@@ -930,7 +946,7 @@
             <td>
               <div class="growth-input-name">
                 <span class="sc-label">Copper</span>
-                <span class="growth-info-icon" tabindex="0" role="img" aria-label="Copper: Cyclical commodity proxy for industrial and global growth demand." title="Cyclical commodity proxy for industrial and global growth demand.">i</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="Copper: Cyclical commodity proxy for industrial and global growth demand." data-tooltip="Cyclical commodity proxy for industrial and global growth demand.">i</span>
               </div>
               <div class="muted small">HG=F copper futures</div>
             </td>
@@ -943,7 +959,7 @@
             <td>
               <div class="growth-input-name">
                 <span class="sc-label">HY spread inverted</span>
-                <span class="growth-info-icon" tabindex="0" role="img" aria-label="HY spread inverted: High-yield credit spread, inverted so tighter spreads are positive for growth and risk appetite." title="High-yield credit spread, inverted so tighter spreads are positive for growth and risk appetite.">i</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="HY spread inverted: High-yield credit spread, inverted so tighter spreads are positive for growth and risk appetite." data-tooltip="High-yield credit spread, inverted so tighter spreads are positive for growth and risk appetite.">i</span>
               </div>
               <div class="muted small">BAML HY OAS, inverted</div>
             </td>
@@ -956,7 +972,7 @@
             <td>
               <div class="growth-input-name">
                 <span class="sc-label">VIX inverted</span>
-                <span class="growth-info-icon" tabindex="0" role="img" aria-label="VIX inverted: Equity volatility, inverted so lower volatility is positive for risk appetite." title="Equity volatility, inverted so lower volatility is positive for risk appetite.">i</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="VIX inverted: Equity volatility, inverted so lower volatility is positive for risk appetite." data-tooltip="Equity volatility, inverted so lower volatility is positive for risk appetite.">i</span>
               </div>
               <div class="muted small">VIX, inverted</div>
             </td>
@@ -969,7 +985,7 @@
             <td>
               <div class="growth-input-name">
                 <span class="sc-label">HYG</span>
-                <span class="growth-info-icon" tabindex="0" role="img" aria-label="HYG: High-yield bond ETF; rising HYG usually signals stronger risk appetite and credit conditions." title="High-yield bond ETF; rising HYG usually signals stronger risk appetite and credit conditions.">i</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="HYG: High-yield bond ETF; rising HYG usually signals stronger risk appetite and credit conditions." data-tooltip="High-yield bond ETF; rising HYG usually signals stronger risk appetite and credit conditions.">i</span>
               </div>
               <div class="muted small">HYG high-yield ETF</div>
             </td>
@@ -982,7 +998,7 @@
             <td>
               <div class="growth-input-name">
                 <span class="sc-label">XLI/XLU</span>
-                <span class="growth-info-icon" tabindex="0" role="img" aria-label="XLI/XLU: Industrials versus utilities; a higher ratio signals cyclicals beating defensives." title="Industrials versus utilities; a higher ratio signals cyclicals beating defensives.">i</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="XLI/XLU: Industrials versus utilities; a higher ratio signals cyclicals beating defensives." data-tooltip="Industrials versus utilities; a higher ratio signals cyclicals beating defensives.">i</span>
               </div>
               <div class="muted small">Industrials vs utilities</div>
             </td>
@@ -995,7 +1011,7 @@
             <td>
               <div class="growth-input-name">
                 <span class="sc-label">XLY/XLP</span>
-                <span class="growth-info-icon" tabindex="0" role="img" aria-label="XLY/XLP: Consumer discretionary versus staples; a higher ratio signals cyclical consumer risk appetite." title="Consumer discretionary versus staples; a higher ratio signals cyclical consumer risk appetite.">i</span>
+                <span class="growth-info-icon" tabindex="0" role="img" aria-label="XLY/XLP: Consumer discretionary versus staples; a higher ratio signals cyclical consumer risk appetite." data-tooltip="Consumer discretionary versus staples; a higher ratio signals cyclical consumer risk appetite.">i</span>
               </div>
               <div class="muted small">Discretionary vs staples</div>
             </td>
