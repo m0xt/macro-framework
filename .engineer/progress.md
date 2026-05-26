@@ -174,6 +174,6 @@ Keep entries terse — this file is read by every stateless dispatch.
 ## 2026-05-26T09:37:26Z — Growth Impulses drill-down prototype
 - What: Added the Growth Impulses research drill-down under the existing MMI drivers panel: collapsed by default, full 10-input evidence stack grouped by credit/risk appetite, growth/commodities, and vol/rates, with current readings, 21d/126d changes, z contributions, and a deterministic 3-sentence mini-brief. The pattern is compact enough to replicate for Sector Breadth and Financial Conditions, but those should be added one at a time after Martin/Bob review the Growth UX.
 - Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; tests/test_smoke.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
-- Commit: pending (this commit)
+- Commit: 627503b
 - Status: completed
 - Open thread for next dispatch: Review Growth Impulses drill-down UX before copying the pattern to Sector Breadth and Financial Conditions.
