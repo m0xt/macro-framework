@@ -343,20 +343,20 @@ def _growth_impulse_drilldown_html(payload):
             <td><span class="val {_growth_z_class(z_now)}">{_fmt_growth_z(z_now)}</span></td>
           </tr>''')
     return f'''
+      <div class="growth-mini-brief">
+        <div class="pillar-brief-eyebrow">Growth Impulses mini-brief</div>
+        {brief_html}
+      </div>
       <details class="growth-drilldown">
-        <summary>View Growth Impulses inputs <span class="muted small">· sorted by 7-day contribution</span></summary>
+        <summary>View Growth Impulses inputs <span class="muted small">· sorted by |current z|</span></summary>
         <div class="growth-drilldown-body">
           <p class="drivers-desc">{_escape(payload.get("intro", ""))}<br><span class="muted small">{_escape(payload.get("sort_note", ""))}</span></p>
-          <div class="growth-mini-brief">
-            <div class="pillar-brief-eyebrow">Growth Impulses mini-brief</div>
-            {brief_html}
-          </div>
           <table class="growth-inputs-table">
             <thead><tr>
               <th>Input</th><th>Group</th>
-              <th title="Fast z-score change over the latest 7 trading days — main sort key">7d zΔ</th>
+              <th title="Fast z-score change over the latest 7 trading days — recent-move context">7d zΔ</th>
               <th title="Fast z-score change over the latest 30 trading days — durability check">30d zΔ</th>
-              <th title="Current clipped z-score of the fast ROC leg">Current z</th>
+              <th title="Current clipped z-score of the fast ROC leg — main sort key">Current z</th>
             </tr></thead>
             <tbody>{''.join(row_html)}</tbody>
           </table>
@@ -403,20 +403,20 @@ def _driver_drilldown_html(payload, *, dom_key, summary_label, brief_label, char
             <td><span class="val {_growth_z_class(z_now)}">{_fmt_growth_z(z_now)}</span></td>
           </tr>""")
     return f"""
+      <div class="growth-mini-brief">
+        <div class="pillar-brief-eyebrow">{brief_label} mini-brief</div>
+        {brief_html}
+      </div>
       <details class="growth-drilldown driver-drilldown" data-driver-drilldown="{_escape(dom_key)}">
-        <summary>View {summary_label} inputs <span class="muted small">· sorted by 7-day contribution</span></summary>
+        <summary>View {summary_label} inputs <span class="muted small">· sorted by |current z|</span></summary>
         <div class="growth-drilldown-body">
           <p class="drivers-desc">{_escape(payload.get("intro", ""))}<br><span class="muted small">{_escape(payload.get("sort_note", ""))}</span></p>
-          <div class="growth-mini-brief">
-            <div class="pillar-brief-eyebrow">{brief_label} mini-brief</div>
-            {brief_html}
-          </div>
           <table class="growth-inputs-table">
             <thead><tr>
               <th>Input</th><th>Group</th>
-              <th title="Input z-score change over the latest 7 trading days — main sort key">7d zΔ</th>
+              <th title="Input z-score change over the latest 7 trading days — recent-move context">7d zΔ</th>
               <th title="Input z-score change over the latest 30 trading days — durability check">30d zΔ</th>
-              <th title="Current z-score used in the driver composite">Current z</th>
+              <th title="Current z-score used in the driver composite — main sort key">Current z</th>
             </tr></thead>
             <tbody>{''.join(row_html)}</tbody>
           </table>
@@ -1849,7 +1849,7 @@ function buildScorecard() {{
     html += `<td>${{fmtChg(current, prev30)}}</td>`;
     html += `<td>${{signalHtml}}</td>`;
     html += `</tr>`;
-    html += `<tr class="expanded-row" id="exp-${{key}}"><td colspan="5"><div class="chart-wrap"><canvas id="canvas-${{key}}"></canvas></div><div class="chart-desc">${{entry.desc || ''}}</div><div class="indicator-drilldown-slot" data-driver-key="${{key}}"></div></td></tr>`;
+    html += `<tr class="expanded-row" id="exp-${{key}}"><td colspan="5"><div class="chart-wrap"><canvas id="canvas-${{key}}"></canvas></div><div class="indicator-drilldown-slot" data-driver-key="${{key}}"></div></td></tr>`;
   }});
 
   html += '</tbody></table>';

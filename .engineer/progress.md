@@ -224,3 +224,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-26T11:44:31Z — Task 43a MMI drill-down sort and brief placement
+- What: Updated Growth Impulses, Sector Breadth, and Financial Conditions drill-downs to sort inputs by absolute current z-score, kept 7d/30d zΔ as context columns, and moved mini-briefs directly below each expanded driver chart before the input toggle. Rebuilt dashboard/snapshot from cached data.
+- Files touched: src/macro_framework/macro_pipeline.py; src/macro_framework/build.py; tests/test_smoke.py; outputs/dashboard.html; snapshots/2026-05-26.json; .engineer/progress.md
+- Gates: `git diff --check` passed; `uv run pytest -q` passed (43 passed, 4 xfailed); `uv run ruff check .` passed; `uv run python -m macro_framework.build --use-cache` passed from cache and rebuilt outputs/dashboard.html + snapshots/2026-05-26.json.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

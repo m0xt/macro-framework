@@ -590,8 +590,8 @@ def growth_impulse_drilldown(
     GII = mean of per-component clipped z-scored ROCs (fast leg).  Each row's
     ``contribution_7d`` is the per-input share of the latest 7-day ΔGII proxy:
     ``Δz_fast_i / N`` with ``N`` = number of growth-impulse components.  Rows
-    are sorted by ``|contribution_7d|`` descending so the biggest drivers of
-    the latest move surface first.
+    are sorted by ``|z_21d|`` descending so the largest current signals surface
+    first, while 7-day and 30-day deltas remain context columns.
     """
     rows = []
     components = growth_impulse_components(data)
@@ -631,7 +631,7 @@ def growth_impulse_drilldown(
     rows = sorted(
         rows,
         key=lambda r: (
-            -abs(r["contribution_7d"] or 0),
+            -abs(r["z_21d"] or 0),
             list(GROWTH_IMPULSE_SPECS).index(r["key"]),
         ),
     )
@@ -641,7 +641,7 @@ def growth_impulse_drilldown(
     supportive = sum(1 for r in valid if r["z_21d"] > 0)
     drag = sum(1 for r in valid if r["z_21d"] < 0)
     movers = [r for r in rows if r["contribution_7d"] is not None]
-    top_mover = movers[0] if movers else None
+    top_mover = max(movers, key=lambda r: abs(r["contribution_7d"] or 0), default=None)
     top_support = max(valid, key=lambda r: r["z_21d"], default=None)
     top_drag = min(valid, key=lambda r: r["z_21d"], default=None)
 
@@ -663,7 +663,8 @@ def growth_impulse_drilldown(
     return {
         "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
         "sort_note": (
-            "Rows sort by absolute 7-day contribution to the latest GII move, "
+            "Rows sort by absolute current z-score (|current z|), so the strongest "
+            f"positive or negative signals rise first; 7-day contribution is still "
             f"proxied as each input's 7-day fast z-score change divided by the "
             f"{component_count} growth-impulse components."
         ),
@@ -770,7 +771,7 @@ def _mmi_driver_drilldown(
     spec_order = list(specs)
     rows = sorted(
         rows,
-        key=lambda r: (-abs(r["contribution_7d"] or 0), spec_order.index(r["key"])),
+        key=lambda r: (-abs(r["z_21d"] or 0), spec_order.index(r["key"])),
     )
 
     score = (
@@ -782,7 +783,7 @@ def _mmi_driver_drilldown(
     supportive = sum(1 for r in valid if r["z_21d"] > 0)
     drag = sum(1 for r in valid if r["z_21d"] < 0)
     movers = [r for r in rows if r["contribution_7d"] is not None]
-    top_mover = movers[0] if movers else None
+    top_mover = max(movers, key=lambda r: abs(r["contribution_7d"] or 0), default=None)
     top_support = max(valid, key=lambda r: r["z_21d"], default=None)
     top_drag = min(valid, key=lambda r: r["z_21d"], default=None)
 
@@ -804,8 +805,9 @@ def _mmi_driver_drilldown(
     return {
         "intro": intro,
         "sort_note": (
-            f"Rows sort by absolute 7-day contribution to the latest {driver_short} move, "
-            f"proxied as each input's 7-day z-score change divided by the "
+            f"Rows sort by absolute current z-score (|current z|), so the strongest "
+            f"positive or negative {driver_short} signals rise first; 7-day contribution "
+            f"is still proxied as each input's 7-day z-score change divided by the "
             f"{component_count} {driver_name.lower()} components."
         ),
         "score": score,

@@ -342,6 +342,10 @@ def test_growth_impulse_drilldown_exposes_all_current_inputs() -> None:
     assert len(rows) == 10
     assert payload["score"] == pytest.approx(round(float(gii["fast"].dropna().iloc[-1]), 4))
     assert payload["brief"]
+    assert "|current z|" in payload["sort_note"]
+    assert [abs(row["z_21d"] or 0) for row in rows] == sorted(
+        (abs(row["z_21d"] or 0) for row in rows), reverse=True
+    )
     for row in rows:
         assert {
             "group",
@@ -381,7 +385,10 @@ def test_mmi_driver_drilldowns_expose_all_current_inputs() -> None:
         assert {row["key"] for row in rows} == expected_keys
         assert len(rows) == expected_count
         assert payload["brief"]
-        assert "contribution" in payload["sort_note"]
+        assert "|current z|" in payload["sort_note"]
+        assert [abs(row["z_21d"] or 0) for row in rows] == sorted(
+            (abs(row["z_21d"] or 0) for row in rows), reverse=True
+        )
         for row in rows:
             assert {
                 "group",
