@@ -503,8 +503,8 @@ def _make_scale_bar(mrmi_value, state_color):
     </div>
     <div class="scale-axis">
       <span style="left: 0%;">−3</span>
-      <span style="left: {cash_pct}%; color: #888;">−0.50 · cash</span>
-      <span style="left: {long_pct}%; color: #888;">+0.25 · long</span>
+      <span class="scale-tick-cash" style="left: {cash_pct}%; color: #888;">−0.50 · cash</span>
+      <span class="scale-tick-long" style="left: {long_pct}%; color: #888;">+0.25 · long</span>
       <span style="left: 100%;">+5</span>
     </div>
     <div class="scale-legend">
@@ -988,9 +988,11 @@ def render(snap, chart, raw_data=None):
     font-size: 10px; color: #555;
     font-family: 'SF Mono', Menlo, monospace;
   }}
-  .scale-axis span {{ position: absolute; transform: translateX(-50%); }}
+  .scale-axis span {{ position: absolute; transform: translateX(-50%); white-space: nowrap; }}
   .scale-axis span:first-child {{ transform: translateX(0); }}
   .scale-axis span:last-child {{ transform: translateX(-100%); }}
+  .scale-axis .scale-tick-cash {{ transform: translateX(-100%); }}
+  .scale-axis .scale-tick-long {{ transform: translateX(0); }}
   .scale-legend {{
     display: flex; justify-content: space-between;
     margin-top: 4px; font-size: 10px; letter-spacing: 1.5px;

@@ -277,3 +277,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-27T07:58:08Z — Task 50 scale label overlap fix
+- What: Fixed the MRMI hero scale-bar label collision by anchoring the close cash/long threshold labels outward from their ticks (`−0.50 · cash` left-aligned to the left side, `+0.25 · long` right-side start), with nowrap labels. Threshold positions, MRMI math, posture, and data are unchanged.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-27.json; .engineer/progress.md
+- Gates: `uv run python -m macro_framework.build --use-cache` passed; `git diff --check` passed; `uv run ruff check .` passed; `uv run pytest -q` passed (46 passed, 4 xfailed); direct HTML check confirmed scale tick classes and outward anchoring CSS are rendered.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
