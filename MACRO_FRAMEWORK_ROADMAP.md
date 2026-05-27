@@ -1,6 +1,6 @@
 # Macro Framework — Roadmap
 
-Forward-looking ideas for the macro framework project (`~/Desktop/macro-framework/`). Current state: three-tier weekly briefs (top + market pillar + economy pillar), generated each Tuesday via the `claude` CLI subscription, archived under `briefs/YYYY-MM-DD/`. Over time this doc will grow to cover other framework improvements — new indicators, backtest tooling, release calendar, etc.
+Forward-looking ideas for the macro framework project (`~/projects/macro-framework/`). Current state: three-tier weekly briefs (top + market pillar + economy pillar), generated on the lazy Tuesday cadence via the `claude` CLI subscription, archived under `briefs/YYYY-MM-DD/`, and rendered into the shipped MRMI dashboard with drill-downs and a Reference Library. Over time this doc will grow to cover other framework improvements — new indicators, backtest tooling, release calendar, etc.
 
 Each section lists ideas roughly in priority order. Not every idea should ship — this is an inventory, not a plan.
 
@@ -10,13 +10,27 @@ Scope note: this roadmap covers the macro framework only. Other projects have th
 
 ## Current baseline (for reference)
 
+- MRMI headline posture: LONG above +0.25, CAUTION / 75% exposure from −0.50 through +0.25, CASH below −0.50
 - Three weekly briefs in a tiered hierarchy: market → economy → top (synthesis)
 - Lazy Tuesday cadence — regenerates if the latest archive is older than the most recent Tuesday on or before today
 - Generated via the `claude` CLI (Claude Code subscription), WebSearch enabled
 - Saved to `briefs/YYYY-MM-DD/{top,market,economy}.md` and git-tracked
-- Top brief sits in the dashboard hero; pillar briefs sit between each pillar's chart and its drivers
+- Top brief sits in the dashboard hero; pillar briefs sit under each pillar's chart
+- MMI driver rows expand into charts, deterministic mini-briefs, tooltip-backed input tables, and raw input history charts
+- Reference Library tracks supplementary liquidity/activity/inflation/labor indicators without changing headline math
 
 Everything below assumes this baseline is in place.
+
+## Shipped since 2026-05-26
+
+- **Investor-grade three-state posture** — shipped 2026-05-26 in `9ec245e`; MRMI now maps to LONG / CAUTION / CASH with 100% / 75% / 0% exposure.
+- **Growth Impulses drill-down + tooltips** — shipped across `627503b`, `76b478f`, `a4e9eef`, and `8569c8e`; GII now has input attribution, explanations, and raw input charts.
+- **MMI driver drill-down pattern** — shipped across `731db73`, `2e3df28`, `7e11d64`, `7f66e14`, and `00ff3b1`; Sector Breadth and Financial Conditions now match the GII drill-down pattern with mini-briefs and the current Input / Group / Current z / 7d zΔ / 30d zΔ table order.
+- **Reference Library official inflation + ISM charts** — shipped across `b70f712`, `abace57`, and `7d364fe`; official headline CPI, core CPI, broad PPI, and ISM Manufacturing PMI are charted as context indicators.
+- **Plain-English high-level briefs** — shipped in `db660a7` and refreshed in `5051457`; top/market/economy briefs now target non-macro meeting prep.
+- **MRMI visual polish** — shipped across `5e05216`, `5f46fac`, and `361426e`; scale labels no longer collide, the hero scale stays subtle, and the MRMI chart CAUTION band is more visible.
+
+The items above are no longer roadmap candidates; future work should build on them rather than re-spec them.
 
 ---
 
@@ -44,8 +58,8 @@ The top brief currently sees this week's pillar briefs in isolation. V2 should a
 ### Historical analogs
 "MRMI at current level was last seen Oct 2023; following 60 days, SPX +7%, IWM +12%." Two flavors: (a) exact level match, (b) similar regime shape (e.g. "MMI > 0.5, Stress 0, breakeven path falling"). Requires backtest corpus.
 
-### Component attribution
-When MMI moves week-over-week, mechanically attribute the move to GII / Breadth / FinCon. The brief can say "MMI +0.4 driven by FinCon +0.3 (MOVE collapse)." Pure math, no LLM.
+### Component attribution — shipped 2026-05-26/27
+Driver-level attribution is now mechanical in the dashboard: expanded MMI driver rows show deterministic mini-briefs plus input tables with current z, 7d zΔ, and 30d zΔ. Future work can still improve cross-driver rollups, but the original dashboard attribution need is shipped.
 
 ### Stress-pocket proximity
 Flag when the framework is approaching the stagflation pocket even if stress hasn't fired. "Real Economy at +0.3 but trending down; Inflation Direction at +0.2 and rising — stress fires if RE crosses zero." High leverage for early warning.

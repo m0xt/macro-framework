@@ -36,3 +36,19 @@ Status: stable.
 ## 2026-05-16 — Monthly report flow kept supported but manual
 Reason: `reports/macro_update_2026_05.html` is a real shareable artifact Martin uses, and keeping the optional report flow costs little once it is explicitly separated from cron production code.
 Status: stable — `report/build_report.py` and `report/generate_report_charts.py` are supported manual tools. They consume transient `.cache/macro_update_*.md` / `.cache/charts/` working files and produce tracked `reports/macro_update_*.html` artifacts. They are not called by `scripts/refresh.sh`.
+
+## 2026-05-27 — Current dashboard visual/posture contract
+Reason: The post-2026-05-26 shipped dashboard is now the canonical UI Martin signed off on. The hero keeps the subtle scale-bar styling with outward-anchored threshold labels, while the MRMI history chart carries the stronger amber CAUTION background/border so the 75% exposure zone is visible where users actually inspect history. The formula, thresholds, posture mapping, and current data are unchanged.
+Status: stable; future visual edits should preserve the distinction between the subtle hero scale and the clearer MRMI chart caution band unless Martin explicitly asks otherwise.
+
+## 2026-05-27 — MMI driver drill-down pattern is production UX
+Reason: Growth Impulses, Sector Breadth, and Financial Conditions now share one drill-down pattern: driver mini-brief under the expanded chart, tooltip-backed input explanations, Input / Group / Current z / 7d zΔ / 30d zΔ tables sorted by |current z|, and raw input history charts selected by dropdown or row click. This makes attribution mechanical and reviewable without changing MMI math.
+Status: stable; reuse this pattern for future driver-level expansions rather than inventing a parallel table/chart UX.
+
+## 2026-05-27 — Reference Library is context, not headline math
+Reason: The dashboard now includes a Reference Library with official CPI headline/core, official PPI all commodities, ISM Manufacturing PMI via DBnomics, GDPNow, M2, CFNAI, industrial production, housing, permits, and claims. These charts are user-visible context and promotion candidates, but they do not drive MRMI unless separately promoted through research and lock-test updates. ISM uses recovered monthly observations and filters the DBnomics mirror's suspicious 2025 low-teens tail.
+Status: stable; library additions should remain clearly labeled as supplementary until promoted.
+
+## 2026-05-27 — Briefs target plain-English meeting prep
+Reason: The weekly market/economy/top prompts were simplified so non-macro colleagues can understand the dashboard story without decoding jargon. The top brief remains in the hero; market and economy briefs sit under their pillar charts; deterministic mini-briefs handle driver-level attribution below expanded driver charts.
+Status: stable; future brief changes should preserve the plain-English hierarchy unless the audience changes.

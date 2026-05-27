@@ -301,3 +301,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-27T08:22:07Z — Task 53a docs and presentation refresh
+- What: Refreshed README, architecture, presentation, guide, decisions, and roadmap to match the shipped dashboard UI: investor-grade posture, 0–10 macro stress, MMI driver drill-downs/tooltips/mini-briefs, Reference Library, simplified briefs, and MRMI chart caution-band visual contract. Gates passed: `git diff --check`; `uv run ruff check .`; `uv run pytest -q` (46 passed, 4 xfailed); opened `docs/PRESENTATION.html` locally and verified expected slide/content markers.
+- Files touched: README.md; docs/architecture.md; docs/PRESENTATION.html; GUIDE.md; DECISIONS.md; MACRO_FRAMEWORK_ROADMAP.md; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
