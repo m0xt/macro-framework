@@ -387,9 +387,9 @@ def _growth_impulse_drilldown_html(payload):
               <div class="muted small">{_escape(row.get("source", ""))}</div>
             </td>
             <td><span class="muted small">{_escape(row.get("group", ""))}</span></td>
+            <td><span class="val {_growth_z_class(z_now)}">{_fmt_growth_z(z_now)}</span></td>
             <td><span class="val {_growth_z_class(z7)}">{_fmt_growth_z(z7)}</span></td>
             <td><span class="val {_growth_z_class(z30)}">{_fmt_growth_z(z30)}</span></td>
-            <td><span class="val {_growth_z_class(z_now)}">{_fmt_growth_z(z_now)}</span></td>
           </tr>''')
     return f'''
       <div class="growth-mini-brief">
@@ -403,9 +403,9 @@ def _growth_impulse_drilldown_html(payload):
           <table class="growth-inputs-table">
             <thead><tr>
               <th>Input</th><th>Group</th>
+              <th title="Current clipped z-score of the fast ROC leg — main sort key">Current z</th>
               <th title="Fast z-score change over the latest 7 trading days — recent-move context">7d zΔ</th>
               <th title="Fast z-score change over the latest 30 trading days — durability check">30d zΔ</th>
-              <th title="Current clipped z-score of the fast ROC leg — main sort key">Current z</th>
             </tr></thead>
             <tbody>{''.join(row_html)}</tbody>
           </table>
@@ -447,9 +447,9 @@ def _driver_drilldown_html(payload, *, dom_key, summary_label, brief_label, char
               <div class="muted small">{_escape(row.get("source", ""))}</div>
             </td>
             <td><span class="muted small">{_escape(row.get("group", ""))}</span></td>
+            <td><span class="val {_growth_z_class(z_now)}">{_fmt_growth_z(z_now)}</span></td>
             <td><span class="val {_growth_z_class(z7)}">{_fmt_growth_z(z7)}</span></td>
             <td><span class="val {_growth_z_class(z30)}">{_fmt_growth_z(z30)}</span></td>
-            <td><span class="val {_growth_z_class(z_now)}">{_fmt_growth_z(z_now)}</span></td>
           </tr>""")
     return f"""
       <div class="growth-mini-brief">
@@ -463,9 +463,9 @@ def _driver_drilldown_html(payload, *, dom_key, summary_label, brief_label, char
           <table class="growth-inputs-table">
             <thead><tr>
               <th>Input</th><th>Group</th>
+              <th title="Current z-score used in the driver composite — main sort key">Current z</th>
               <th title="Input z-score change over the latest 7 trading days — recent-move context">7d zΔ</th>
               <th title="Input z-score change over the latest 30 trading days — durability check">30d zΔ</th>
-              <th title="Current z-score used in the driver composite — main sort key">Current z</th>
             </tr></thead>
             <tbody>{''.join(row_html)}</tbody>
           </table>

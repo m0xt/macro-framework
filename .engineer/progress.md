@@ -269,3 +269,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-27T07:54:19Z — Task 49 input column order
+- What: Reordered all input drill-down tables (Growth Impulses, Sector Breadth, Financial Conditions) to show Input / Group / Current z / 7d zΔ / 30d zΔ while preserving the existing |current z| sort. Rebuilt dashboard from cache; no MRMI/MMI math or brief content changed.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-27.json; .engineer/progress.md
+- Gates: `uv run python -m macro_framework.build --use-cache` passed; `git diff --check` passed; `uv run ruff check .` passed; `uv run pytest -q` passed (46 passed, 4 xfailed); direct HTML check verified the requested column order in Growth Impulses, Sector Breadth, and Financial Conditions.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
