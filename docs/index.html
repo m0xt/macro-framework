@@ -123,14 +123,14 @@
       <span class="pill">feedback: thresholds</span>
       <span class="pill">feedback: drivers</span>
       <span class="pill">feedback: prompts</span>
-      <span class="pill">built 2026-05-27 11:06 UTC</span>
+      <span class="pill">built 2026-05-27 13:10 UTC</span>
     </div>
   </header>
 
   <section class="status-strip">
-    <div class="status-cell"><div class="status-label">Last run</div><div class="status-value" title="2026-05-26T20:30:00Z">2026-05-26T20:30:00Z</div></div>
+    <div class="status-cell"><div class="status-label">Last run</div><div class="status-value" title="2026-05-27T11:05:46Z">2026-05-27T11:05:46Z</div></div>
     <div class="status-cell"><div class="status-label">Status</div><div class="status-value" title="refresh ok (build + supabase sync)">ok · refresh ok (build + supabase sync)</div></div>
-    <div class="status-cell"><div class="status-label">Last commit</div><div class="status-value" title="ba5dfe2 task-54a: ship docs/index.html iteration surface">ba5dfe2 task-54a: ship docs/index.html iteration surface</div></div>
+    <div class="status-cell"><div class="status-label">Last commit</div><div class="status-value" title="b1cd9d9 serve: LAN HTTP for docs/index.html on :8011">b1cd9d9 serve: LAN HTTP for docs/index.html on :8011</div></div>
     <div class="status-cell"><div class="status-label">Last error</div><div class="status-value" title="none">none</div></div>
   </section>
 
@@ -337,6 +337,15 @@ Search the web for the most material news from the last 5–7 days affecting {be
 {economy_brief}
 
 Synthesize a headline brief that connects both pillars to the MRMI read. You may search the web for one or two pieces of cross-cutting context (e.g. a major event tying the two stories together) but rely primarily on the pillar briefs above — don&#x27;t restate them, build on them. Use plain English and keep the conclusion easy to repeat: what the dashboard says, why it matters, and what would change the posture next. Write the brief only — no preamble.</code></pre></details>
+        </div>
+      </article>
+
+      <article class="card wide" style="--accent: #f472b6">
+        <div class="card-top"><div><h2>Estimated weekly Claude spend <span>$0.10 / week</span></h2><p>Static token estimates for the weekly brief Claude calls, including typical WebSearch context.</p></div><div class="shortcut">$</div></div>
+        <a class="suggest" href="https://github.com/m0xt/macro-framework/edit/main/src/macro_framework/cost.py" target="_blank" rel="noreferrer">Suggest edit → cost.py</a>
+        <div class="card-body">
+          <table><thead><tr><th>Site</th><th>Model</th><th>Calls/week</th><th>Est in tokens</th><th>Est out tokens</th><th>Est $/week</th></tr></thead><tbody><tr><td>weekly_briefs.py:market brief</td><td>Sonnet 4.5</td><td>1</td><td>8,000</td><td>600</td><td>$0.03</td></tr><tr><td>weekly_briefs.py:economy brief</td><td>Sonnet 4.5</td><td>1</td><td>8,500</td><td>600</td><td>$0.03</td></tr><tr><td>weekly_briefs.py:top brief</td><td>Sonnet 4.5</td><td>1</td><td>7,500</td><td>600</td><td>$0.03</td></tr></tbody></table>
+          <p class="hint">Prices from Anthropic public pricing as of 2026-05-27. Token counts are hand-tuned estimates, not metered usage.</p>
         </div>
       </article>
   </section>

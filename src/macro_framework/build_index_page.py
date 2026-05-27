@@ -20,6 +20,7 @@ import pandas as pd
 
 from macro_framework import weekly_briefs
 from macro_framework.build import build_library_indicators
+from macro_framework.cost import COST_ESTIMATES, MODEL_PRICES_USD_PER_MTOK, PRICING_AS_OF
 from macro_framework.macro_pipeline import (
     FINANCIAL_CONDITIONS_SPECS,
     FRED_SERIES,
@@ -51,6 +52,7 @@ STATUS_FILE = REPO_ROOT / ".cache" / "status.json"
 
 SOURCE_MACRO_PIPELINE = "src/macro_framework/macro_pipeline.py"
 SOURCE_BUILD = "src/macro_framework/build.py"
+SOURCE_COST = "src/macro_framework/cost.py"
 SOURCE_WEEKLY_BRIEFS = "src/macro_framework/weekly_briefs.py"
 SOURCE_ARCHITECTURE = "docs/architecture.md"
 SOURCE_TESTS = "tests/test_smoke.py"
@@ -138,6 +140,26 @@ def render_table(headers: list[str], rows: list[list[Any]]) -> str:
 
 def code_block(text: str) -> str:
     return f"<pre><code>{esc(text)}</code></pre>"
+
+
+def cost_estimate_usd(row: dict[str, str | int]) -> float:
+    model = str(row["model"])
+    input_price, output_price = MODEL_PRICES_USD_PER_MTOK[model]
+    calls = int(row["calls_per_week"])
+    tokens_in = int(row["tokens_in"])
+    tokens_out = int(row["tokens_out"])
+    return calls * ((tokens_in / 1_000_000) * input_price + (tokens_out / 1_000_000) * output_price)
+
+
+def cost_total_usd() -> float:
+    return sum(cost_estimate_usd(row) for row in COST_ESTIMATES)
+
+
+def model_short_name(model: str) -> str:
+    parts = model.removeprefix("claude-").split("-")
+    if len(parts) >= 3:
+        return f"{parts[0].title()} {parts[1]}.{parts[2]}"
+    return model
 
 
 def render_mrmi_card() -> str:
@@ -301,6 +323,30 @@ def render_briefs_card() -> str:
       </article>"""
 
 
+def render_cost_card() -> str:
+    total = cost_total_usd()
+    rows = []
+    for row in COST_ESTIMATES:
+        rows.append([
+            esc(row["site"]),
+            esc(model_short_name(str(row["model"]))),
+            esc(f"{int(row['calls_per_week']):,}"),
+            esc(f"{int(row['tokens_in']):,}"),
+            esc(f"{int(row['tokens_out']):,}"),
+            esc(f"${cost_estimate_usd(row):.2f}"),
+        ])
+    table = render_table(["Site", "Model", "Calls/week", "Est in tokens", "Est out tokens", "Est $/week"], rows)
+    return f"""
+      <article class="card wide" style="--accent: #f472b6">
+        <div class="card-top"><div><h2>Estimated weekly Claude spend <span>${total:.2f} / week</span></h2><p>Static token estimates for the weekly brief Claude calls, including typical WebSearch context.</p></div><div class="shortcut">$</div></div>
+        {source_link(SOURCE_COST, "cost.py")}
+        <div class="card-body">
+          {table}
+          <p class="hint">Prices from Anthropic public pricing as of {esc(PRICING_AS_OF)}. Token counts are hand-tuned estimates, not metered usage.</p>
+        </div>
+      </article>"""
+
+
 def render_flow_card() -> str:
     steps = [
         ("Fetch", "Yahoo/FRED/DBnomics data, then cache aligned raw inputs."),
@@ -336,6 +382,7 @@ def build_html(build_time: str | None = None) -> str:
         render_mmi_inputs_card(),
         render_reference_card(),
         render_briefs_card(),
+        render_cost_card(),
     ])
     return f"""<!DOCTYPE html>
 <html lang="en">

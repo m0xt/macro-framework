@@ -25,6 +25,7 @@ PRODUCTION_MODULES = [
     "macro_framework.backtest_production",
     "macro_framework.build",
     "macro_framework.build_index_page",
+    "macro_framework.cost",
     "macro_framework.macro_pipeline",
     "macro_framework.weekly_briefs",
     "macro_framework.sync_to_supabase",
@@ -533,6 +534,7 @@ def test_documented_release_lags_are_locked_to_code() -> None:
 
 def test_index_page_imports_iteration_surface_constants() -> None:
     renderer = _import_module("macro_framework.build_index_page")
+    cost = _import_module("macro_framework.cost")
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
     weekly_briefs = _import_module("macro_framework.weekly_briefs")
 
@@ -559,6 +561,9 @@ def test_index_page_imports_iteration_surface_constants() -> None:
     assert "Reference Library" in html
     assert "Release lags" in html
     assert "Weekly briefs" in html
+    assert "Estimated weekly Claude spend" in html
+    assert f"${renderer.cost_total_usd():.2f} / week" in html
+    assert cost.COST_ESTIMATES[0]["site"] in html
     assert "github.com/m0xt/macro-framework/edit/main/src/macro_framework/macro_pipeline.py" in html
     assert weekly_briefs.SYSTEM_MARKET[:80] in html
 

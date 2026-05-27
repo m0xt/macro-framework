@@ -329,3 +329,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-27T13:10:51Z — Task 62b weekly Claude cost estimates
+- What: Added static Anthropic pricing/cost estimates for the three Tuesday weekly brief Claude calls (market, economy, top), rendered an Estimated weekly Claude spend card on docs/index.html with a $0.10/week total, and added smoke coverage for the card total and first site row.
+- Files touched: src/macro_framework/cost.py; src/macro_framework/build_index_page.py; tests/test_smoke.py; docs/index.html; .engineer/progress.md
+- Gates: `grep -RInE "anthropic\\.|messages\\.create|Anthropic\\(|client\\.messages|claude" src tests scripts pyproject.toml` found only weekly_briefs.py Claude CLI call sites plus support/test references; `uv run ruff check .` passed; `uv run pytest -q` passed (50 passed, 4 xfailed); `git diff --check` passed; `uv run python -m macro_framework.build_index_page` rebuilt docs/index.html; `open docs/index.html` launched the browser check.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
