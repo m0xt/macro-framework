@@ -24,6 +24,7 @@ PACKAGE_DIR = SRC / "macro_framework"
 PRODUCTION_MODULES = [
     "macro_framework.backtest_production",
     "macro_framework.build",
+    "macro_framework.build_index_page",
     "macro_framework.macro_pipeline",
     "macro_framework.weekly_briefs",
     "macro_framework.sync_to_supabase",
@@ -38,7 +39,7 @@ BROKEN_ANALYZE_MODULES = {
     "research.analyze_alpha_strategies": "research import drift surfaced by smoke baseline",
     "research.analyze_multi_signal": "research import drift surfaced by smoke baseline",
 }
-ENTRYPOINT_MODULES = ["build", "weekly_briefs", "sync_to_supabase", "backtest_production"]
+ENTRYPOINT_MODULES = ["build", "build_index_page", "weekly_briefs", "sync_to_supabase", "backtest_production"]
 
 
 def _import_module(name: str) -> ModuleType:
@@ -493,9 +494,8 @@ def _function_source(module_text: str, name: str, next_name: str) -> str:
 
 
 def test_breadth_lookback_docs_match_code() -> None:
-    source = (PACKAGE_DIR / "macro_pipeline.py").read_text()
-    calc_sector_src = _function_source(source, "calc_sector_breadth", "calc_business_cycle")
-    code_lookback = int(calc_sector_src.split("LOOKBACK =", 1)[1].split("#", 1)[0].strip())
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    code_lookback = macro_pipeline.SECTOR_BREADTH_LOOKBACK
 
     docs = "\n".join((ROOT / name).read_text() for name in ("README.md", "CLAUDE.md", "GUIDE.md"))
     assert code_lookback == 90
@@ -529,3 +529,36 @@ def test_documented_release_lags_are_locked_to_code() -> None:
     docs = "\n".join((ROOT / name).read_text() for name in ("README.md", "CLAUDE.md", "GUIDE.md"))
     for snippet in ("PCE/RPI 60d", "unemployment 35d", "Core CPI 45d", "GDPNow 0d"):
         assert snippet in docs
+
+
+def test_index_page_imports_iteration_surface_constants() -> None:
+    renderer = _import_module("macro_framework.build_index_page")
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    weekly_briefs = _import_module("macro_framework.weekly_briefs")
+
+    html = renderer.build_html("2026-05-27 09:00 UTC")
+
+    assert str(macro_pipeline.UNIFIED_STRESS_BUFFER_SIZE) in html
+    assert str(macro_pipeline.UNIFIED_STRESS_THRESHOLD) in html
+    assert str(macro_pipeline.UNIFIED_STRESS_P99) in html
+    assert f"{macro_pipeline.MRMI_CASH_THRESHOLD:+.2f}" in html
+    assert f"{macro_pipeline.MRMI_LONG_THRESHOLD:+.2f}" in html
+    assert str(macro_pipeline.SECTOR_BREADTH_LOOKBACK) in html
+    assert "Growth Impulses inputs" in html
+    assert "Reference Library" in html
+    assert "Release lags" in html
+    assert "Weekly briefs" in html
+    assert "github.com/m0xt/macro-framework/edit/main/src/macro_framework/macro_pipeline.py" in html
+    assert weekly_briefs.SYSTEM_MARKET[:80] in html
+
+
+def test_index_page_reference_library_metadata_comes_from_dashboard_builder() -> None:
+    renderer = _import_module("macro_framework.build_index_page")
+    library = renderer.reference_library_metadata()
+
+    assert "cpi_headline" in library
+    assert "cpi_core" in library
+    assert "ppi_all_commodities" in library
+    assert "ism_mfg" in library
+    assert library["cpi_core"]["label"] == "Official Core CPI"
+    assert "DBnomics" in library["ism_mfg"]["desc"]

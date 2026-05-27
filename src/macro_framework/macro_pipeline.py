@@ -440,6 +440,12 @@ SECTOR_BREADTH_SPECS = {
     },
 }
 
+SECTOR_BREADTH_LOOKBACK = 90
+SECTOR_BREADTH_RECONCILIATION_NOTE = (
+    "2026-05-15 reconciliation: Sector Breadth lookback is 90 days, "
+    "not the stale 63-day docs value; this is locked by tests."
+)
+
 GROWTH_IMPULSE_CHANGE_COMPONENTS = {"YC", "WEI", "BAML_INV", "VIX_INV", "BDI_SA"}
 
 def growth_impulse_components(data: pd.DataFrame) -> dict[str, pd.Series]:
@@ -951,13 +957,12 @@ def calc_sector_breadth(data: pd.DataFrame) -> pd.DataFrame:
     """
     US Equity Sector Breadth — equal-weight z-score of 8 sector ETFs.
     """
-    LOOKBACK = 90   # optimized for drawdown: was 63 (originally 252)
     tickers = list(SECTOR_BREADTH_SPECS)  # optimized: drop SLX
     components = {}
 
     for t in tickers:
         if t in data:
-            components[t] = zscore(data[t], LOOKBACK)
+            components[t] = zscore(data[t], SECTOR_BREADTH_LOOKBACK)
 
     if not components:
         return pd.DataFrame(index=data.index)
@@ -1127,6 +1132,54 @@ STRESS_SCORE_BUCKETS = {
 MRMI_CASH_THRESHOLD = -0.50
 MRMI_LONG_THRESHOLD = 0.25
 MRMI_CAUTION_EXPOSURE = 0.75
+
+MMI_DRIVER_WEIGHTS = {
+    "growth_impulses_fast": 1.0,
+    "sector_breadth": 1.0,
+    "financial_conditions": 1.0,
+}
+
+MMI_DRIVER_SPECS = {
+    "growth_impulses_fast": {
+        "label": "Growth Impulses (fast leg)",
+        "weight": MMI_DRIVER_WEIGHTS["growth_impulses_fast"],
+        "source": "GROWTH_IMPULSE_SPECS — fast composite",
+        "rationale": "Macro and credit signals normalized to a fast cycle-pulse z-score.",
+    },
+    "sector_breadth": {
+        "label": "Sector Breadth",
+        "weight": MMI_DRIVER_WEIGHTS["sector_breadth"],
+        "source": f"SECTOR_BREADTH_SPECS over LOOKBACK={SECTOR_BREADTH_LOOKBACK}",
+        "rationale": "Equal-weight z-score across the 8 sector ETFs over the lookback window.",
+    },
+    "financial_conditions": {
+        "label": "Financial Conditions",
+        "weight": MMI_DRIVER_WEIGHTS["financial_conditions"],
+        "source": "FINANCIAL_CONDITIONS_SPECS",
+        "rationale": "Credit spreads, yield-curve, and dollar pressure composited into a conditions z-score.",
+    },
+}
+
+MRMI_POSTURE_BANDS = [
+    {
+        "label": "CASH",
+        "range": f"MRMI < {MRMI_CASH_THRESHOLD:+.2f}",
+        "exposure": 0.0,
+        "rationale": "Step off the gas: stress overwhelms momentum and macro buffer.",
+    },
+    {
+        "label": "CAUTION",
+        "range": f"{MRMI_CASH_THRESHOLD:+.2f} ≤ MRMI ≤ {MRMI_LONG_THRESHOLD:+.2f}",
+        "exposure": MRMI_CAUTION_EXPOSURE,
+        "rationale": "Investor-grade middle band: partial exposure pending regime confirmation.",
+    },
+    {
+        "label": "LONG",
+        "range": f"MRMI > {MRMI_LONG_THRESHOLD:+.2f}",
+        "exposure": 1.0,
+        "rationale": "Full allocation: momentum + macro buffer clear the action threshold.",
+    },
+]
 
 def mrmi_posture(value: float | None) -> str | None:
     """Map MRMI value to the production allocation posture."""

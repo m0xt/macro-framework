@@ -105,6 +105,31 @@ without knowing the model internals.
 Length: 5–7 sentences."""
 
 
+PILLAR_BRIEF_USER_TEMPLATE = (
+    "This week's brief is dated {today}. Current readings:\n\n{context}\n\n"
+    "Search the web for the most material news from the last 5–7 days affecting "
+    "{beat}, then write the brief connecting our framework signals to what is "
+    "actually happening. Explain the 'why' behind the moves in plain English. "
+    "Keep the read decisive: what the dashboard says, why it matters, and what "
+    "would change the view next. "
+    "Write the brief only — no preamble."
+)
+
+
+TOP_BRIEF_USER_TEMPLATE = (
+    "Today is {today}. Headline framework readings:\n\n{top_context}\n"
+    "=== THIS WEEK'S MARKET PILLAR BRIEF ===\n{market_brief}\n\n"
+    "=== THIS WEEK'S ECONOMY PILLAR BRIEF ===\n{economy_brief}\n\n"
+    "Synthesize a headline brief that connects both pillars to the MRMI read. "
+    "You may search the web for one or two pieces of cross-cutting context "
+    "(e.g. a major event tying the two stories together) but rely primarily on "
+    "the pillar briefs above — don't restate them, build on them. "
+    "Use plain English and keep the conclusion easy to repeat: what the dashboard "
+    "says, why it matters, and what would change the posture next. "
+    "Write the brief only — no preamble."
+)
+
+
 # ── snapshot helpers ───────────────────────────────────────────────────────
 
 def _list_snapshots() -> list[tuple[date, Path]]:
@@ -427,15 +452,7 @@ def generate_pillar_brief(pillar: str, force: bool = False) -> bool:
         context = _economy_context(latest, prior_7d)
         beat = "the economy pillar (real-economy strength + inflation direction) over the last week"
 
-    prompt = (
-        f"This week's brief is dated {today}. Current readings:\n\n{context}\n\n"
-        f"Search the web for the most material news from the last 5–7 days affecting "
-        f"{beat}, then write the brief connecting our framework signals to what is "
-        f"actually happening. Explain the 'why' behind the moves in plain English. "
-        f"Keep the read decisive: what the dashboard says, why it matters, and what "
-        f"would change the view next. "
-        f"Write the brief only — no preamble."
-    )
+    prompt = PILLAR_BRIEF_USER_TEMPLATE.format(today=today, context=context, beat=beat)
 
     body = _run_claude(system, prompt, label=f"{pillar.capitalize()} brief", timeout=240)
     if not body:
@@ -464,17 +481,11 @@ def generate_top_brief(force: bool = False) -> bool:
     market_brief = _read_brief(archive / FILE_MARKET) or "(market pillar brief unavailable)"
     economy_brief = _read_brief(archive / FILE_ECONOMY) or "(economy pillar brief unavailable)"
 
-    prompt = (
-        f"Today is {today}. Headline framework readings:\n\n{_top_context(latest)}\n"
-        f"=== THIS WEEK'S MARKET PILLAR BRIEF ===\n{market_brief}\n\n"
-        f"=== THIS WEEK'S ECONOMY PILLAR BRIEF ===\n{economy_brief}\n\n"
-        f"Synthesize a headline brief that connects both pillars to the MRMI read. "
-        f"You may search the web for one or two pieces of cross-cutting context "
-        f"(e.g. a major event tying the two stories together) but rely primarily on "
-        f"the pillar briefs above — don't restate them, build on them. "
-        f"Use plain English and keep the conclusion easy to repeat: what the dashboard "
-        f"says, why it matters, and what would change the posture next. "
-        f"Write the brief only — no preamble."
+    prompt = TOP_BRIEF_USER_TEMPLATE.format(
+        today=today,
+        top_context=_top_context(latest),
+        market_brief=market_brief,
+        economy_brief=economy_brief,
     )
 
     body = _run_claude(SYSTEM_TOP, prompt, label="Top brief", timeout=240)

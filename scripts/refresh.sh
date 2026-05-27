@@ -28,6 +28,7 @@ source "$HOME/ops/lib/cron-wrapper.sh"
 
 cron_wrapper_pull
 "$PYTHON_BIN" -m macro_framework.build --no-cache
+"$PYTHON_BIN" -m macro_framework.build_index_page
 
 SUPABASE_SYNC_STATUS=0
 "$PYTHON_BIN" -m macro_framework.sync_to_supabase latest >"$SYNC_LOG" 2>&1 || SUPABASE_SYNC_STATUS=$?
@@ -47,6 +48,7 @@ fi
 
 cron_wrapper_commit_outputs \
     briefs/ \
+    docs/index.html \
     outputs/dashboard.html \
     snapshots/ \
     -- "refresh $(date -u +%FT%TZ)"

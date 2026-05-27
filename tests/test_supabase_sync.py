@@ -113,6 +113,7 @@ set -euo pipefail
 echo "$*" >> "$TEST_LOG"
 case "$*" in
   "-m macro_framework.build --no-cache") exit 0 ;;
+  "-m macro_framework.build_index_page") exit 0 ;;
   "-m macro_framework.sync_to_supabase latest") echo 'schema mismatch' >&2; exit 22 ;;
   *) exit 99 ;;
 esac
@@ -141,8 +142,10 @@ esac
     assert proc.returncode == 0, proc.stderr
     log = log_path.read_text()
     assert "-m macro_framework.build --no-cache" in log
+    assert "-m macro_framework.build_index_page" in log
     assert "-m macro_framework.sync_to_supabase latest" in log
     assert "commit_outputs" in log
+    assert "docs/index.html" in log
     assert "supabase-schema-drift" in proc.stderr
     status = json.loads(status_path.read_text())
     assert status["summary"] == "refresh ok, supabase sync failed (supabase-schema-drift)"
