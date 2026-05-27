@@ -285,3 +285,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-27T08:00:41Z — Task 51 caution-zone visibility
+- What: Strengthened the MRMI hero scale caution zone: slightly taller track, brighter amber gradient, inset amber outline/glow, and amber threshold dividers with marker layered above. Threshold positions, MRMI math, posture, and data are unchanged.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-27.json; .engineer/progress.md
+- Gates: `uv run python -m macro_framework.build --use-cache` passed; `git diff --check` passed; `uv run ruff check .` passed; `uv run pytest -q` passed (46 passed, 4 xfailed); direct HTML check confirmed the stronger caution-zone CSS is rendered.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

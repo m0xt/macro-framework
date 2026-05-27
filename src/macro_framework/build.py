@@ -959,15 +959,17 @@ def render(snap, chart, raw_data=None):
     max-width: 720px; margin-top: 4px;
   }}
   .scale-track {{
-    position: relative; height: 8px; border-radius: 4px;
+    position: relative; height: 10px; border-radius: 5px;
     background: #1a1a1a; display: flex; overflow: hidden;
+    box-shadow: inset 0 0 0 1px #ffffff08;
   }}
   .scale-zone-cash {{
     background: linear-gradient(to right, #E84B5A22, #E84B5A11);
     height: 100%;
   }}
   .scale-zone-caution {{
-    background: linear-gradient(to right, #cdaa6a22, #cdaa6a18);
+    background: linear-gradient(to right, #cdaa6a66, #e2bd746f 50%, #cdaa6a66);
+    box-shadow: inset 0 0 0 1px #f0c978aa, 0 0 12px #cdaa6a55;
     height: 100%;
   }}
   .scale-zone-long {{
@@ -976,12 +978,13 @@ def render(snap, chart, raw_data=None):
   }}
   .scale-threshold {{
     position: absolute; top: -3px; bottom: -3px;
-    width: 1px; background: #444;
+    width: 1px; background: #cdaa6acc;
+    z-index: 2;
   }}
   .scale-marker {{
-    position: absolute; top: -4px; width: 16px; height: 16px;
+    position: absolute; top: -3px; width: 16px; height: 16px;
     border-radius: 50%; transform: translateX(-50%);
-    transition: left 0.3s;
+    transition: left 0.3s; z-index: 3;
   }}
   .scale-axis {{
     position: relative; height: 14px; margin-top: 8px;
