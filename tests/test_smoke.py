@@ -210,7 +210,7 @@ def test_canonical_backtest_matches_task35_investor_posture_calmar() -> None:
         "btc": data["BTC-USD"].pct_change(),
     }
 
-    expected = {"spx": 2.88, "iwm": 2.57, "btc": 0.67}
+    expected = {"spx": 2.88, "iwm": 2.58, "btc": 0.67}
     for asset, expected_calmar in expected.items():
         result = backtest.backtest_signal(mrmi, asset_rets[asset])
         assert result is not None

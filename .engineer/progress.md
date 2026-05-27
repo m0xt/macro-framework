@@ -261,3 +261,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-27T07:40:52Z — Task 48 fresh dashboard and briefs
+- What: Force-regenerated the 2026-05-27 market/economy/top weekly briefs after a fresh no-cache data build, rebuilt outputs/dashboard.html and snapshots/2026-05-27.json, and kept MRMI/MMI math/UI/Supabase schema unchanged. Latest read: MRMI +0.18 → CAUTION / 75% exposure, MMI +0.47, macro buffer +0.46, stress score 0.8 Calm.
+- Files touched: briefs/2026-05-27/market.md; briefs/2026-05-27/economy.md; briefs/2026-05-27/top.md; outputs/dashboard.html; snapshots/2026-05-27.json; tests/test_smoke.py; .engineer/progress.md
+- Gates: `git diff --check` passed; `uv run ruff check .` passed; `uv run pytest -q` passed (46 passed, 4 xfailed); `uv run python -m macro_framework.build --no-cache` passed; `uv run python -m macro_framework.build --use-cache` passed; `uv run python -m macro_framework.sync_to_supabase doctor` passed (schema version 3). Supabase latest sync was not run because this task was dashboard/brief refresh only.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
