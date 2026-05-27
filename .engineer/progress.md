@@ -293,3 +293,11 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-27T08:04:53Z — Task 52 chart caution-band correction
+- What: Corrected task 51 per Martin's feedback: restored the hero scale-bar visual styling to the prior subtle look while preserving the task-50 outward threshold-label placement, and strengthened the CAUTION background on the MRMI history chart itself (`rgba(205,170,106,0.22)` plus a subtle amber border). MRMI math, thresholds, posture, and data are unchanged.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; snapshots/2026-05-27.json; .engineer/progress.md
+- Gates: `uv run python -m macro_framework.build --use-cache` passed; `git diff --check` passed; `uv run ruff check .` passed; `uv run pytest -q` passed (46 passed, 4 xfailed); direct HTML check confirmed hero scale restoration plus stronger MRMI chart caution band.
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

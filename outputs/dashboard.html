@@ -164,17 +164,15 @@
     max-width: 720px; margin-top: 4px;
   }
   .scale-track {
-    position: relative; height: 10px; border-radius: 5px;
+    position: relative; height: 8px; border-radius: 4px;
     background: #1a1a1a; display: flex; overflow: hidden;
-    box-shadow: inset 0 0 0 1px #ffffff08;
   }
   .scale-zone-cash {
     background: linear-gradient(to right, #E84B5A22, #E84B5A11);
     height: 100%;
   }
   .scale-zone-caution {
-    background: linear-gradient(to right, #cdaa6a66, #e2bd746f 50%, #cdaa6a66);
-    box-shadow: inset 0 0 0 1px #f0c978aa, 0 0 12px #cdaa6a55;
+    background: linear-gradient(to right, #cdaa6a22, #cdaa6a18);
     height: 100%;
   }
   .scale-zone-long {
@@ -183,13 +181,12 @@
   }
   .scale-threshold {
     position: absolute; top: -3px; bottom: -3px;
-    width: 1px; background: #cdaa6acc;
-    z-index: 2;
+    width: 1px; background: #444;
   }
   .scale-marker {
-    position: absolute; top: -3px; width: 16px; height: 16px;
+    position: absolute; top: -4px; width: 16px; height: 16px;
     border-radius: 50%; transform: translateX(-50%);
-    transition: left 0.3s; z-index: 3;
+    transition: left 0.3s;
   }
   .scale-axis {
     position: relative; height: 14px; margin-top: 8px;
@@ -743,7 +740,7 @@
 
 <div class="meta-bar">
   <span class="brand">MILK ROAD · MACRO DASHBOARD v2</span>
-  <span>2026-05-27 · built 2026-05-27 08:00 UTC</span>
+  <span>2026-05-27 · built 2026-05-27 08:04 UTC</span>
 </div>
 
 
@@ -1443,7 +1440,7 @@ function buildMrmiChart(rangeKey) {
         annotation: {
           annotations: {
             cashBand: { type: 'box', yMin: -10, yMax: -0.50, backgroundColor: 'rgba(232,75,90,0.10)', borderWidth: 0, scaleID: 'y' },
-            cautionBand: { type: 'box', yMin: -0.50, yMax: 0.25, backgroundColor: 'rgba(205,170,106,0.10)', borderWidth: 0, scaleID: 'y' },
+            cautionBand: { type: 'box', yMin: -0.50, yMax: 0.25, backgroundColor: 'rgba(205,170,106,0.22)', borderColor: 'rgba(205,170,106,0.34)', borderWidth: 1, scaleID: 'y' },
             longBand: { type: 'box', yMin: 0.25, yMax: 10, backgroundColor: 'rgba(76,175,80,0.10)', borderWidth: 0, scaleID: 'y' },
             cashLine: { type: 'line', yMin: -0.50, yMax: -0.50, borderColor: 'rgba(232,75,90,0.65)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y', label: { display: true, content: 'CASH −0.50', position: 'start', backgroundColor: 'transparent', color: '#9a3d47', font: { size: 9 } } },
             longLine: { type: 'line', yMin: 0.25, yMax: 0.25, borderColor: 'rgba(76,175,80,0.65)', borderWidth: 1, borderDash: [4, 4], scaleID: 'y', label: { display: true, content: 'LONG +0.25', position: 'start', backgroundColor: 'transparent', color: '#4CAF50', font: { size: 9 } } },
