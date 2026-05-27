@@ -322,3 +322,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-05-27T11:19:43Z — Task 57b docs iteration LAN serve
+- What: Added a launchd-backed static docs/index.html serve on 0.0.0.0:8011 using the project's existing Python/http.server pattern, installed/loaded the LaunchAgent, and documented the LAN iteration-surface URL while leaving the dashboard serve on :8001 untouched.
+- Files touched: AGENTS.md; scripts/com.milkroad.macro-framework-docs-serve.plist; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

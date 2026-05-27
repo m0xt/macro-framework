@@ -46,6 +46,7 @@
 - Apply Supabase schema migrations: see "Supabase migrations" below.
 - Cron path: `scripts/refresh.sh`
 - LAN dashboard serve: `com.milkroad.macro-framework-serve` exposes `outputs/dashboard.html` at `http://Felixs-Mac-mini.local:8001/dashboard.html`.
+- LAN iteration-surface serve: `com.milkroad.macro-framework-docs-serve` exposes `docs/index.html` at `http://Felixs-Mac-mini.local:8011/index.html`.
 
 ## Conventions
 
