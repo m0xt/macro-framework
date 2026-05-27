@@ -315,3 +315,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: gateway scope-upgrade and operator-agent sandbox issue need separate diagnosis — they blocked the original dispatch and will block future ones until resolved.
+
+## 2026-05-27T11:06:30Z — Task 56a MMI inputs card
+- What: Replaced the docs/index.html Growth Impulses-only card with a single Market Momentum Index inputs wide card whose Growth Impulses, Sector Breadth, and Financial Conditions subsections render from the live macro_pipeline spec dicts; scoped Growth parameter pills under Growth and added the 90d Breadth lookback pill. Added smoke assertions for all three rendered spec tables and ran the local refresh wrapper once.
+- Files touched: src/macro_framework/build_index_page.py; tests/test_smoke.py; docs/index.html; outputs/dashboard.html; snapshots/2026-05-27.json; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

@@ -21,6 +21,7 @@ import pandas as pd
 from macro_framework import weekly_briefs
 from macro_framework.build import build_library_indicators
 from macro_framework.macro_pipeline import (
+    FINANCIAL_CONDITIONS_SPECS,
     FRED_SERIES,
     GROWTH_IMPULSE_CLIP_Z,
     GROWTH_IMPULSE_EMA_LEN,
@@ -35,6 +36,7 @@ from macro_framework.macro_pipeline import (
     RELEASE_LAGS_DAYS,
     SECTOR_BREADTH_LOOKBACK,
     SECTOR_BREADTH_RECONCILIATION_NOTE,
+    SECTOR_BREADTH_SPECS,
     UNIFIED_STRESS_ALPHA,
     UNIFIED_STRESS_BETA,
     UNIFIED_STRESS_BUFFER_SIZE,
@@ -189,9 +191,9 @@ def render_mmi_card() -> str:
       </article>"""
 
 
-def render_growth_card() -> str:
+def render_input_specs_table(specs: dict[str, dict[str, Any]]) -> str:
     rows = []
-    for key, spec in GROWTH_IMPULSE_SPECS.items():
+    for key, spec in specs.items():
         rows.append([
             f"<code>{esc(key)}</code>",
             esc(spec["label"]),
@@ -199,19 +201,26 @@ def render_growth_card() -> str:
             esc(spec["source"]),
             esc(spec["explanation"]),
         ])
+    return render_table(["Key", "Input", "Group", "Source", "Why it matters"], rows)
+
+
+def render_mmi_inputs_card() -> str:
+    growth_pills = "".join([
+        pill(f"fast ROC {GROWTH_IMPULSE_FAST_ROC}d"),
+        pill(f"slow ROC {GROWTH_IMPULSE_SLOW_ROC}d"),
+        pill(f"z lookback {GROWTH_IMPULSE_Z_LEN}d"),
+        pill(f"clip ±{GROWTH_IMPULSE_CLIP_Z:.1f}z"),
+        pill(f"EMA {GROWTH_IMPULSE_EMA_LEN}"),
+    ])
+    breadth_pills = pill(f"breadth lookback {SECTOR_BREADTH_LOOKBACK}d")
     return f"""
       <article class="card wide" style="--accent: #22c55e">
-        <div class="card-top"><div><h2>Growth Impulses inputs <span>🌱</span></h2><p>The same tooltip/rationale specs used by the dashboard drill-down rows.</p></div><div class="shortcut">G</div></div>
+        <div class="card-top"><div><h2>Market Momentum Index inputs <span>🌱</span></h2><p>The same tooltip/rationale specs used by the dashboard drill-down rows.</p></div><div class="shortcut">I</div></div>
         {source_link(SOURCE_MACRO_PIPELINE, "macro_pipeline.py")}
         <div class="card-body">
-          <div class="meta compact">
-            {pill(f"fast ROC {GROWTH_IMPULSE_FAST_ROC}d")}
-            {pill(f"slow ROC {GROWTH_IMPULSE_SLOW_ROC}d")}
-            {pill(f"z lookback {GROWTH_IMPULSE_Z_LEN}d")}
-            {pill(f"clip ±{GROWTH_IMPULSE_CLIP_Z:.1f}z")}
-            {pill(f"EMA {GROWTH_IMPULSE_EMA_LEN}")}
-          </div>
-          <details open><summary>Inputs and rationale</summary>{render_table(["Key", "Input", "Group", "Source", "Why it matters"], rows)}</details>
+          <details open><summary>Growth Impulses</summary><div class="meta compact">{growth_pills}</div>{render_input_specs_table(GROWTH_IMPULSE_SPECS)}</details>
+          <details open><summary>Sector Breadth</summary><div class="meta compact">{breadth_pills}</div>{render_input_specs_table(SECTOR_BREADTH_SPECS)}</details>
+          <details open><summary>Financial Conditions</summary>{render_input_specs_table(FINANCIAL_CONDITIONS_SPECS)}</details>
         </div>
       </article>"""
 
@@ -324,7 +333,7 @@ def build_html(build_time: str | None = None) -> str:
         render_mrmi_card(),
         render_mmi_card(),
         render_lags_card(),
-        render_growth_card(),
+        render_mmi_inputs_card(),
         render_reference_card(),
         render_briefs_card(),
     ])

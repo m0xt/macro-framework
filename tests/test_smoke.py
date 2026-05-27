@@ -544,7 +544,18 @@ def test_index_page_imports_iteration_surface_constants() -> None:
     assert f"{macro_pipeline.MRMI_CASH_THRESHOLD:+.2f}" in html
     assert f"{macro_pipeline.MRMI_LONG_THRESHOLD:+.2f}" in html
     assert str(macro_pipeline.SECTOR_BREADTH_LOOKBACK) in html
-    assert "Growth Impulses inputs" in html
+    assert "Market Momentum Index inputs" in html
+    for section, specs in (
+        ("Growth Impulses", macro_pipeline.GROWTH_IMPULSE_SPECS),
+        ("Sector Breadth", macro_pipeline.SECTOR_BREADTH_SPECS),
+        ("Financial Conditions", macro_pipeline.FINANCIAL_CONDITIONS_SPECS),
+    ):
+        assert f"<summary>{section}</summary>" in html
+        for key, spec in specs.items():
+            assert f"<code>{renderer.esc(key)}</code>" in html
+            assert renderer.esc(spec["label"]) in html
+            assert renderer.esc(spec["source"]) in html
+            assert renderer.esc(spec["explanation"]) in html
     assert "Reference Library" in html
     assert "Release lags" in html
     assert "Weekly briefs" in html
