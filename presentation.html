@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Macro Framework — Team Presentation</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    overflow: hidden;
+    height: 100vh;
+  }
+  .slide {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    padding: 60px 80px;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .slide.active { display: flex; }
+  .nav {
+    position: fixed;
+    bottom: 20px;
+    right: 30px;
+    font-size: 12px;
+    color: #444;
+    z-index: 10;
+    font-family: 'SF Mono', Menlo, monospace;
+  }
+  .progress {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: #cdaa6a;
+    transition: width 0.3s;
+  }
+  h1 { font-size: 48px; font-weight: 700; color: #fff; margin-bottom: 16px; line-height: 1.2; }
+  h2 { font-size: 36px; font-weight: 700; color: #fff; margin-bottom: 24px; line-height: 1.2; }
+  h3 { font-size: 24px; font-weight: 600; color: #ccc; margin-bottom: 16px; }
+  p { font-size: 20px; line-height: 1.6; color: #999; margin-bottom: 16px; }
+  .subtitle { font-size: 22px; color: #777; margin-top: 8px; }
+  .accent { color: #cdaa6a; }
+  .green { color: #4CAF50; }
+  .red { color: #E84B5A; }
+  .blue { color: #4DA8DA; }
+  .orange { color: #FF8C00; }
+  .muted { color: #555; }
+  .small { font-size: 16px; }
+  .mono { font-family: 'SF Mono', Menlo, monospace; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 36px; align-items: start; }
+  .four-col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; align-items: start; }
+  .card {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card h3 { font-size: 18px; margin-bottom: 8px; }
+  .card p { font-size: 16px; margin-bottom: 8px; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #333;
+    border-radius: 999px;
+    padding: 7px 12px;
+    color: #aaa;
+    font-size: 13px;
+    font-family: 'SF Mono', Menlo, monospace;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  th { text-align: left; padding: 11px 14px; border-bottom: 2px solid #333; color: #888; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 11px 14px; border-bottom: 1px solid #1a1a1a; font-size: 17px; vertical-align: top; }
+  tr:hover td { background: #111; }
+  .big-num { font-size: 64px; font-weight: 700; font-family: 'SF Mono', Menlo, monospace; }
+  .big-label { font-size: 18px; color: #666; margin-top: 4px; }
+  ul { list-style: none; padding: 0; }
+  ul li { font-size: 20px; color: #999; padding: 8px 0; padding-left: 24px; position: relative; line-height: 1.5; }
+  ul li::before { content: ""; position: absolute; left: 0; top: 17px; width: 8px; height: 8px; border-radius: 50%; background: #333; }
+  ul li.check::before { background: #4CAF50; }
+  ul li.cross::before { background: #E84B5A; }
+  ul li.dot-accent::before { background: #cdaa6a; }
+  .banner {
+    padding: 20px 28px;
+    border-radius: 8px;
+    display: inline-block;
+    margin: 16px 0;
+  }
+  .banner.caution { background: rgba(205,170,106,0.12); border: 1px solid rgba(205,170,106,0.34); }
+  .banner.green { background: rgba(76,175,80,0.10); border: 1px solid rgba(76,175,80,0.32); }
+  .banner.red { background: rgba(232,75,90,0.10); border: 1px solid rgba(232,75,90,0.32); }
+  .scale-card {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 14px;
+    padding: 26px;
+    max-width: 900px;
+    margin: 28px auto 0;
+  }
+  .scale-track {
+    position: relative;
+    height: 16px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(232,75,90,0.22) 0 31.25%, rgba(205,170,106,0.16) 31.25% 40.625%, rgba(76,175,80,0.18) 40.625% 100%);
+    border: 1px solid #222;
+  }
+  .scale-marker {
+    position: absolute;
+    top: 50%;
+    left: 39.8%;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #cdaa6a;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 0 4px rgba(205,170,106,0.20);
+  }
+  .scale-threshold { position: absolute; top: -4px; bottom: -4px; width: 1px; background: #3a3a3a; }
+  .scale-axis { position: relative; height: 34px; margin-top: 8px; font-size: 12px; color: #888; font-family: 'SF Mono', Menlo, monospace; }
+  .scale-axis span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+  .scale-axis .left-label { transform: translateX(-100%); }
+  .scale-axis .right-label { transform: translateX(0); }
+  .mini-chart {
+    height: 170px;
+    border-radius: 10px;
+    border: 1px solid #222;
+    background:
+      linear-gradient(0deg, rgba(232,75,90,0.10) 0 34%, rgba(205,170,106,0.22) 34% 48%, rgba(76,175,80,0.10) 48% 100%),
+      #101010;
+    position: relative;
+    overflow: hidden;
+  }
+  .mini-chart::after {
+    content: "";
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    top: 48%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #fff, transparent);
+    transform: rotate(-4deg);
+    opacity: 0.9;
+  }
+  .footer-note { font-size: 13px; color: #555; margin-top: 18px; }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title -->
+<div class="slide" style="justify-content: center; align-items: center; text-align: center; padding: 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 3px; margin-bottom: 24px;">Macro Framework · Weekly Research</p>
+  <h1 style="font-size: 60px; max-width: 1040px; margin: 0 auto 28px;">How do we decide full risk, caution, or cash?</h1>
+  <p class="subtitle" style="font-size: 24px; max-width: 860px; margin: 0 auto;">One number. Two pillars. A dashboard that stays invested unless market momentum and macro stress both argue for defense.</p>
+  <p class="muted small" style="margin-top: 60px; font-size: 13px;">27 May 2026 · macro-framework v2 · docs refreshed to shipped UI</p>
+</div>
+
+<!-- SLIDE 2: Today's reading -->
+<div class="slide" style="justify-content: center; align-items: center; text-align: center; padding: 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Today's reading · 2026-05-27</p>
+  <div style="margin-bottom: 30px;">
+    <span class="mono" style="font-size: 96px; font-weight: 700; color: #cdaa6a;">+0.18</span>
+  </div>
+  <div class="banner caution" style="font-size: 32px; font-weight: 700; padding: 16px 40px; color: #cdaa6a;">CAUTION · 75% EXPOSURE</div>
+  <p class="subtitle" style="max-width: 920px; margin: 34px auto 0; font-size: 22px;">MRMI sits just below the +0.25 LONG threshold. The answer is not “get out” — it is “stay invested, but less aggressive and watch the next data.”</p>
+  <div class="scale-card">
+    <div class="scale-track">
+      <span class="scale-threshold" style="left:31.25%;"></span>
+      <span class="scale-threshold" style="left:40.625%;"></span>
+      <span class="scale-marker"></span>
+    </div>
+    <div class="scale-axis">
+      <span style="left:0%;">−3</span>
+      <span class="left-label" style="left:31.25%;">−0.50 · cash</span>
+      <span class="right-label" style="left:40.625%;">+0.25 · long</span>
+      <span style="left:100%;">+5</span>
+    </div>
+    <p class="footer-note">Hero scale remains subtle; the MRMI history chart carries the stronger amber CAUTION band.</p>
+  </div>
+</div>
+
+<!-- SLIDE 3: Framework summary -->
+<div class="slide" style="padding: 60px 80px;">
+  <h2>The framework, in 60 seconds</h2>
+  <div style="background: #111; border-left: 4px solid #cdaa6a; padding: 20px 28px; margin-bottom: 24px; border-radius: 4px;">
+    <p style="font-size: 22px; color: #fff; margin: 0;"><strong style="color:#cdaa6a;">Posture rule:</strong> below −0.50 → <strong style="color:#E84B5A;">CASH / 0%</strong>; −0.50 to +0.25 → <strong style="color:#cdaa6a;">CAUTION / 75%</strong>; above +0.25 → <strong style="color:#4CAF50;">LONG / 100%</strong>.</p>
+  </div>
+  <p style="font-size: 19px;">MRMI is built from <strong style="color:#fff;">two pillars</strong> — fast market momentum and slow macro stress:</p>
+  <div class="two-col" style="margin-top: 20px;">
+    <div class="card">
+      <h3 style="color:#4DA8DA;">Pillar 1 · MMI (Market Momentum)</h3>
+      <p>What markets are pricing right now. Built from Growth Impulses, Sector Breadth, and Financial Conditions. Moves fast — days to weeks.</p>
+      <p class="small muted">Today: <span class="mono green">GREEN +0.47</span></p>
+    </div>
+    <div class="card">
+      <h3 style="color:#cdaa6a;">Pillar 2 · Macro Stress</h3>
+      <p>What the real economy and inflation trajectory are saying. Calm by default; rises when growth weakens or inflation accelerates, fastest when both happen.</p>
+      <p class="small muted">Today: <span class="mono green">CALM 0.8 / 10</span></p>
+    </div>
+  </div>
+  <div style="background: #111; border-left: 4px solid #4CAF50; padding: 16px 24px; margin-top: 24px; border-radius: 4px;">
+    <p style="font-size: 17px; color: #ddd; margin: 0;"><strong style="color:#fff;">Current read:</strong> momentum is constructive and stress is calm, but MRMI is still inside the investor caution zone because the threshold layer demands a stronger cushion before returning to 100% exposure.</p>
+  </div>
+</div>
+
+<!-- SLIDE 4: Formula -->
+<div class="slide" style="padding: 56px 80px;">
+  <h2>How MRMI is computed</h2>
+  <div class="card" style="padding: 28px 34px;">
+    <p class="mono" style="font-size: 18px; color: #ddd; margin-bottom: 8px;">g = max(0, −Real_Economy)</p>
+    <p class="mono" style="font-size: 18px; color: #ddd; margin-bottom: 8px;">i = max(0, Inflation_Direction)</p>
+    <p class="mono" style="font-size: 18px; color: #ddd; margin-bottom: 8px;">Stress_raw = 0.75g + 0.50i + 10gi</p>
+    <p class="mono" style="font-size: 18px; color: #ddd; margin-bottom: 8px;">Stress_intensity = clip(Stress_raw / 10.0083, 0, 1)</p>
+    <p class="mono" style="font-size: 18px; color: #ddd; margin-bottom: 8px;">Macro_buffer = 0.5 × (1 − Stress_intensity)</p>
+    <p class="mono" style="font-size: 18px; color: #fff; margin-bottom: 0;">MRMI = MMI + Macro_buffer − 0.75</p>
+  </div>
+  <div class="three-col" style="margin-top: 20px;">
+    <div class="card" style="border-color:#E84B5A44;"><h3 style="color:#E84B5A;">CASH</h3><p class="mono">MRMI &lt; −0.50</p><p>Capital preservation. 0% exposure.</p></div>
+    <div class="card" style="border-color:#cdaa6a55;"><h3 style="color:#cdaa6a;">CAUTION</h3><p class="mono">−0.50 to +0.25</p><p>Investor middle state. 75% exposure.</p></div>
+    <div class="card" style="border-color:#4CAF5044;"><h3 style="color:#4CAF50;">LONG</h3><p class="mono">MRMI &gt; +0.25</p><p>Full risk posture. 100% exposure.</p></div>
+  </div>
+</div>
+
+<!-- SLIDE 5: Dashboard order -->
+<div class="slide" style="padding: 60px 80px;">
+  <h2>How to read the shipped dashboard, top-to-bottom</h2>
+  <table>
+    <thead><tr><th style="width: 90px;">Step</th><th>What you see</th><th>What it tells you</th></tr></thead>
+    <tbody>
+      <tr><td class="mono accent">0 · Hero</td><td><strong style="color:#fff;">MRMI value, posture, scale, pillars, top brief.</strong></td><td>The one-number answer: <span class="mono accent">+0.18 · CAUTION · 75%</span>.</td></tr>
+      <tr><td class="mono accent">1 · Trend</td><td><strong style="color:#fff;">MRMI history chart</strong> with LONG / CAUTION / CASH zones and overlays.</td><td>How we got here, and how close we are to the next threshold.</td></tr>
+      <tr><td class="mono accent">2 · Market</td><td><strong style="color:#fff;">MMI chart + weekly brief + driver rows.</strong></td><td>Which market forces are supporting or dragging the posture.</td></tr>
+      <tr><td class="mono accent">3 · Economy</td><td><strong style="color:#fff;">0–10 Macro Stress + Real Economy / Inflation inputs.</strong></td><td>Whether fundamentals are confirming market weakness.</td></tr>
+      <tr><td class="mono accent">4 · Library</td><td><strong style="color:#fff;">Supplementary expandable context charts.</strong></td><td>What else is worth watching, without polluting the headline formula.</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted" style="margin-top: 20px; font-size: 14px;">The weekly top brief is in the hero; market and economy briefs sit directly under their pillar charts; driver mini-briefs appear only when a driver row is expanded.</p>
+</div>
+
+<!-- SLIDE 6: MRMI chart -->
+<div class="slide" style="padding: 60px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px;">Step 1 · MRMI history</p>
+  <h2>The chart makes CAUTION visible where it matters</h2>
+  <div class="two-col" style="align-items: center;">
+    <div>
+      <ul>
+        <li class="check">White line is MRMI over time.</li>
+        <li class="check">Green zone above +0.25 = LONG.</li>
+        <li class="dot-accent">Amber zone from −0.50 to +0.25 = CAUTION and now has a stronger background/border.</li>
+        <li class="cross">Red zone below −0.50 = CASH.</li>
+        <li>Legend toggles SPX, Russell, BTC, and MMI overlays.</li>
+      </ul>
+    </div>
+    <div class="mini-chart"></div>
+  </div>
+  <p class="footer-note">Latest visual decision: preserve the subtle hero scale, but make the MRMI chart caution band easier to see during historical review.</p>
+</div>
+
+<!-- SLIDE 7: Market pillar -->
+<div class="slide" style="padding: 58px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px;">Step 2 · Market pillar</p>
+  <h2>MMI — what markets are pricing</h2>
+  <p style="font-size: 18px; margin-bottom: 22px;">Equal-weighted average of three market-derived sub-indices. Today: <span class="mono green">+0.47</span>.</p>
+  <div class="three-col">
+    <div class="card"><h3 style="color:#4CAF50;">Growth Impulses</h3><p>Credit, commodities, yield curve, sector ratios, WEI, shipping.</p><p class="mono accent">Today: +0.06</p></div>
+    <div class="card"><h3 style="color:#4CAF50;">Sector Breadth</h3><p>Seven cyclical sector ETFs on a 90-day z-score.</p><p class="mono green">Today: +0.90</p></div>
+    <div class="card"><h3 style="color:#4CAF50;">Financial Conditions</h3><p>VIX, MOVE, and HY spreads inverted so looser conditions are positive.</p><p class="mono green">Today: +0.45</p></div>
+  </div>
+  <p class="small muted" style="font-size: 14px; margin-top: 18px;">Click any driver row in the dashboard to expand the driver chart, mini-brief, input table, and raw input history chart.</p>
+</div>
+
+<!-- SLIDE 8: Driver drilldowns -->
+<div class="slide" style="padding: 42px 70px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px;">MMI driver drill-down pattern</p>
+  <h2 style="margin-bottom: 10px;">Attribution is now mechanical, not vibes</h2>
+  <div class="two-col" style="gap: 40px;">
+    <div>
+      <div class="card" style="border-left: 4px solid #cdaa6a;">
+        <h3 style="color:#fff;">Mini-brief under the expanded chart</h3>
+        <p>Latest top mover, current support/drag, leading supporters, leading drags, breadth/fragility, next-watch condition.</p>
+      </div>
+      <div class="card" style="border-left: 4px solid #4DA8DA;">
+        <h3 style="color:#fff;">Tooltip-backed input table</h3>
+        <p>Every input has a compact keyboard-focusable info icon. Row click selects the raw input chart; icon click does not hijack row selection.</p>
+      </div>
+    </div>
+    <div>
+      <table style="margin-top: 0;">
+        <thead><tr><th>Input</th><th>Group</th><th>Current z</th><th>7d zΔ</th><th>30d zΔ</th></tr></thead>
+        <tbody>
+          <tr><td>WEI <span class="pill">i</span></td><td>Growth</td><td class="green mono">+1.16</td><td class="green mono">+1.05</td><td class="green mono">+1.58</td></tr>
+          <tr><td>Yield curve <span class="pill">i</span></td><td>Rates</td><td class="red mono">−0.83</td><td class="green mono">+0.26</td><td class="red mono">−0.19</td></tr>
+          <tr><td>HYG <span class="pill">i</span></td><td>Credit</td><td class="red mono">−0.37</td><td class="green mono">+0.22</td><td class="red mono">−0.15</td></tr>
+        </tbody>
+      </table>
+      <p class="footer-note">Rows sort by |current z|, with 7d/30d deltas as context.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9: Macro stress -->
+<div class="slide" style="padding: 58px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px;">Step 3 · Economy pillar</p>
+  <h2>Macro Stress — the slow buffer</h2>
+  <p style="font-size: 18px; margin-bottom: 20px;">A unified 0–10 score derived from real-economy weakness and inflation acceleration. Today: <span class="mono green">0.8 · CALM</span>.</p>
+  <div class="four-col">
+    <div class="card" style="border-color:#4CAF5044;"><h3 style="color:#4CAF50;">CALM</h3><p class="mono">0–3</p><p>Buffer mostly intact.</p></div>
+    <div class="card" style="border-color:#cdaa6a44;"><h3 style="color:#cdaa6a;">WATCH</h3><p class="mono">3–5</p><p>One axis getting noisy.</p></div>
+    <div class="card" style="border-color:#FF8C0044;"><h3 style="color:#FF8C00;">BUILDING</h3><p class="mono">5–7</p><p>Stress is meaningful.</p></div>
+    <div class="card" style="border-color:#E84B5A44;"><h3 style="color:#E84B5A;">ELEVATED</h3><p class="mono">7–10</p><p>Buffer compressed.</p></div>
+  </div>
+  <div class="card" style="margin-top: 18px;">
+    <p class="mono" style="color:#fff; font-size: 15px; margin: 0 0 8px;">Stress_raw = 0.75 × growth weakness + 0.50 × inflation pressure + 10 × both together</p>
+    <p class="small" style="font-size: 14px; color:#bbb; margin: 0;">This lets stress start building if either side worsens, but the real danger zone is weak growth plus rising inflation at the same time.</p>
+  </div>
+</div>
+
+<!-- SLIDE 10: Economy inputs -->
+<div class="slide" style="padding: 38px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px;">Macro Stress inputs</p>
+  <h2 style="margin-bottom: 8px;">Real Economy Score + Inflation Direction</h2>
+  <p style="font-size: 16px; margin-bottom: 12px;">The dashboard charts both axes together below the 0–10 stress panel.</p>
+  <div class="two-col" style="gap: 42px;">
+    <div>
+      <h3 style="color:#4CAF50;">Real Economy Score</h3>
+      <table>
+        <thead><tr><th>Input</th><th>Role</th><th>Latest z</th></tr></thead>
+        <tbody>
+          <tr><td>Real PCE YoY</td><td>Consumer demand</td><td class="red mono">−1.17</td></tr>
+          <tr><td>Sahm Rule inverted</td><td>Labor stress</td><td class="green mono">+1.01</td></tr>
+          <tr><td>Real Personal Income YoY</td><td>Real spending power</td><td class="red mono">−3.37</td></tr>
+          <tr><td>GDPNow</td><td>Current-quarter growth</td><td class="green mono">+0.88</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3 style="color:#cdaa6a;">Inflation Direction</h3>
+      <p style="font-size: 16px;">A single signal: 6-month change in Core CPI YoY. It measures inflation trajectory, not inflation level.</p>
+      <div class="card">
+        <p class="mono" style="font-size: 24px; color:#fff; margin-bottom: 8px;">+0.04pp</p>
+        <p class="small" style="font-size: 14px; color:#bbb; margin-bottom: 0;">Barely positive, so inflation pressure exists but is still small. Stress remains CALM because the combined score is only 0.8/10.</p>
+      </div>
+    </div>
+  </div>
+  <p class="footer-note">Release-lag aware: PCE/RPI ~60d, unemployment ~35d, Core CPI ~45d, GDPNow 0d.</p>
+</div>
+
+<!-- SLIDE 11: Reference Library -->
+<div class="slide" style="padding: 48px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px;">Step 4 · Reference Library</p>
+  <h2>The library explains context without changing MRMI</h2>
+  <table>
+    <thead><tr><th>Category</th><th>Current rows</th><th>Why it is there</th></tr></thead>
+    <tbody>
+      <tr><td class="accent">Liquidity</td><td>US M2 Money Supply</td><td>Monetary fuel for risk assets.</td></tr>
+      <tr><td class="accent">Activity</td><td>ISM Manufacturing PMI, GDPNow, CFNAI, Industrial Production, Housing Starts, Building Permits</td><td>Cycle context and promotion candidates.</td></tr>
+      <tr><td class="accent">Inflation</td><td>Official CPI Headline, Official Core CPI, Official PPI All Commodities</td><td>Official BLS/FRED inflation context around the Inflation Direction input.</td></tr>
+      <tr><td class="accent">Labor</td><td>Initial Jobless Claims, Continuing Jobless Claims</td><td>Higher-frequency labor deterioration context.</td></tr>
+    </tbody>
+  </table>
+  <p class="small muted" style="font-size: 14px;">ISM Manufacturing PMI is sourced from the DBnomics ISM mirror, charted as monthly observation points, and filters the suspicious 2025 low-teens mirror tail until a cleaner feed exists.</p>
+</div>
+
+<!-- SLIDE 12: Brief hierarchy -->
+<div class="slide" style="padding: 60px 80px;">
+  <p class="muted small" style="text-transform: uppercase; letter-spacing: 2px;">Narrative layer</p>
+  <h2>Briefs are plain-English meeting prep</h2>
+  <div class="three-col">
+    <div class="card"><h3 style="color:#4DA8DA;">Market brief</h3><p>Explains MMI, Growth Impulses, Sector Breadth, Financial Conditions, and what changed this week.</p></div>
+    <div class="card"><h3 style="color:#cdaa6a;">Economy brief</h3><p>Explains Macro Stress, Real Economy Score, Inflation Direction, and relevant macro releases.</p></div>
+    <div class="card"><h3 style="color:#fff;">Top brief</h3><p>Synthesizes both pillars into the hero read: what posture we are in, why, and what could flip it.</p></div>
+  </div>
+  <div class="card" style="margin-top: 20px; border-left: 4px solid #4CAF50;">
+    <p style="font-size: 17px; color:#ddd; margin:0;">The prompts were simplified after the dashboard shipped: less jargon, more “what this means for non-macro colleagues,” with links preserved for source context.</p>
+  </div>
+</div>
+
+<!-- SLIDE 13: Why trust it -->
+<div class="slide" style="padding: 60px 80px; justify-content: center;">
+  <h2>Why we trust it · investor-grade posture</h2>
+  <p style="font-size: 18px; margin-bottom: 24px;">The production posture is deliberately not a binary zero-crossing trading signal. It is a three-state allocation overlay designed to reduce whipsaw risk while still cutting exposure when the evidence is hostile.</p>
+  <div style="display: flex; justify-content: center; gap: 54px; margin: 36px 0;">
+    <div style="text-align: center;"><div><span class="big-num green">LONG</span></div><div class="big-label">full participation</div></div>
+    <div style="text-align: center;"><div><span class="big-num accent">CAUTION</span></div><div class="big-label">invested, less aggressive</div></div>
+    <div style="text-align: center;"><div><span class="big-num red">CASH</span></div><div class="big-label">capital preservation</div></div>
+  </div>
+  <div style="background: #111; border-left: 4px solid #4DA8DA; padding: 14px 22px; margin-top: 20px; border-radius: 4px; max-width: 1000px; margin-left: auto; margin-right: auto;">
+    <p style="font-size: 15px; color: #ddd; margin: 0;">The current dashboard backtest card remains the canonical user-facing number set. This presentation explains the shipped UI rather than re-running research.</p>
+  </div>
+</div>
+
+<!-- SLIDE 14: Summary -->
+<div class="slide" style="padding: 80px; justify-content: center; align-items: center; text-align: center;">
+  <h2 style="margin-bottom: 16px;">Summary</h2>
+  <p style="max-width: 860px; margin: 0 auto 34px; font-size: 22px; color: #ddd;">MRMI is one number, backed by a fast market pillar, a slow macro-stress buffer, transparent drill-downs, and a reference library for context.</p>
+  <div style="display: flex; justify-content: center; gap: 44px; margin-bottom: 36px;">
+    <div style="text-align: center;"><span class="mono" style="font-size: 56px; font-weight: 700; color: #cdaa6a;">+0.18</span><div class="big-label">Today's MRMI</div></div>
+    <div style="text-align: center;"><span class="mono" style="font-size: 56px; font-weight: 700; color: #cdaa6a;">CAUTION</span><div class="big-label">75% exposure</div></div>
+    <div style="text-align: center;"><span class="mono" style="font-size: 56px; font-weight: 700; color: #4CAF50;">0.8</span><div class="big-label">Macro stress · CALM</div></div>
+  </div>
+  <div style="max-width: 760px; margin: 0 auto;">
+    <p class="small" style="font-size: 16px; color: #999; margin-bottom: 8px;">Live dashboard: <span class="mono accent">http://felixs-mac-mini.local:8001/dashboard.html</span></p>
+    <p class="small" style="font-size: 16px; color: #999;">Lazy Tuesday refresh · three weekly briefs · driver mini-briefs and drill-downs in the dashboard</p>
+  </div>
+  <p class="muted small" style="margin-top: 40px; font-size: 13px;">Framework is live. Dashboard ready for the weekly research meeting.</p>
+</div>
+
+<div class="nav"><span id="slide-num"></span></div>
+<div class="progress" id="progress"></div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let current = 0;
+
+function showSlide(n) {
+  slides[current].classList.remove('active');
+  current = Math.max(0, Math.min(n, slides.length - 1));
+  slides[current].classList.add('active');
+  document.getElementById('slide-num').textContent = `${current + 1} / ${slides.length}`;
+  document.getElementById('progress').style.width = `${((current + 1) / slides.length) * 100}%`;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); showSlide(current + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); showSlide(current - 1); }
+  if (e.key === 'Home') showSlide(0);
+  if (e.key === 'End') showSlide(slides.length - 1);
+});
+
+document.addEventListener('click', e => {
+  if (e.clientX > window.innerWidth / 2) showSlide(current + 1);
+  else showSlide(current - 1);
+});
+
+showSlide(0);
+</script>
+</body>
+</html>
