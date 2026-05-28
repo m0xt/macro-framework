@@ -1,0 +1,40 @@
+name: Publish dashboard to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'outputs/dashboard.html'
+      - 'docs/PRESENTATION.html'
+      - '.github/workflows/publish-dashboard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage site
+        run: |
+          mkdir -p _site
+          cp outputs/dashboard.html _site/index.html
+          if [ -f docs/PRESENTATION.html ]; then
+            cp docs/PRESENTATION.html _site/presentation.html
+          fi
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
+          commit_message: 'Publish dashboard from ${{ github.sha }}'
