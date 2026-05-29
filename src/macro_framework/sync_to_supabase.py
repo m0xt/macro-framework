@@ -281,6 +281,26 @@ def cmd_doctor() -> None:
     preflight()
 
 
+def top_brief_row() -> dict[str, Any] | None:
+    """Build the macro_top_brief row from the newest briefs/<date>/top.md.
+
+    Returns None if there is no dated brief folder, no top.md, or a blank body.
+    Reuses build._latest_brief_dir() so the brief-locating logic lives in one place.
+    """
+    from macro_framework import build  # reuses _latest_brief_dir + BRIEFS_DIR
+
+    latest_dir, latest_date = build._latest_brief_dir()
+    if not latest_dir:
+        return None
+    path = latest_dir / "top.md"
+    if not path.exists():
+        return None
+    body = path.read_text().strip()
+    if not body:
+        return None
+    return {"id": 1, "brief_date": latest_date, "body_md": body}
+
+
 def cmd_latest() -> None:
     client = _supabase_client()  # fail-fast on missing creds
     preflight(client)

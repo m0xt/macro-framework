@@ -149,3 +149,48 @@ esac
     assert "supabase-schema-drift" in proc.stderr
     status = json.loads(status_path.read_text())
     assert status["summary"] == "refresh ok, supabase sync failed (supabase-schema-drift)"
+
+
+def test_top_brief_row_reads_latest_top_md(tmp_path, monkeypatch):
+    from macro_framework import build
+
+    briefs = tmp_path / "briefs"
+    (briefs / "2026-05-20").mkdir(parents=True)
+    (briefs / "2026-05-20" / "top.md").write_text("old brief\n")
+    (briefs / "2026-05-27").mkdir(parents=True)
+    (briefs / "2026-05-27" / "top.md").write_text("The dashboard is parked at CAUTION.\n")
+    monkeypatch.setattr(build, "BRIEFS_DIR", briefs)
+
+    row = sync_to_supabase.top_brief_row()
+    assert row == {
+        "id": 1,
+        "brief_date": "2026-05-27",
+        "body_md": "The dashboard is parked at CAUTION.",
+    }
+
+
+def test_top_brief_row_none_when_no_briefs(tmp_path, monkeypatch):
+    from macro_framework import build
+
+    monkeypatch.setattr(build, "BRIEFS_DIR", tmp_path / "briefs")
+    assert sync_to_supabase.top_brief_row() is None
+
+
+def test_top_brief_row_none_when_top_md_missing(tmp_path, monkeypatch):
+    from macro_framework import build
+
+    briefs = tmp_path / "briefs"
+    (briefs / "2026-05-27").mkdir(parents=True)
+    (briefs / "2026-05-27" / "market.md").write_text("only a pillar brief\n")
+    monkeypatch.setattr(build, "BRIEFS_DIR", briefs)
+    assert sync_to_supabase.top_brief_row() is None
+
+
+def test_top_brief_row_none_when_body_blank(tmp_path, monkeypatch):
+    from macro_framework import build
+
+    briefs = tmp_path / "briefs"
+    (briefs / "2026-05-27").mkdir(parents=True)
+    (briefs / "2026-05-27" / "top.md").write_text("   \n\n")
+    monkeypatch.setattr(build, "BRIEFS_DIR", briefs)
+    assert sync_to_supabase.top_brief_row() is None
