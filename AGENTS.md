@@ -2,7 +2,7 @@
 
 ## What this does
 
-`macro-framework` ingests Yahoo/FRED macro and market data, computes the MRMI regime signal from market momentum plus macro stress (growth impulse, financial conditions, sector breadth, macro context, stress buffer), writes daily snapshots and a self-contained dashboard, syncs hot fields and the current week's top brief (single-row `macro_top_brief` table) to Supabase, and lazily refreshes three Claude-generated weekly briefs on the first successful build on/after Tuesday.
+`macro-framework` ingests Yahoo/FRED macro and market data, computes the MRMI regime signal from market momentum plus macro stress (growth impulse, financial conditions, sector breadth, macro context, stress buffer), writes daily snapshots and a self-contained dashboard, syncs hot fields, the current week's top brief (single-row `macro_top_brief` table), and backtest stats (single-row `macro_backtest` table) to Supabase, and lazily refreshes three Claude-generated weekly briefs on the first successful build on/after Tuesday.
 
 ## Repo map
 
