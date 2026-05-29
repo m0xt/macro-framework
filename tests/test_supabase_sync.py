@@ -56,6 +56,11 @@ class FakeQuery:
                 raise RuntimeError("relation macro_top_brief does not exist")
             self.client.brief_upserts.append(self.payload)
             return SimpleNamespace(data=[self.payload])
+        if self.table == "macro_backtest":
+            if not self.client.backtest_table_exists:
+                raise RuntimeError("relation macro_backtest does not exist")
+            self.client.backtest_upserts.append(self.payload)
+            return SimpleNamespace(data=[self.payload])
         raise RuntimeError(f"relation {self.table} does not exist")
 
 
@@ -66,6 +71,8 @@ class FakeClient:
         self.upsert_on_conflict: str | None = None
         self.brief_table_exists = True
         self.brief_upserts: list[Any] = []
+        self.backtest_table_exists = True
+        self.backtest_upserts: list[Any] = []
 
     def table(self, name: str) -> FakeQuery:
         return FakeQuery(self, name)
@@ -239,4 +246,27 @@ def test_upsert_top_brief_best_effort_on_failure(tmp_path, monkeypatch, capsys):
     # Must NOT raise — best-effort.
     sync_to_supabase._upsert_top_brief(client)
     assert client.brief_upserts == []
+    assert "non-fatal" in capsys.readouterr().err
+
+
+def test_backtest_row_returns_stats():
+    from macro_framework import build
+
+    row = sync_to_supabase.backtest_row()
+    assert row == {"id": 1, "stats": build.BACKTEST_STATS}
+
+
+def test_upsert_backtest_writes_row(capsys):
+    client = FakeClient()
+    sync_to_supabase._upsert_backtest(client)
+    from macro_framework import build
+    assert client.backtest_upserts == [{"id": 1, "stats": build.BACKTEST_STATS}]
+    assert client.upsert_on_conflict == "id"
+
+
+def test_upsert_backtest_best_effort_on_failure(capsys):
+    client = FakeClient()
+    client.backtest_table_exists = False  # simulate migration not yet applied
+    sync_to_supabase._upsert_backtest(client)  # must NOT raise
+    assert client.backtest_upserts == []
     assert "non-fatal" in capsys.readouterr().err

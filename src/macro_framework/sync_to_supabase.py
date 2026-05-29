@@ -30,7 +30,7 @@ from macro_framework.macro_pipeline import (
     mrmi_legacy_state,
 )
 
-EXPECTED_SCHEMA_VERSION = 4
+EXPECTED_SCHEMA_VERSION = 5
 SCHEMA_VERSION_KEY = "schema_version"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT_DIR = REPO_ROOT / "snapshots"
@@ -319,6 +319,28 @@ def _upsert_top_brief(client: Client) -> None:
         print(f"Warning: top brief upload failed (non-fatal): {exc}", file=sys.stderr)
 
 
+def backtest_row() -> dict[str, Any]:
+    """Build the macro_backtest row from the static BACKTEST_STATS constant."""
+    from macro_framework import build  # single source of truth for the figures
+
+    return {"id": 1, "stats": build.BACKTEST_STATS}
+
+
+def _upsert_backtest(client: Client) -> None:
+    """Best-effort: mirror the dashboard backtest stats to macro_backtest.
+
+    Supplementary to the numeric macro_snapshots row, so failures are logged and
+    swallowed rather than failing the sync.
+    """
+    row = backtest_row()
+    print("Upserting backtest stats...")
+    try:
+        client.table("macro_backtest").upsert(row, on_conflict="id").execute()
+        print("OK (backtest)")
+    except Exception as exc:  # best-effort: never fail the sync on the backtest
+        print(f"Warning: backtest upload failed (non-fatal): {exc}", file=sys.stderr)
+
+
 def cmd_latest() -> None:
     client = _supabase_client()  # fail-fast on missing creds
     preflight(client)
@@ -340,6 +362,7 @@ def cmd_latest() -> None:
         )
     print(f"OK ({len(resp.data)} row)")
     _upsert_top_brief(client)
+    _upsert_backtest(client)
 
 
 def cmd_backfill() -> None:
