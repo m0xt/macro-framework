@@ -30,7 +30,7 @@ from macro_framework.macro_pipeline import (
     mrmi_legacy_state,
 )
 
-EXPECTED_SCHEMA_VERSION = 3
+EXPECTED_SCHEMA_VERSION = 4
 SCHEMA_VERSION_KEY = "schema_version"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT_DIR = REPO_ROOT / "snapshots"
@@ -301,6 +301,24 @@ def top_brief_row() -> dict[str, Any] | None:
     return {"id": 1, "brief_date": latest_date, "body_md": body}
 
 
+def _upsert_top_brief(client: Client) -> None:
+    """Best-effort: mirror the latest top brief markdown to macro_top_brief.
+
+    The numeric macro_snapshots row is the contract; the brief is supplementary,
+    so any failure here is logged and swallowed rather than failing the sync.
+    """
+    row = top_brief_row()
+    if row is None:
+        print("No top brief found; skipping macro_top_brief.")
+        return
+    print(f"Upserting top brief ({row['brief_date']})...")
+    try:
+        client.table("macro_top_brief").upsert(row, on_conflict="id").execute()
+        print("OK (top brief)")
+    except Exception as exc:  # best-effort: never fail the sync on the brief
+        print(f"Warning: top brief upload failed (non-fatal): {exc}", file=sys.stderr)
+
+
 def cmd_latest() -> None:
     client = _supabase_client()  # fail-fast on missing creds
     preflight(client)
@@ -321,6 +339,7 @@ def cmd_latest() -> None:
             EXIT_NETWORK,
         )
     print(f"OK ({len(resp.data)} row)")
+    _upsert_top_brief(client)
 
 
 def cmd_backfill() -> None:
