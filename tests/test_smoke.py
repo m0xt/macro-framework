@@ -578,3 +578,25 @@ def test_index_page_reference_library_metadata_comes_from_dashboard_builder() ->
     assert "ism_mfg" in library
     assert library["cpi_core"]["label"] == "Official Core CPI"
     assert "DBnomics" in library["ism_mfg"]["desc"]
+
+
+def test_render_backtest_card_html_is_byte_identical():
+    """Locks the backtest card output so the dashboard does not change when the
+    hardcoded literal is refactored into BACKTEST_STATS + a renderer."""
+    from macro_framework import build
+
+    expected = '''
+    <!-- Backtest figures source: reports/task-35-investor-grade-thresholds.md recommendation -->
+    <details class="backtest-toggle">
+      <summary>How well does this work historically? <span class="muted small">(click)</span></summary>
+      <div class="backtest-toggle-body">
+        <p class="muted small" style="margin-bottom: 8px;">Full-sample investor-grade posture backtest (2017–2026), no leverage:</p>
+        <ul class="backtest-list">
+          <li><span class="bt-asset-inline">SPX</span> +20.9% annual return · max drawdown −7.3% · Calmar 2.88</li>
+          <li><span class="bt-asset-inline">Russell 2000</span> +25.6% annual return · max drawdown −10.0% · Calmar 2.57</li>
+          <li><span class="bt-asset-inline">Bitcoin</span> +39.3% annual return · max drawdown −58.6% · Calmar 0.67</li>
+        </ul>
+        <p class="muted small" style="margin-top: 8px;">Average exposure 62.9% of the time (cash 27.9%, caution 36.6%).</p>
+      </div>
+    </details>'''
+    assert build._render_backtest_card_html(build.BACKTEST_STATS) == expected

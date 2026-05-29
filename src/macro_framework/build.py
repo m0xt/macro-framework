@@ -36,6 +36,52 @@ RAW_DATA_PKL = CACHE_DIR / "raw_data.pkl"
 OUTPUT = REPO_ROOT / "outputs" / "dashboard.html"
 BRIEFS_DIR = REPO_ROOT / "briefs"
 
+BACKTEST_STATS = {
+    "window": "2017–2026",
+    "leverage": "no leverage",
+    "source": "reports/task-35-investor-grade-thresholds.md",
+    "assets": [
+        {"name": "SPX",          "annual_return_pct": 20.9, "max_drawdown_pct": -7.3,  "calmar": 2.88},
+        {"name": "Russell 2000", "annual_return_pct": 25.6, "max_drawdown_pct": -10.0, "calmar": 2.57},
+        {"name": "Bitcoin",      "annual_return_pct": 39.3, "max_drawdown_pct": -58.6, "calmar": 0.67},
+    ],
+    "avg_exposure_pct": 62.9,
+    "cash_pct": 27.9,
+    "caution_pct": 36.6,
+}
+
+
+def _render_backtest_card_html(stats: dict) -> str:
+    """Render the 'How well does this work historically?' card from BACKTEST_STATS.
+
+    Output is locked byte-for-byte by test_render_backtest_card_html_is_byte_identical.
+    Uses unicode minus (U+2212) for drawdowns and middle dot (U+00B7) separators
+    to match the original hand-written literal.
+    """
+    def _line(a: dict) -> str:
+        return (
+            f'<li><span class="bt-asset-inline">{a["name"]}</span> '
+            f'+{a["annual_return_pct"]:.1f}% annual return · '
+            f'max drawdown −{abs(a["max_drawdown_pct"]):.1f}% · '
+            f'Calmar {a["calmar"]:.2f}</li>'
+        )
+
+    spx, russell, btc = stats["assets"]
+    return f'''
+    <!-- Backtest figures source: {stats["source"]} recommendation -->
+    <details class="backtest-toggle">
+      <summary>How well does this work historically? <span class="muted small">(click)</span></summary>
+      <div class="backtest-toggle-body">
+        <p class="muted small" style="margin-bottom: 8px;">Full-sample investor-grade posture backtest ({stats["window"]}), {stats["leverage"]}:</p>
+        <ul class="backtest-list">
+          {_line(spx)}
+          {_line(russell)}
+          {_line(btc)}
+        </ul>
+        <p class="muted small" style="margin-top: 8px;">Average exposure {stats["avg_exposure_pct"]:.1f}% of the time (cash {stats["cash_pct"]:.1f}%, caution {stats["caution_pct"]:.1f}%).</p>
+      </div>
+    </details>'''
+
 
 def _md_to_html(text: str) -> str:
     """Minimal markdown: links, **bold**, *italic*, paragraphs."""
@@ -681,20 +727,7 @@ def render(snap, chart, raw_data=None):
             '<div class="preview-banner">PREVIEW BUILD · '
             f'{preview_meta.get("label", "new strategy formula")} · output only, production dashboard unchanged</div>'
         )
-    backtest_card_html = preview_meta.get("backtest_card_html") or '''
-    <!-- Backtest figures source: reports/task-35-investor-grade-thresholds.md recommendation -->
-    <details class="backtest-toggle">
-      <summary>How well does this work historically? <span class="muted small">(click)</span></summary>
-      <div class="backtest-toggle-body">
-        <p class="muted small" style="margin-bottom: 8px;">Full-sample investor-grade posture backtest (2017–2026), no leverage:</p>
-        <ul class="backtest-list">
-          <li><span class="bt-asset-inline">SPX</span> +20.9% annual return · max drawdown −7.3% · Calmar 2.88</li>
-          <li><span class="bt-asset-inline">Russell 2000</span> +25.6% annual return · max drawdown −10.0% · Calmar 2.57</li>
-          <li><span class="bt-asset-inline">Bitcoin</span> +39.3% annual return · max drawdown −58.6% · Calmar 0.67</li>
-        </ul>
-        <p class="muted small" style="margin-top: 8px;">Average exposure 62.9% of the time (cash 27.9%, caution 36.6%).</p>
-      </div>
-    </details>'''
+    backtest_card_html = preview_meta.get("backtest_card_html") or _render_backtest_card_html(BACKTEST_STATS)
 
     g_label, g_color = driver_label(gii)
     b_label, b_color = driver_label(breadth)
