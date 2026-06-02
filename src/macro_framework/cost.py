@@ -1,4 +1,4 @@
-"""Static weekly Anthropic token-cost estimates for the iteration surface."""
+"""Static weekly Anthropic token-cost estimates for the Atlas."""
 from __future__ import annotations
 
 # Anthropic pricing (USD per million tokens). Match the public pricing page.

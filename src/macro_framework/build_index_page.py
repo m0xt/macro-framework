@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render docs/index.html for macro-framework's iteration surface.
+"""Render docs/index.html for macro-framework's Atlas.
 
 The page is intentionally static and dependency-free. It imports the live
 indicator constants, prompt text, and dashboard metadata from the production
@@ -111,6 +111,10 @@ def _last_commit() -> str:
 
 def pill(text: str) -> str:
     return f'<span class="pill">{esc(text)}</span>'
+
+
+def schedule_pill(text: str) -> str:
+    return f'<span class="pill schedule">{esc(text)}</span>'
 
 
 def source_link(path: str, label: str | None = None) -> str:
@@ -389,7 +393,7 @@ def build_html(build_time: str | None = None) -> str:
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Macro Framework Iteration Surface</title>
+<title>Macro Framework Atlas</title>
 <style>
   * {{ box-sizing: border-box; }}
   :root {{
@@ -437,6 +441,13 @@ def build_html(build_time: str | None = None) -> str:
     padding: 5px 10px;
     font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
     font-size: 12px;
+  }}
+  .pill.schedule {{
+    border-color: rgba(245, 158, 11, 0.55);
+    background: rgba(245, 158, 11, 0.14);
+    color: #fde68a;
+    font-weight: 700;
+    letter-spacing: 0.02em;
   }}
   .status-strip {{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 22px 0 28px; }}
   .status-cell {{ border: 1px solid var(--border); border-radius: 14px; background: rgba(255,255,255,0.03); padding: 10px 12px; min-width: 0; }}
@@ -501,10 +512,11 @@ def build_html(build_time: str | None = None) -> str:
 <body>
 <main>
   <header>
-    <div class="eyebrow">macro-framework / iteration surface</div>
-    <h1>Inputs Martin can challenge.</h1>
+    <div class="eyebrow">macro-framework / atlas</div>
+    <h1>Inputs to challenge.</h1>
     <p class="intro">A static, regenerated view of the framework's iterable inputs: MRMI math, posture thresholds, MMI drivers, component rationales, release lags, Reference Library series, and weekly-brief prompts. Values below are imported from production code at build time.</p>
     <div class="meta">
+      {schedule_pill("schedule: Mon–Fri 22:30 Prague")}
       {pill("feedback: formula")}
       {pill("feedback: thresholds")}
       {pill("feedback: drivers")}
