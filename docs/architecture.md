@@ -59,7 +59,7 @@ The dashboard is a four-step walkthrough wrapped by a hero:
 1. Hero: headline MRMI value, LONG/CAUTION/CASH posture, exposure weight, subtle scale bar, pillar states, and the top weekly brief.
 2. MRMI history: LONG / CAUTION / CASH regime shading, strengthened CAUTION band, range tabs, and SPX/Russell/BTC/MMI overlays.
 3. Market pillar: MMI history, weekly market brief, and an open MMI driver scorecard for Growth Impulses, Sector Breadth, and Financial Conditions.
-4. Economy pillar: Macro Stress 0–10 history, Real Economy Score + Inflation Direction input chart, weekly economy brief, and real-economy driver cards.
+4. Economy pillar: Macro Stress 0–10 history, driver-style Real Economy Score + Inflation Direction input rows, weekly economy brief, and real-economy driver cards.
 5. Reference Library: supplementary context indicators with expandable charts.
 
 The MMI driver rows expand in place below the matching driver chart. Each driver has a deterministic mini-brief, an input table sorted by absolute current z-score, tooltip-backed input explanations, 7d/30d z-score deltas, and a raw input history chart selectable by dropdown or row click. The current table column order is Input / Group / Current z / 7d zΔ / 30d zΔ.

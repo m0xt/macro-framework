@@ -8,7 +8,7 @@ Macro allocation-posture dashboard for deciding LONG (100% exposure), CAUTION (7
 - MRMI history chart with LONG / CAUTION / CASH regime shading, SPX/Russell/BTC/MMI overlays, and a strengthened amber CAUTION band.
 - Market pillar with MMI history, weekly market brief, and expandable Growth Impulses / Sector Breadth / Financial Conditions driver rows.
 - Input drill-downs for all three MMI drivers: tooltip-backed input explanations, Input / Group / Current z / 7d zΔ / 30d zΔ tables sorted by |current z|, deterministic mini-briefs, and raw input history charts.
-- Economy pillar with 0–10 Macro Stress, Real Economy Score + Inflation Direction inputs, weekly economy brief, and Real Economy driver rows.
+- Economy pillar with 0–10 Macro Stress, driver-style Real Economy Score + Inflation Direction input rows, weekly economy brief, and Real Economy driver rows.
 - Reference Library for context indicators, including official CPI headline/core, PPI all commodities, ISM Manufacturing PMI via DBnomics, GDPNow, M2, CFNAI, industrial production, housing, permits, and claims.
 
 ## Quick start

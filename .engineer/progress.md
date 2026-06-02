@@ -351,3 +351,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: Full `uv run pytest -q` still has a canonical backtest cache-drift failure (`spx` Calmar 2.896 vs expected 2.88±0.01); task-specific refresh/schedule tests passed.
+
+## 2026-06-02T15:48:11Z — Task 85 Macro Stress input driver rows
+- What: Replaced the economy pillar's combined Macro Stress inputs mini-legend/chart with MMI-style expandable driver rows for Real Economy Score and Inflation Direction Δ6m, preserving the Macro Stress history chart, economy brief placement, MMI drivers, and Real Economy Drivers section. Updated dashboard/docs wording and rebuilt outputs/dashboard.html from cache.
+- Files touched: src/macro_framework/build.py; outputs/dashboard.html; README.md; docs/architecture.md; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none

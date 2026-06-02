@@ -710,13 +710,12 @@ def render(snap, chart, raw_data=None, *, refresh_briefs: bool = True):
         if stress_momentum_label else ""
     )
     stress_panel_tip = preview_meta.get("stress_panel_tip") or (
-        "<p><strong>What you're seeing:</strong> Martin's unified macro-stress score on a 0–10 scale. It is calm by default, rises when growth weakens or inflation accelerates, and builds fastest when both hit together.</p><p><strong>MRMI buffer:</strong> this same stress score now erodes the macro buffer used in the production MRMI strategy.</p><p><strong>Inputs below:</strong> the stress-inputs panel shows the raw axes: Real Economy Score and Inflation Direction Δ6m.</p>"
+        "<p><strong>What you're seeing:</strong> Martin's unified macro-stress score on a 0–10 scale. It is calm by default, rises when growth weakens or inflation accelerates, and builds fastest when both hit together.</p><p><strong>MRMI buffer:</strong> this same stress score now erodes the macro buffer used in the production MRMI strategy.</p><p><strong>Inputs below:</strong> the driver rows show the raw axes: Real Economy Score and Inflation Direction Δ6m.</p>"
     )
     stress_panel_subtitle = preview_meta.get("stress_panel_subtitle") or (
         "Stagflation pressure — growth weakness × inflation rising. Calm by default, builds when both factors hit."
     )
     stress_reading_label = preview_meta.get("stress_reading_label") or "0–10 score"
-    stress_inputs_title = preview_meta.get("stress_inputs_title") or "Real Economy Score · Inflation Direction Δ6m"
     stress_growth_label = preview_meta.get("stress_growth_label") or "Real Economy Score"
     stress_inflation_label = preview_meta.get("stress_inflation_label") or "Inflation Direction Δ6m"
     stress_cutoff_calm_watch = preview_meta.get("stress_cutoff_calm_watch", BUCKET_CUTOFF_CALM_WATCH)
@@ -802,6 +801,24 @@ def render(snap, chart, raw_data=None, *, refresh_briefs: bool = True):
             "inflation_dir_pp":   inf_dir_series,
             "core_cpi_yoy_pct":   core_cpi_series,
             "components":         re_components_series,
+        },
+        "macro_inputs": {
+            "real_economy": {
+                "label": stress_growth_label,
+                "values": re_score_series,
+                "green_above": True,
+                "signal_good": "healthy",
+                "signal_bad": "weak",
+                "desc": "Real Economy Score is the z-scored composite of PCE, Sahm Rule, real income, and GDPNow. Positive readings mean the real economy is holding up; negative readings mean growth is weakening.",
+            },
+            "inflation_dir": {
+                "label": stress_inflation_label,
+                "values": inf_dir_series,
+                "green_above": False,
+                "signal_good": "cooling",
+                "signal_bad": "heating",
+                "desc": "Inflation Direction Δ6m is the six-month change in Core CPI YoY, in percentage points. Negative readings mean inflation is cooling; positive readings mean inflation pressure is rising.",
+            },
         },
         "macro_drivers": macro_drivers_meta,
         "library": library_payload,
@@ -1284,18 +1301,18 @@ def render(snap, chart, raw_data=None, *, refresh_briefs: bool = True):
   .growth-input-chart-wrap {{ height: 180px; padding: 0; }}
 
   /* scorecard table */
-  #scorecard-mrmi table {{ width: 100%; border-collapse: collapse; }}
-  #scorecard-mrmi th {{
+  #scorecard-mrmi table, #scorecard-stress-inputs table {{ width: 100%; border-collapse: collapse; }}
+  #scorecard-mrmi th, #scorecard-stress-inputs th {{
     text-align: left; padding: 10px 8px; border-bottom: 1px solid #222;
     color: #555; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
     font-weight: 600;
   }}
-  #scorecard-mrmi th:first-child {{ padding-left: 0; }}
-  #scorecard-mrmi td {{
+  #scorecard-mrmi th:first-child, #scorecard-stress-inputs th:first-child {{ padding-left: 0; }}
+  #scorecard-mrmi td, #scorecard-stress-inputs td {{
     padding: 12px 8px; border-bottom: 1px solid #1a1a1a;
     font-size: 13px; vertical-align: top;
   }}
-  #scorecard-mrmi td:first-child {{ padding-left: 0; }}
+  #scorecard-mrmi td:first-child, #scorecard-stress-inputs td:first-child {{ padding-left: 0; }}
   .sc-row {{ cursor: pointer; transition: background 0.1s; }}
   .sc-row:hover {{ background: #161616; }}
   .sc-label {{ color: #ccc; font-weight: 500; font-size: 14px; }}
@@ -1390,10 +1407,6 @@ def render(snap, chart, raw_data=None, *, refresh_briefs: bool = True):
     letter-spacing: 1.2px; text-transform: uppercase;
   }}
   .macro-stress-inputs-panel .drivers-body {{ padding-top: 2px; }}
-  .macro-stress-mini-legend {{ font-size: 12px; color: #888; margin: 0 0 10px; }}
-  .macro-stress-mini-legend span {{ display: inline-flex; align-items: center; margin-right: 14px; }}
-  .macro-stress-mini-legend i {{ width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; display: inline-block; }}
-  .macro-stress-inputs-wrap {{ height: 190px; padding: 0 8px; }}
   @media (max-width: 720px) {{
     .macro-stress-reading {{ justify-content: flex-start; }}
     .macro-stress-reading-value {{ font-size: 24px; }}
@@ -1689,14 +1702,10 @@ def render(snap, chart, raw_data=None, *, refresh_briefs: bool = True):
 </div>
 <details class="drivers macro-stress-inputs-panel" open>
   <summary>
-    <span><span class="state-dot" style="background:{stress_color}"></span>STRESS INPUTS <span class="muted small">· {stress_inputs_title}</span></span>
+    <span><span class="state-dot" style="background:{stress_color}"></span>MACRO STRESS INPUTS <span class="muted small">· {stress_growth_label} · {stress_inflation_label} — click any row to expand</span></span>
   </summary>
   <div class="drivers-body">
-    <div class="macro-stress-mini-legend">
-      <span><i style="background:#4CAF50"></i>{stress_growth_label}</span>
-      <span><i style="background:#cdaa6a"></i>{stress_inflation_label}</span>
-    </div>
-    <div class="chart-wrap macro-stress-inputs-wrap"><canvas id="chart-stress-inputs"></canvas></div>
+    <div id="scorecard-stress-inputs"></div>
   </div>
 </details>
 {(f'<div class="pillar-brief"><div class="pillar-brief-eyebrow">This week’s read · economy pillar{(" · " + economy_brief_date + " (cached)") if economy_brief_stale else ""}</div>{economy_brief_html}</div>') if economy_brief_html else ''}
@@ -2023,8 +2032,9 @@ document.querySelectorAll('.range-tabs button').forEach(btn => {{
     buildMacroDriversScorecard();
     buildMacroChart();
     buildStressHistoryChart();
-    buildStressInputsChart();
-        Object.keys(driverCharts).forEach(k => createDriverChart(k));
+    buildStressInputsScorecard();
+    Object.keys(stressInputCharts).forEach(k => createStressInputChart(k));
+    Object.keys(driverCharts).forEach(k => createDriverChart(k));
     Object.keys(macroDriverCharts).forEach(k => createMacroDriverChart(k));
     Object.keys(libCharts).forEach(k => createLibChart(k));
     if (growthInputBuilt && growthInputCurrentKey) buildGrowthInputChart(growthInputCurrentKey);
@@ -2392,29 +2402,97 @@ function buildStressHistoryChart() {{
   }});
 }}
 
-function buildStressInputsChart() {{
-  const canvas = document.getElementById('chart-stress-inputs');
-  if (!canvas) return;
-  const n = RANGE_BARS[currentRange] ?? 252;
-  const dates = sliceRecent(CHART_DATA.dates, n);
-  const realEconomy = sliceRecent((CHART_DATA.macro || {{}}).real_economy_score || [], n);
-  const inflationDir = sliceRecent((CHART_DATA.macro || {{}}).inflation_dir_pp || [], n);
-  const growthLabel = 'Real Economy Score';
-  const inflationLabel = 'Inflation Direction Δ6m';
+let stressInputCharts = {{}};
 
-  if (window.stressInputsChart) window.stressInputsChart.destroy();
-  window.stressInputsChart = new Chart(canvas, {{
+function fmtStressInputDelta(curr, prev, greenAbove) {{
+  if (curr === null || prev === null) return '<span class="dir flat">—</span>';
+  const diff = curr - prev;
+  if (Math.abs(diff) < 0.02) return `<span class="dir flat">${{diff >= 0 ? '+' : ''}}${{diff.toFixed(2)}}</span>`;
+  const improved = greenAbove ? diff > 0 : diff < 0;
+  const cls = improved ? 'up' : 'down';
+  const sign = diff > 0 ? '▲ +' : '▼ ';
+  return `<span class="dir ${{cls}}">${{sign}}${{diff.toFixed(2)}}</span>`;
+}}
+
+function buildStressInputsScorecard() {{
+  const container = document.getElementById('scorecard-stress-inputs');
+  if (!container) return;
+  const inputs = CHART_DATA.macro_inputs || {{}};
+  const keys = ['real_economy', 'inflation_dir'];
+
+  let html = '<table><thead><tr>';
+  html += '<th>Indicator</th><th>Value</th><th>7d</th><th>30d</th><th>Signal</th>';
+  html += '</tr></thead><tbody>';
+
+  keys.forEach(key => {{
+    const entry = inputs[key];
+    if (!entry || !entry.values || entry.values.length === 0) return;
+    const sliced = sliceRecent(entry.values, RANGE_BARS[currentRange]);
+    const current = lastValid(sliced);
+    const prev7 = sliced.length > 5 ? lastValid(sliced.slice(0, sliced.length - 5)) : null;
+    const prev30 = sliced.length > 21 ? lastValid(sliced.slice(0, sliced.length - 21)) : null;
+    const greenAbove = entry.green_above !== false;
+
+    let valCls = 'neutral';
+    if (current !== null) valCls = (current > 0) === greenAbove ? 'pos' : 'neg';
+    const valStr = current !== null ? fmtSigned(current, 2) : '—';
+
+    const signalHtml = current !== null
+      ? `<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:${{(current > 0) === greenAbove ? '#4CAF50' : '#E84B5A'}}"><span class="dot" style="background:${{(current > 0) === greenAbove ? '#4CAF50' : '#E84B5A'}}"></span>${{(current > 0) === greenAbove ? entry.signal_good : entry.signal_bad}}</span>`
+      : '<span style="font-size:10px;color:#444;">—</span>';
+
+    const infoIcon = entry.desc
+      ? `<span class="info-icon"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="4" r="0.9" fill="currentColor"/><line x1="7" y1="6.5" x2="7" y2="10.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span class="tip-pop">${{entry.desc}}</span></span>`
+      : '';
+
+    html += `<tr class="sc-row" onclick="toggleStressInput('${{key}}')">`;
+    html += `<td><span class="sc-label">${{entry.label}}</span>${{infoIcon}}</td>`;
+    html += `<td><span class="val ${{valCls}}">${{valStr}}</span></td>`;
+    html += `<td>${{fmtStressInputDelta(current, prev7, greenAbove)}}</td>`;
+    html += `<td>${{fmtStressInputDelta(current, prev30, greenAbove)}}</td>`;
+    html += `<td>${{signalHtml}}</td>`;
+    html += `</tr>`;
+    html += `<tr class="expanded-row" id="exp-si-${{key}}"><td colspan="5"><div class="chart-wrap"><canvas id="canvas-stress-${{key}}"></canvas></div><div class="chart-desc">${{entry.desc || ''}}</div></td></tr>`;
+  }});
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}}
+
+function toggleStressInput(key, forceOpen) {{
+  const row = document.getElementById('exp-si-' + key);
+  if (!row) return;
+  const isOpen = row.classList.contains('active');
+  if (isOpen && !forceOpen) {{
+    row.classList.remove('active');
+    if (stressInputCharts[key]) {{ stressInputCharts[key].destroy(); delete stressInputCharts[key]; }}
+  }} else if (!isOpen) {{
+    row.classList.add('active');
+    createStressInputChart(key);
+  }}
+}}
+
+function createStressInputChart(key) {{
+  const entry = (CHART_DATA.macro_inputs || {{}})[key];
+  const canvas = document.getElementById('canvas-stress-' + key);
+  if (!entry || !canvas) return;
+  const dates = sliceRecent(CHART_DATA.dates, RANGE_BARS[currentRange]);
+  const values = sliceRecent(entry.values, RANGE_BARS[currentRange]);
+  const greenAbove = entry.green_above !== false;
+  const greenColor = greenAbove ? 'rgba(76,175,80,0.20)' : 'rgba(232,75,90,0.20)';
+  const redColor = greenAbove ? 'rgba(232,75,90,0.20)' : 'rgba(76,175,80,0.20)';
+
+  if (stressInputCharts[key]) stressInputCharts[key].destroy();
+  stressInputCharts[key] = new Chart(canvas, {{
     type: 'line',
     data: {{
       labels: dates,
-      datasets: [
-        {{ label: growthLabel, data: realEconomy,
-           borderColor: '#4CAF50', borderWidth: 1.6,
-           pointRadius: 0, pointHoverRadius: 3, tension: 0.1, spanGaps: true }},
-        {{ label: inflationLabel, data: inflationDir,
-           borderColor: '#cdaa6a', borderWidth: 1.6, borderDash: [4, 3],
-           pointRadius: 0, pointHoverRadius: 3, tension: 0.1, spanGaps: true }},
-      ],
+      datasets: [{{
+        label: entry.label, data: values,
+        borderColor: '#ffffff', borderWidth: 1.6,
+        pointRadius: 0, tension: 0.1, spanGaps: true,
+        fill: {{ target: 'origin', above: greenColor, below: redColor }},
+      }}],
     }},
     options: {{
       responsive: true, maintainAspectRatio: false, animation: false,
@@ -2426,15 +2504,13 @@ function buildStressInputsChart() {{
           titleColor: '#999', bodyColor: '#e0e0e0',
           titleFont: {{ size: 11 }}, bodyFont: {{ size: 11, family: "'SF Mono', Menlo, monospace" }},
           padding: 8,
-          callbacks: {{
-            label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? (ctx.parsed.y >= 0 ? '+' : '') + ctx.parsed.y.toFixed(2) : '—'),
-          }},
+          callbacks: {{ label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y !== null ? fmtSigned(ctx.parsed.y, 2) : '—') }},
         }},
         annotation: {{ annotations: {{ zero: {{ type: 'line', yMin: 0, yMax: 0, borderColor: '#333', borderWidth: 1, scaleID: 'y' }} }} }},
       }},
       scales: {{
         x: {{ type: 'category', ticks: {{ color: '#555', font: {{ size: 10 }}, maxTicksLimit: 10, maxRotation: 0 }}, grid: {{ display: false }} }},
-        y: {{ ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 6 }}, grid: {{ color: '#1a1a1a' }} }},
+        y: {{ ticks: {{ color: '#555', font: {{ size: 10, family: "'SF Mono', Menlo, monospace" }}, maxTicksLimit: 5 }}, grid: {{ color: '#1a1a1a' }} }},
       }},
     }},
   }});
@@ -2446,7 +2522,7 @@ buildScorecard();
 buildMacroDriversScorecard();
 buildMacroChart();
 buildStressHistoryChart();
-buildStressInputsChart();
+buildStressInputsScorecard();
 
 // Growth Impulses raw-input chart (built lazily on first <details> open).
 let growthInputChart = null;
