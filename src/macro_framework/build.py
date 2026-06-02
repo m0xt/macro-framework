@@ -561,7 +561,7 @@ def _make_scale_bar(mrmi_value, state_color):
   </div>"""
 
 
-def render(snap, chart, raw_data=None):
+def render(snap, chart, raw_data=None, *, refresh_briefs: bool = True):
     # === NEW unified Milk Road Macro Index (MRMI) ===
     mrmi_combined = snap.get("mrmi_combined") or {}
     mrmi_value = mrmi_combined.get("value")
@@ -682,7 +682,8 @@ def render(snap, chart, raw_data=None):
     # AI-generated briefs: pillar briefs first, then top brief that consumes them.
     # Lazy weekly cadence (regenerates if latest archive folder is older than most recent Tuesday).
     # Briefs persist forever in briefs/YYYY-MM-DD/ — past weeks are preserved for review.
-    _refresh_all_briefs()
+    if refresh_briefs:
+        _refresh_all_briefs()
     commentary_html, commentary_date, commentary_stale = _load_brief_html("top.md", snap.get("date"))
     market_brief_html, market_brief_date, market_brief_stale = _load_brief_html("market.md", snap.get("date"))
     economy_brief_html, economy_brief_date, economy_brief_stale = _load_brief_html("economy.md", snap.get("date"))
@@ -2675,7 +2676,7 @@ document.addEventListener('click', e => {{
 """
 
 
-def build_dashboard(use_cache: bool = True) -> Path:
+def build_dashboard(use_cache: bool = True, *, refresh_briefs: bool = True) -> Path:
     """Fetch data, compute indicators, save snapshot, and render the dashboard."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
@@ -2725,14 +2726,15 @@ def build_dashboard(use_cache: bool = True) -> Path:
     )
     snap = latest_snapshot()
     chart = json.loads(chart_json)
-    OUTPUT.write_text(render(snap, chart, data))
+    OUTPUT.write_text(render(snap, chart, data, refresh_briefs=refresh_briefs))
     return OUTPUT
 
 
 def main() -> None:
     use_cache = "--no-cache" not in sys.argv
+    refresh_briefs = "--skip-briefs" not in sys.argv
     open_browser = "--open" in sys.argv
-    out = build_dashboard(use_cache=use_cache)
+    out = build_dashboard(use_cache=use_cache, refresh_briefs=refresh_briefs)
     print(f"Dashboard written to {out}")
     if open_browser:
         import webbrowser

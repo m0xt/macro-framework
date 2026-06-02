@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 # Refresh wrapper — LaunchAgent entry point.
 #
-# Runs twice on weekdays — see scripts/com.milkroad.macro-refresh{,-daily}.plist:
-#   · Tuesday 11:00 Prague — weekly run timed before the 15:00 macro meeting.
-#     Normally triggers fresh AI brief generation.
-#   · Mon–Fri 22:30 Prague — daily end-of-US-close run. Refreshes data + snapshot
-#     + Supabase row + dashboard. Briefs use lazy Tuesday freshness: the first
-#     successful build on/after Tuesday regenerates stale weekly briefs, then
-#     later builds skip until the next Tuesday cutoff.
+# Production launchd jobs are ET-aware through scripts/refresh-if-et-time.sh:
+#   · Mon–Fri 4:00pm ET — data/dashboard refresh, Supabase sync, Atlas rebuild.
+#   · Mon–Fri 4:05pm ET — force brief regeneration from fresh data, dashboard
+#     rerender, Supabase top-brief sync, Atlas rebuild.
 #
 # Delegates boilerplate to ~/ops/lib/cron-wrapper.sh:
 #   - git pull, status.json emission, commit/push, operator/engineer handoff.
@@ -16,18 +13,36 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."   # repo root
 
+REFRESH_MODE=data
+case "${1:-}" in
+    "") ;;
+    --briefs-only) REFRESH_MODE=briefs ;;
+    *) echo "usage: $0 [--briefs-only]" >&2; exit 64 ;;
+esac
+
 PROJECT_NAME=macro-framework
-LAUNCHD_LOG="$PWD/.cache/launchd-refresh-daily.log"   # matches both plists' StandardOutPath
+LAUNCHD_LOG="$PWD/.cache/launchd-refresh-daily.log"
 COMMIT_AUTHOR_NAME="Mac mini refresh"
 COMMIT_AUTHOR_EMAIL="refresh@macro-framework.local"
-SUCCESS_SUMMARY="refresh ok (build + supabase sync)"
+SUCCESS_SUMMARY="refresh ok (data/dashboard + supabase sync)"
 PYTHON_BIN="${PYTHON_BIN:-.venv/bin/python}"
 SYNC_LOG="${SYNC_LOG:-$PWD/.cache/supabase-sync.log}"
+
+if [[ "$REFRESH_MODE" == "briefs" ]]; then
+    LAUNCHD_LOG="$PWD/.cache/launchd-refresh.log"
+    SUCCESS_SUMMARY="refresh ok (briefs + dashboard + supabase sync)"
+fi
 
 source "$HOME/ops/lib/cron-wrapper.sh"
 
 cron_wrapper_pull
-"$PYTHON_BIN" -m macro_framework.build --no-cache
+
+if [[ "$REFRESH_MODE" == "briefs" ]]; then
+    "$PYTHON_BIN" -m macro_framework.weekly_briefs --force
+    "$PYTHON_BIN" -m macro_framework.build --skip-briefs
+else
+    "$PYTHON_BIN" -m macro_framework.build --no-cache --skip-briefs
+fi
 
 SUPABASE_SYNC_STATUS=0
 "$PYTHON_BIN" -m macro_framework.sync_to_supabase latest >"$SYNC_LOG" 2>&1 || SUPABASE_SYNC_STATUS=$?

@@ -114,10 +114,28 @@ def test_refresh_sh_isolates_supabase_failure_and_still_commits(tmp_path: Path) 
 
     (ops_lib / "cron-wrapper.sh").write_text(
         """
-cron_wrapper_pull() { echo pull >> \"$TEST_LOG\"; }
-cron_wrapper_commit_outputs() { echo commit_outputs \"$@\" >> \"$TEST_LOG\"; }
-trap 'mkdir -p "$(dirname "$STATUS_FILE")"; printf "{\\\"status\\\":\\\"ok\\\",\\\"summary\\\":\\\"%s\\\"}" "$SUCCESS_SUMMARY" > "$STATUS_FILE"' EXIT
+_CRON_WRAPPER_START_TS=2026-06-02T15:04:43Z
+_CRON_WRAPPER_START_EPOCH=1780412683
+cron_wrapper_pull() { echo pull >> "$TEST_LOG"; }
+cron_wrapper_commit_outputs() { echo commit_outputs "$@" >> "$TEST_LOG"; }
+trap 'mkdir -p "$(dirname "$STATUS_FILE")"; printf '"'"'{"status":"ok","summary":"%s"}'"'"' "$SUCCESS_SUMMARY" > "$STATUS_FILE"' EXIT
 """.lstrip()
+    )
+
+    (ops_lib / "write_status.py").write_text(
+        """#!/usr/bin/env python3
+import argparse, json
+from pathlib import Path
+parser = argparse.ArgumentParser()
+parser.add_argument('--out')
+parser.add_argument('--summary')
+parser.add_argument('--project')
+parser.add_argument('--start-ts')
+parser.add_argument('--duration-sec')
+parser.add_argument('--status')
+args = parser.parse_args()
+Path(args.out).write_text(json.dumps({'status': args.status, 'summary': args.summary}))
+"""
     )
 
     fake_python = tmp_path / "python"
@@ -126,7 +144,7 @@ trap 'mkdir -p "$(dirname "$STATUS_FILE")"; printf "{\\\"status\\\":\\\"ok\\\",\
 set -euo pipefail
 echo "$*" >> "$TEST_LOG"
 case "$*" in
-  "-m macro_framework.build --no-cache") exit 0 ;;
+  "-m macro_framework.build --no-cache --skip-briefs") exit 0 ;;
   "-m macro_framework.build_index_page") exit 0 ;;
   "-m macro_framework.sync_to_supabase latest") echo 'schema mismatch' >&2; exit 22 ;;
   *) exit 99 ;;
@@ -155,7 +173,7 @@ esac
 
     assert proc.returncode == 0, proc.stderr
     log = log_path.read_text()
-    assert "-m macro_framework.build --no-cache" in log
+    assert "-m macro_framework.build --no-cache --skip-briefs" in log
     assert "-m macro_framework.build_index_page" in log
     assert "-m macro_framework.sync_to_supabase latest" in log
     assert "commit_outputs" in log
@@ -163,6 +181,122 @@ esac
     assert "supabase-schema-drift" in proc.stderr
     status = json.loads(status_path.read_text())
     assert status["summary"] == "refresh ok, supabase sync failed (supabase-schema-drift)"
+
+
+def test_refresh_sh_briefs_only_forces_briefs_then_rerenders(tmp_path: Path) -> None:
+    repo = Path(__file__).resolve().parents[1]
+    home = tmp_path / "home"
+    ops_lib = home / "ops" / "lib"
+    ops_lib.mkdir(parents=True)
+    log_path = tmp_path / "commit.log"
+    status_path = tmp_path / "status.json"
+
+    (ops_lib / "cron-wrapper.sh").write_text(
+        """
+_CRON_WRAPPER_START_TS=2026-06-02T15:04:43Z
+_CRON_WRAPPER_START_EPOCH=1780412683
+cron_wrapper_pull() { echo pull >> "$TEST_LOG"; }
+cron_wrapper_commit_outputs() { echo commit_outputs "$@" >> "$TEST_LOG"; }
+trap 'mkdir -p "$(dirname "$STATUS_FILE")"; printf '"'"'{"status":"ok","summary":"%s"}'"'"' "$SUCCESS_SUMMARY" > "$STATUS_FILE"' EXIT
+""".lstrip()
+    )
+
+    (ops_lib / "write_status.py").write_text(
+        """#!/usr/bin/env python3
+import argparse, json
+from pathlib import Path
+parser = argparse.ArgumentParser()
+parser.add_argument('--out')
+parser.add_argument('--summary')
+parser.add_argument('--project')
+parser.add_argument('--start-ts')
+parser.add_argument('--duration-sec')
+parser.add_argument('--status')
+args = parser.parse_args()
+Path(args.out).write_text(json.dumps({'status': args.status, 'summary': args.summary}))
+"""
+    )
+
+    fake_python = tmp_path / "python"
+    fake_python.write_text(
+        """#!/usr/bin/env bash
+set -euo pipefail
+echo "$*" >> "$TEST_LOG"
+case "$*" in
+  "-m macro_framework.weekly_briefs --force") exit 0 ;;
+  "-m macro_framework.build --skip-briefs") exit 0 ;;
+  "-m macro_framework.build_index_page") exit 0 ;;
+  "-m macro_framework.sync_to_supabase latest") echo 'sync ok'; exit 0 ;;
+  *) exit 99 ;;
+esac
+"""
+    )
+    fake_python.chmod(0o755)
+
+    env = os.environ.copy()
+    env.update({
+        "HOME": str(home),
+        "PYTHON_BIN": str(fake_python),
+        "TEST_LOG": str(log_path),
+        "STATUS_FILE": str(status_path),
+        "SYNC_LOG": str(tmp_path / "supabase.log"),
+    })
+
+    proc = subprocess.run(
+        ["bash", "scripts/refresh.sh", "--briefs-only"],
+        cwd=repo,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    log = log_path.read_text()
+    assert "-m macro_framework.weekly_briefs --force" in log
+    assert "-m macro_framework.build --skip-briefs" in log
+    assert "-m macro_framework.sync_to_supabase latest" in log
+    assert "commit_outputs" in log
+    assert "briefs/" in log
+    status = json.loads(status_path.read_text())
+    assert status["summary"] == "refresh ok (briefs + dashboard + supabase sync)"
+
+
+def test_refresh_if_et_time_gate_matches_new_york_wall_clock() -> None:
+    repo = Path(__file__).resolve().parents[1]
+    env = os.environ.copy()
+    env.update({
+        "MACRO_REFRESH_ET_WEEKDAY": "2",
+        "MACRO_REFRESH_ET_HOUR": "16",
+        "MACRO_REFRESH_ET_MINUTE": "00",
+        "MACRO_REFRESH_ET_STAMP": "2026-06-02 16:00 EDT",
+        "MACRO_REFRESH_DRY_RUN": "1",
+    })
+
+    proc = subprocess.run(
+        ["bash", "scripts/refresh-if-et-time.sh", "data"],
+        cwd=repo,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+
+    assert proc.returncode == 0
+    assert "ET gate matched for data at 2026-06-02 16:00 EDT" in proc.stdout
+
+    env["MACRO_REFRESH_ET_HOUR"] = "15"
+    proc = subprocess.run(
+        ["bash", "scripts/refresh-if-et-time.sh", "data"],
+        cwd=repo,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+
+    assert proc.returncode == 0
+    assert "ET gate skipped data" in proc.stdout
 
 
 def test_top_brief_row_reads_latest_top_md(tmp_path, monkeypatch):

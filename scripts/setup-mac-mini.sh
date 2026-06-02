@@ -2,8 +2,8 @@
 # One-shot Mac mini bootstrap for the macro-framework refresh jobs.
 #
 # Installs two LaunchAgents:
-#   · com.milkroad.macro-refresh         — Tuesday 11:00 Prague (pre-meeting briefs)
-#   · com.milkroad.macro-refresh-daily   — Mon–Fri 22:30 Prague (end-of-US-close)
+#   · com.milkroad.macro-refresh-daily   — Mon–Fri 4:00pm ET data/dashboard refresh
+#   · com.milkroad.macro-refresh         — Mon–Fri 4:05pm ET brief refresh from fresh data
 #
 # Run this from inside the repo on the Mac mini:
 #   cd /path/to/macro-framework && git pull && bash scripts/setup-mac-mini.sh
@@ -61,8 +61,9 @@ fi
 
 echo
 echo "Done."
-echo "  Tuesday 11:00 Prague (pre-meeting):   .cache/launchd-refresh.log"
-echo "  Mon–Fri 22:30 Prague (end of US close): .cache/launchd-refresh-daily.log"
+echo "  Mon–Fri 4:00pm ET data/dashboard: .cache/launchd-refresh-daily.log"
+echo "  Mon–Fri 4:05pm ET briefs:         .cache/launchd-refresh.log"
 echo
 echo "To test the script manually without waiting for the schedule:"
-echo "  bash scripts/refresh.sh"
+echo "  bash scripts/refresh.sh                  # data/dashboard"
+echo "  bash scripts/refresh.sh --briefs-only   # briefs + rerender"

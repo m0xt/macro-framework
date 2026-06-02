@@ -70,23 +70,23 @@ The retired Macro Seasons/Spring/Summer/Fall/Winter model should not be reintrod
 
 ## Cron path
 
-`launchd` runs `scripts/refresh.sh` through two checked-in plist templates:
+`launchd` runs `scripts/refresh-if-et-time.sh` through two checked-in plist templates. The plists fire at both possible Prague equivalents and the gate checks `America/New_York`, avoiding a fixed Prague time during DST-transition mismatches.
 
-- `scripts/com.milkroad.macro-refresh.plist`: Tuesday 11:00 Prague, before the research meeting.
-- `scripts/com.milkroad.macro-refresh-daily.plist`: Monday-Friday 22:30 Prague, after the US close.
+- `scripts/com.milkroad.macro-refresh-daily.plist`: Monday-Friday 4:00pm ET data/dashboard refresh.
+- `scripts/com.milkroad.macro-refresh.plist`: Monday-Friday 4:05pm ET brief refresh from the fresh 4:00pm ET data.
 
-`refresh.sh` does the end-to-end production path:
+`refresh.sh` does the production path:
 
 1. Source `~/ops/lib/cron-wrapper.sh`.
 2. `cron_wrapper_pull` to fast-forward the repo.
-3. Run `python -m macro_framework.build --no-cache`.
+3. For data refreshes, run `python -m macro_framework.build --no-cache --skip-briefs`; for brief refreshes, run `python -m macro_framework.weekly_briefs --force` and then `python -m macro_framework.build --skip-briefs`.
 4. Run `python -m macro_framework.sync_to_supabase latest`.
-5. Commit tracked outputs: `briefs/`, `outputs/dashboard.html`, and `snapshots/`.
+5. Commit tracked outputs: `briefs/`, `docs/index.html`, `outputs/dashboard.html`, and `snapshots/`.
 6. Write `.cache/status.json` through the ops wrapper.
 
 Supabase failures are fail-soft: if the local dashboard build succeeds but sync fails with `supabase-auth`, `supabase-network`, or `supabase-schema-drift`, `refresh.sh` still commits local deliverables and records `refresh ok, supabase sync failed (<type>)`.
 
-Weekly briefs are not strict “only Tuesdays.” `src/macro_framework/weekly_briefs.py` implements lazy Tuesday freshness: a brief is stale if the latest dated archive containing that brief is older than the most recent Tuesday on or before today. Therefore the first successful build on or after Tuesday regenerates the week’s briefs; later builds skip until the next Tuesday cutoff unless forced.
+Weekly brief helpers still support lazy Tuesday freshness for manual builds, but production uses `weekly_briefs --force` at 4:05pm ET each weekday so briefs always consume the fresh 4:00pm ET dashboard data.
 
 ## External integrations
 

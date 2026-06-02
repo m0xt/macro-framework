@@ -337,3 +337,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-06-02T15:12:25Z — Task 84 ET-aware production refresh schedule
+- What: Split production refresh into ET-gated weekday 4:00pm data/dashboard runs and 4:05pm forced brief runs from fresh data; installed/reloaded live LaunchAgents for `com.milkroad.macro-refresh-daily` and `com.milkroad.macro-refresh`. Gates: `uv run ruff check .` passed; `uv run pytest -q tests/test_supabase_sync.py` passed; plist lint/shell syntax/diff check passed; full `uv run pytest -q` has unrelated cached backtest lock drift (`spx` Calmar 2.896 vs 2.88±0.01).
+- Files touched: AGENTS.md; README.md; agent_docs/repo_map.md; docs/architecture.md; scripts/refresh.sh; scripts/refresh-if-et-time.sh; scripts/com.milkroad.macro-refresh-daily.plist; scripts/com.milkroad.macro-refresh.plist; scripts/setup-mac-mini.sh; src/macro_framework/build.py; tests/test_supabase_sync.py; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: unrelated canonical backtest smoke test currently fails on cached data drift (spx Calmar 2.896 vs expected 2.88±0.01); no schedule follow-up.

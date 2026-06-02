@@ -13,7 +13,7 @@
 | `src/macro_framework/weekly_briefs.py` | Claude CLI weekly market/economy/top brief generator. |
 | `src/macro_framework/sync_to_supabase.py` | Supabase doctor/latest/backfill sync with schema-version preflight. |
 | `scripts/refresh.sh` | LaunchAgent refresh entry point via `~/ops/lib/cron-wrapper.sh`. |
-| `scripts/com.milkroad.macro-refresh*.plist` | Tuesday pre-meeting and weekday end-of-close launchd jobs. |
+| `scripts/com.milkroad.macro-refresh*.plist` | ET-aware weekday 4:00pm data/dashboard and 4:05pm brief launchd jobs. |
 | `migrations/` | Ordered SQL migrations (`000N_*.sql`); remote schema must match the highest file and `EXPECTED_SCHEMA_VERSION`. |
 | `tests/test_smoke.py` | Import/entrypoint smoke tests and MRMI parameter/invariant locks. |
 | `tests/test_supabase_sync.py` | Supabase preflight/failure-isolation tests. |
@@ -44,7 +44,7 @@
 - Supabase preflight: `uv run python -m macro_framework.sync_to_supabase doctor`
 - Supabase latest sync: `uv run python -m macro_framework.sync_to_supabase latest`
 - Apply Supabase schema migrations: see "Supabase migrations" below.
-- Cron path: `scripts/refresh.sh`
+- Cron path: `scripts/refresh-if-et-time.sh` gates ET timing, then runs `scripts/refresh.sh` (or `scripts/refresh.sh --briefs-only`).
 - LAN dashboard serve: `com.milkroad.macro-framework-serve` exposes `outputs/dashboard.html` at `http://Felixs-Mac-mini.local:8001/dashboard.html`.
 - LAN Atlas serve: `com.milkroad.macro-framework-docs-serve` exposes `docs/index.html` at `http://Felixs-Mac-mini.local:8011/index.html`.
 
@@ -53,7 +53,7 @@
 - Python style/tooling is encoded in `pyproject.toml` (`ruff`, lenient `pyright`, `pytest`). Do not restate formatting rules in docs.
 - Production Python lives under `src/macro_framework/`; run entry points with `uv run python -m macro_framework.<module>` or project scripts.
 - Do not change MRMI math, constants, release lags, or dashboard semantics without updating `docs/architecture.md`, `DECISIONS.md` when relevant, and the lock tests.
-- Brief cadence is lazy weekly Tuesday: the first successful build on/after Tuesday regenerates stale briefs; later builds skip until the next Tuesday cutoff.
+- Manual build brief cadence is lazy weekly Tuesday; production forces weekday briefs at 4:05pm ET after the 4:00pm ET data/dashboard refresh.
 - Supabase failures are isolated from local dashboard/snapshot commits by `scripts/refresh.sh`.
 
 ## Supabase migrations
