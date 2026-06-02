@@ -344,3 +344,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: unrelated canonical backtest smoke test currently fails on cached data drift (spx Calmar 2.896 vs expected 2.88±0.01); no schedule follow-up.
+
+## 2026-06-02T15:13:05Z — Task 84 ET refresh schedule
+- What: Split production refresh scheduling into an ET-aware launchd gate: Mon-Fri 4:00pm ET runs data/dashboard with briefs skipped, and Mon-Fri 4:05pm ET forces briefs then rerenders/dashboard-syncs from the fresh snapshot. Installed/reloaded both live LaunchAgents and verified loaded program arguments plus 21:00/22:00 and 21:05/22:05 Prague gate descriptors cover DST mismatch windows.
+- Files touched: AGENTS.md; README.md; docs/architecture.md; agent_docs/repo_map.md; scripts/com.milkroad.macro-refresh-daily.plist; scripts/com.milkroad.macro-refresh.plist; scripts/refresh-if-et-time.sh; scripts/refresh.sh; scripts/setup-mac-mini.sh; src/macro_framework/build.py; tests/test_supabase_sync.py; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: Full `uv run pytest -q` still has a canonical backtest cache-drift failure (`spx` Calmar 2.896 vs expected 2.88±0.01); task-specific refresh/schedule tests passed.
