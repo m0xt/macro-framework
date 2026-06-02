@@ -28,7 +28,6 @@ source "$HOME/ops/lib/cron-wrapper.sh"
 
 cron_wrapper_pull
 "$PYTHON_BIN" -m macro_framework.build --no-cache
-"$PYTHON_BIN" -m macro_framework.build_index_page
 
 SUPABASE_SYNC_STATUS=0
 "$PYTHON_BIN" -m macro_framework.sync_to_supabase latest >"$SYNC_LOG" 2>&1 || SUPABASE_SYNC_STATUS=$?
@@ -45,6 +44,17 @@ if [[ $SUPABASE_SYNC_STATUS -ne 0 ]]; then
 else
     cat "$SYNC_LOG"
 fi
+
+# Write status.json before rendering the Atlas so its "Last run" pill reflects
+# THIS run, not the previous one. The EXIT trap will rewrite the same content
+# on success, or overwrite with a fail status if anything below aborts.
+python3 "$HOME/ops/lib/write_status.py" \
+    --project "$PROJECT_NAME" --out "$PWD/.cache/status.json" \
+    --start-ts "$_CRON_WRAPPER_START_TS" \
+    --duration-sec "$(( $(date +%s) - _CRON_WRAPPER_START_EPOCH ))" \
+    --status ok --summary "$SUCCESS_SUMMARY"
+
+"$PYTHON_BIN" -m macro_framework.build_index_page
 
 cron_wrapper_commit_outputs \
     briefs/ \
