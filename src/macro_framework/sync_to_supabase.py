@@ -281,44 +281,6 @@ def cmd_doctor() -> None:
     preflight()
 
 
-def top_brief_row() -> dict[str, Any] | None:
-    """Build the macro_top_brief row from the newest briefs/<date>/top.md.
-
-    Returns None if there is no dated brief folder, no top.md, or a blank body.
-    Reuses build._latest_brief_dir() so the brief-locating logic lives in one place.
-    """
-    from macro_framework import build  # reuses _latest_brief_dir + BRIEFS_DIR
-
-    latest_dir, latest_date = build._latest_brief_dir()
-    if not latest_dir:
-        return None
-    path = latest_dir / "top.md"
-    if not path.exists():
-        return None
-    body = path.read_text().strip()
-    if not body:
-        return None
-    return {"id": 1, "brief_date": latest_date, "body_md": body}
-
-
-def _upsert_top_brief(client: Client) -> None:
-    """Best-effort: mirror the latest top brief markdown to macro_top_brief.
-
-    The numeric macro_snapshots row is the contract; the brief is supplementary,
-    so any failure here is logged and swallowed rather than failing the sync.
-    """
-    row = top_brief_row()
-    if row is None:
-        print("No top brief found; skipping macro_top_brief.")
-        return
-    print(f"Upserting top brief ({row['brief_date']})...")
-    try:
-        client.table("macro_top_brief").upsert(row, on_conflict="id").execute()
-        print("OK (top brief)")
-    except Exception as exc:  # best-effort: never fail the sync on the brief
-        print(f"Warning: top brief upload failed (non-fatal): {exc}", file=sys.stderr)
-
-
 def backtest_row() -> dict[str, Any]:
     """Build the macro_backtest row from the static BACKTEST_STATS constant."""
     from macro_framework import build  # single source of truth for the figures
@@ -361,7 +323,6 @@ def cmd_latest() -> None:
             EXIT_NETWORK,
         )
     print(f"OK ({len(resp.data)} row)")
-    _upsert_top_brief(client)
     _upsert_backtest(client)
 
 
