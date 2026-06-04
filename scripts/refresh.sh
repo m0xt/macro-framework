@@ -4,7 +4,7 @@
 # Production launchd jobs are ET-aware through scripts/refresh-if-et-time.sh:
 #   · Mon–Fri 4:00pm ET — data/dashboard refresh, Supabase sync, Atlas rebuild.
 #   · Mon–Fri 4:05pm ET — force brief regeneration from fresh data, dashboard
-#     rerender, Supabase top-brief sync, Atlas rebuild.
+#     rerender, Supabase latest sync, Atlas rebuild.
 #
 # Delegates boilerplate to ~/ops/lib/cron-wrapper.sh:
 #   - git pull, status.json emission, commit/push, operator/engineer handoff.

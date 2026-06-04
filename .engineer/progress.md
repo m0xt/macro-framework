@@ -358,3 +358,10 @@ Keep entries terse — this file is read by every stateless dispatch.
 - Commit: pending (this commit)
 - Status: completed
 - Open thread for next dispatch: none
+
+## 2026-06-04T10:43:00Z — Supabase sync audit after top-brief removal
+- What: Audited George's 0f7f452 change: `sync_to_supabase.py` remains the active doctor/latest/backfill module; only the best-effort `macro_top_brief` upload was removed, leaving `macro_snapshots` latest/backfill plus `macro_backtest` latest sync intact. Cleaned one stale refresh.sh comment and verified real Supabase doctor/latest both pass (schema version 5, latest 2026-06-03 row + backtest OK).
+- Files touched: scripts/refresh.sh; .engineer/progress.md
+- Commit: pending (this commit)
+- Status: completed
+- Open thread for next dispatch: none
