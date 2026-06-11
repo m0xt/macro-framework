@@ -227,6 +227,13 @@ def roc(series: pd.Series, period: int) -> pd.Series:
     return series.pct_change(period) * 100
 
 
+def headline_round(series: pd.Series, decimals: int = 1) -> pd.Series:
+    """Round a numeric series using conventional headline half-up semantics."""
+    factor = 10 ** decimals
+    rounded = np.sign(series) * np.floor(np.abs(series) * factor + 0.5 + 1e-12) / factor
+    return pd.Series(rounded, index=series.index, name=series.name)
+
+
 def monthly_yoy_from_ffilled(series: pd.Series, target_index: pd.Index, *, release_lag_days: int = 0) -> pd.Series:
     """12-month YoY from monthly observation periods, reindexed to a daily/dashboard index.
 
@@ -261,8 +268,14 @@ def monthly_yoy_direction_from_ffilled(
     *,
     months: int = 6,
     release_lag_days: int = 0,
+    round_decimals: int | None = None,
 ) -> pd.Series:
-    """Monthly YoY print change over ``months`` completed observations, in pp."""
+    """Monthly YoY print change over ``months`` completed observations, in pp.
+
+    ``round_decimals`` preserves the unrounded default for historical helpers,
+    while letting live/dashboard CPI stress match headline-reported one-decimal
+    YoY prints before computing the change.
+    """
     clean = series.dropna().sort_index()
     if clean.empty:
         return pd.Series(np.nan, index=target_index)
@@ -272,6 +285,8 @@ def monthly_yoy_direction_from_ffilled(
     monthly = monthly[~monthly.index.duplicated(keep="last")].sort_index().resample("MS").first()
 
     yoy = monthly.pct_change(12, fill_method=None) * 100
+    if round_decimals is not None:
+        yoy = headline_round(yoy, round_decimals)
     direction = yoy.diff(months)
     if release_lag_days > 0:
         direction.index = direction.index + pd.Timedelta(days=release_lag_days)
@@ -1447,16 +1462,21 @@ def calc_macro_context(data: pd.DataFrame, lookback_years: int = 3, apply_releas
     # Source: FRED CPILFENS / BLS CUUR0000SA0L1E (NSA core CPI index),
     # matching the reported 12-month core CPI print; fall back to CPILFESL /
     # CUSR0000SA0L1E (SA index) for source/cache gaps. Compute true monthly-period
-    # YoY (12 observations) and 6-month direction (6 monthly YoY prints), then
-    # optionally lag the completed print for historical tests.
+    # YoY (12 observations), round to the one-decimal headline print, and compute
+    # 6-month direction from those rounded prints so live stress/display matches
+    # quoted CPI headlines. Optionally lag the completed print for historical tests.
     cpi_series, cpi_source = reported_core_cpi_series(data)
     cpi_release_lag = RELEASE_LAGS_DAYS.get(cpi_source, 0) if apply_release_lags and cpi_source else 0
-    core_cpi_yoy = monthly_yoy_from_ffilled(
-        cpi_series, data.index, release_lag_days=cpi_release_lag
+    core_cpi_yoy = headline_round(
+        monthly_yoy_from_ffilled(cpi_series, data.index, release_lag_days=cpi_release_lag), 1
     )
     out["core_cpi_yoy_pct"] = core_cpi_yoy
     out["inflation_dir_pp"] = monthly_yoy_direction_from_ffilled(
-        cpi_series, data.index, months=6, release_lag_days=cpi_release_lag
+        cpi_series,
+        data.index,
+        months=6,
+        release_lag_days=cpi_release_lag,
+        round_decimals=1,
     )
 
     out["lookback_years"] = lookback_years

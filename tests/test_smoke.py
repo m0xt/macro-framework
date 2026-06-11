@@ -275,8 +275,8 @@ def test_core_cpi_inflation_direction_uses_reported_nsa_monthly_prints_without_l
     # is +0.3pp. SA CPILFESL would round lower; CPILFENS must win when present.
     nsa_monthly.loc["2024-12-01"] = 100.0
     nsa_monthly.loc["2025-06-01"] = 100.0
-    nsa_monthly.loc["2025-12-01"] = 102.6
-    nsa_monthly.loc["2026-06-01"] = 102.9
+    nsa_monthly.loc["2025-12-01"] = 102.56
+    nsa_monthly.loc["2026-06-01"] = 102.85
     sa_monthly.loc["2024-12-01"] = 100.0
     sa_monthly.loc["2025-06-01"] = 100.0
     sa_monthly.loc["2025-12-01"] = 102.6
@@ -302,8 +302,8 @@ def test_core_cpi_inflation_direction_falls_back_to_sa_series() -> None:
     )
     monthly.loc["2024-12-01"] = 100.0
     monthly.loc["2025-06-01"] = 100.0
-    monthly.loc["2025-12-01"] = 102.6
-    monthly.loc["2026-06-01"] = 102.9
+    monthly.loc["2025-12-01"] = 102.56
+    monthly.loc["2026-06-01"] = 102.85
     data = pd.DataFrame({"CPILFESL": monthly.reindex(daily_idx).ffill()}, index=daily_idx)
 
     live = macro_pipeline.calc_macro_context(data, lookback_years=1, apply_release_lags=False)
@@ -321,8 +321,8 @@ def test_core_cpi_release_lag_remains_available_for_backtests() -> None:
     )
     monthly.loc["2024-12-01"] = 100.0
     monthly.loc["2025-06-01"] = 100.0
-    monthly.loc["2025-12-01"] = 102.6
-    monthly.loc["2026-06-01"] = 102.9
+    monthly.loc["2025-12-01"] = 102.56
+    monthly.loc["2026-06-01"] = 102.85
     data = pd.DataFrame({"CPILFESL": monthly.reindex(daily_idx).ffill()}, index=daily_idx)
 
     lagged = macro_pipeline.calc_macro_context(data, lookback_years=1, apply_release_lags=True)
