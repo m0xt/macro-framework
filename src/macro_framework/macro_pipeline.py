@@ -14,6 +14,8 @@ import numpy as np
 import pandas as pd
 import requests
 import yfinance as yf
+from pandas.tseries.holiday import USFederalHolidayCalendar
+from pandas.tseries.offsets import CustomBusinessDay
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CACHE_DIR = REPO_ROOT / ".cache"
@@ -234,7 +236,31 @@ def headline_round(series: pd.Series, decimals: int = 1) -> pd.Series:
     return pd.Series(rounded, index=series.index, name=series.name)
 
 
-def monthly_yoy_from_ffilled(series: pd.Series, target_index: pd.Index, *, release_lag_days: int = 0) -> pd.Series:
+CPI_RELEASE_BUSINESS_DAY = CustomBusinessDay(calendar=USFederalHolidayCalendar())
+
+
+def _approx_cpi_release_dates(observation_dates: pd.Index) -> pd.DatetimeIndex:
+    """Approximate BLS CPI availability as the 10th business day-adjusted next month.
+
+    CPI observation periods are dated to the first of the reported month in
+    FRED/BLS series. The release generally arrives around the 10th-13th of the
+    following month. For dashboard/backtest time series, make the print first
+    effective on the deterministic next-month 10th date, rolled forward for
+    weekends/US federal holidays, instead of on the observation month start.
+    """
+    next_month_start = (pd.DatetimeIndex(observation_dates).to_period("M") + 1).to_timestamp()
+    releases = next_month_start + pd.Timedelta(days=9)
+    adjusted = [date if CPI_RELEASE_BUSINESS_DAY.is_on_offset(date) else date + CPI_RELEASE_BUSINESS_DAY for date in releases]
+    return pd.DatetimeIndex(adjusted)
+
+
+def monthly_yoy_from_ffilled(
+    series: pd.Series,
+    target_index: pd.Index,
+    *,
+    release_lag_days: int = 0,
+    use_cpi_release_dates: bool = False,
+) -> pd.Series:
     """12-month YoY from monthly observation periods, reindexed to a daily/dashboard index.
 
     FRED CPI/PCE-style monthly series enter the production frame on their
@@ -257,7 +283,9 @@ def monthly_yoy_from_ffilled(series: pd.Series, target_index: pd.Index, *, relea
     monthly = monthly[~monthly.index.duplicated(keep="last")].sort_index().resample("MS").first()
 
     yoy = monthly.pct_change(12, fill_method=None) * 100
-    if release_lag_days > 0:
+    if use_cpi_release_dates:
+        yoy.index = _approx_cpi_release_dates(yoy.index)
+    elif release_lag_days > 0:
         yoy.index = yoy.index + pd.Timedelta(days=release_lag_days)
     return yoy.reindex(target_index, method="ffill")
 
@@ -269,6 +297,7 @@ def monthly_yoy_direction_from_ffilled(
     months: int = 6,
     release_lag_days: int = 0,
     round_decimals: int | None = None,
+    use_cpi_release_dates: bool = False,
 ) -> pd.Series:
     """Monthly YoY print change over ``months`` completed observations, in pp.
 
@@ -288,7 +317,9 @@ def monthly_yoy_direction_from_ffilled(
     if round_decimals is not None:
         yoy = headline_round(yoy, round_decimals)
     direction = yoy.diff(months)
-    if release_lag_days > 0:
+    if use_cpi_release_dates:
+        direction.index = _approx_cpi_release_dates(direction.index)
+    elif release_lag_days > 0:
         direction.index = direction.index + pd.Timedelta(days=release_lag_days)
     return direction.reindex(target_index, method="ffill")
 
@@ -1410,11 +1441,13 @@ def calc_macro_context(data: pd.DataFrame, lookback_years: int = 3, apply_releas
 
       Inflation Direction — Core CPI YoY 6-month change, in pp.
 
-    apply_release_lags=True (default) shifts each indicator forward by its
-    actual publication lag, so backtests don't use data that wouldn't have
-    been available in real time. Production/live callers set it to False so
-    the dashboard reflects the latest FRED/BLS reported CPI print as soon as
-    it appears in the source feed.
+    apply_release_lags=True (default) shifts indicators forward by their
+    publication lags, so backtests don't use data that wouldn't have been
+    available in real time. In live/dashboard mode, CPI monthly prints use a
+    deterministic BLS-style availability date: the 10th of the following month,
+    rolled forward for weekends/US federal holidays. That lets the live dashboard
+    reflect newly reported CPI once it appears in FRED/BLS without backdating the
+    print to the observation month.
     """
     YEAR = 365
     LB = YEAR * lookback_years
@@ -1464,11 +1497,22 @@ def calc_macro_context(data: pd.DataFrame, lookback_years: int = 3, apply_releas
     # CUSR0000SA0L1E (SA index) for source/cache gaps. Compute true monthly-period
     # YoY (12 observations), round to the one-decimal headline print, and compute
     # 6-month direction from those rounded prints so live stress/display matches
-    # quoted CPI headlines. Optionally lag the completed print for historical tests.
+    # quoted CPI headlines. In live/dashboard mode, monthly CPI observations are
+    # made effective on their approximate BLS release/availability date rather
+    # than their FRED observation-month date; this prevents live charts from
+    # backdating a newly reported print to the prior month. Backtests retain the
+    # configured conservative release lag.
     cpi_series, cpi_source = reported_core_cpi_series(data)
+    use_cpi_release_dates = (not apply_release_lags) and cpi_source in REPORTED_CORE_CPI_SERIES
     cpi_release_lag = RELEASE_LAGS_DAYS.get(cpi_source, 0) if apply_release_lags and cpi_source else 0
     core_cpi_yoy = headline_round(
-        monthly_yoy_from_ffilled(cpi_series, data.index, release_lag_days=cpi_release_lag), 1
+        monthly_yoy_from_ffilled(
+            cpi_series,
+            data.index,
+            release_lag_days=cpi_release_lag,
+            use_cpi_release_dates=use_cpi_release_dates,
+        ),
+        1,
     )
     out["core_cpi_yoy_pct"] = core_cpi_yoy
     out["inflation_dir_pp"] = monthly_yoy_direction_from_ffilled(
@@ -1477,6 +1521,7 @@ def calc_macro_context(data: pd.DataFrame, lookback_years: int = 3, apply_releas
         months=6,
         release_lag_days=cpi_release_lag,
         round_decimals=1,
+        use_cpi_release_dates=use_cpi_release_dates,
     )
 
     out["lookback_years"] = lookback_years

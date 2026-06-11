@@ -259,10 +259,10 @@ def test_prepare_chart_data_uses_release_lagged_macro_values() -> None:
     assert pce_yoy[425] == pytest.approx(round(float(macro_ctx["real_economy_raw"]["pce_yoy"].iloc[425]), 4))
 
 
-def test_core_cpi_inflation_direction_uses_reported_nsa_monthly_prints_without_live_lag() -> None:
+def test_core_cpi_inflation_direction_uses_reported_nsa_prints_on_release_date() -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
-    daily_idx = pd.date_range("2024-01-01", "2026-08-31", freq="D")
-    monthly_idx = pd.date_range("2024-01-01", "2026-08-01", freq="MS")
+    daily_idx = pd.date_range("2024-01-01", "2026-06-30", freq="D")
+    monthly_idx = pd.date_range("2024-01-01", "2026-05-01", freq="MS")
     nsa_monthly = pd.Series(
         100.0 + np.arange(len(monthly_idx)) * 0.01, index=monthly_idx, name="CPILFENS"
     )
@@ -273,14 +273,16 @@ def test_core_cpi_inflation_direction_uses_reported_nsa_monthly_prints_without_l
     # Lock the reported-print example: latest NSA/BLS reported YoY print rounds
     # to 2.9%, six monthly prints earlier rounds to 2.6%, so Inflation Direction
     # is +0.3pp. SA CPILFESL would round lower; CPILFENS must win when present.
-    nsa_monthly.loc["2024-12-01"] = 100.0
-    nsa_monthly.loc["2025-06-01"] = 100.0
-    nsa_monthly.loc["2025-12-01"] = 102.56
-    nsa_monthly.loc["2026-06-01"] = 102.85
-    sa_monthly.loc["2024-12-01"] = 100.0
-    sa_monthly.loc["2025-06-01"] = 100.0
-    sa_monthly.loc["2025-12-01"] = 102.6
-    sa_monthly.loc["2026-06-01"] = 102.82
+    # The May observation is dated 2026-05-01 in FRED but should first affect
+    # the live dashboard on its June release/availability date, not in May.
+    nsa_monthly.loc["2024-11-01"] = 100.0
+    nsa_monthly.loc["2025-05-01"] = 100.0
+    nsa_monthly.loc["2025-11-01"] = 102.56
+    nsa_monthly.loc["2026-05-01"] = 102.85
+    sa_monthly.loc["2024-11-01"] = 100.0
+    sa_monthly.loc["2025-05-01"] = 100.0
+    sa_monthly.loc["2025-11-01"] = 102.6
+    sa_monthly.loc["2026-05-01"] = 102.82
     data = pd.DataFrame({
         "CPILFENS": nsa_monthly.reindex(daily_idx).ffill(),
         "CPILFESL": sa_monthly.reindex(daily_idx).ffill(),
@@ -288,51 +290,57 @@ def test_core_cpi_inflation_direction_uses_reported_nsa_monthly_prints_without_l
 
     live = macro_pipeline.calc_macro_context(data, lookback_years=1, apply_release_lags=False)
 
-    assert live["core_cpi_yoy_pct"].loc["2026-06-11"] == pytest.approx(2.9)
-    assert round(float(live["core_cpi_yoy_pct"].loc["2026-06-11"]), 1) == 2.9
-    assert live["inflation_dir_pp"].loc["2026-06-11"] == pytest.approx(0.3)
+    assert live["core_cpi_yoy_pct"].loc["2026-05-31"] != pytest.approx(2.9)
+    assert live["inflation_dir_pp"].loc["2026-05-31"] != pytest.approx(0.3)
+    assert live["core_cpi_yoy_pct"].loc["2026-06-09"] != pytest.approx(2.9)
+    assert live["inflation_dir_pp"].loc["2026-06-09"] != pytest.approx(0.3)
+    assert live["core_cpi_yoy_pct"].loc["2026-06-10"] == pytest.approx(2.9)
+    assert round(float(live["core_cpi_yoy_pct"].loc["2026-06-10"]), 1) == 2.9
+    assert live["inflation_dir_pp"].loc["2026-06-10"] == pytest.approx(0.3)
 
 
 def test_core_cpi_inflation_direction_falls_back_to_sa_series() -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
-    daily_idx = pd.date_range("2024-01-01", "2026-08-31", freq="D")
-    monthly_idx = pd.date_range("2024-01-01", "2026-08-01", freq="MS")
+    daily_idx = pd.date_range("2024-01-01", "2026-06-30", freq="D")
+    monthly_idx = pd.date_range("2024-01-01", "2026-05-01", freq="MS")
     monthly = pd.Series(
         100.0 + np.arange(len(monthly_idx)) * 0.01, index=monthly_idx, name="CPILFESL"
     )
-    monthly.loc["2024-12-01"] = 100.0
-    monthly.loc["2025-06-01"] = 100.0
-    monthly.loc["2025-12-01"] = 102.56
-    monthly.loc["2026-06-01"] = 102.85
+    monthly.loc["2024-11-01"] = 100.0
+    monthly.loc["2025-05-01"] = 100.0
+    monthly.loc["2025-11-01"] = 102.56
+    monthly.loc["2026-05-01"] = 102.85
     data = pd.DataFrame({"CPILFESL": monthly.reindex(daily_idx).ffill()}, index=daily_idx)
 
     live = macro_pipeline.calc_macro_context(data, lookback_years=1, apply_release_lags=False)
 
-    assert live["core_cpi_yoy_pct"].loc["2026-06-11"] == pytest.approx(2.9)
-    assert live["inflation_dir_pp"].loc["2026-06-11"] == pytest.approx(0.3)
+    assert live["core_cpi_yoy_pct"].loc["2026-06-09"] != pytest.approx(2.9)
+    assert live["inflation_dir_pp"].loc["2026-06-09"] != pytest.approx(0.3)
+    assert live["core_cpi_yoy_pct"].loc["2026-06-10"] == pytest.approx(2.9)
+    assert live["inflation_dir_pp"].loc["2026-06-10"] == pytest.approx(0.3)
 
 
 def test_core_cpi_release_lag_remains_available_for_backtests() -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
-    daily_idx = pd.date_range("2024-01-01", "2026-08-31", freq="D")
-    monthly_idx = pd.date_range("2024-01-01", "2026-08-01", freq="MS")
+    daily_idx = pd.date_range("2024-01-01", "2026-06-30", freq="D")
+    monthly_idx = pd.date_range("2024-01-01", "2026-05-01", freq="MS")
     monthly = pd.Series(
         100.0 + np.arange(len(monthly_idx)) * 0.01, index=monthly_idx, name="CPILFESL"
     )
-    monthly.loc["2024-12-01"] = 100.0
-    monthly.loc["2025-06-01"] = 100.0
-    monthly.loc["2025-12-01"] = 102.56
-    monthly.loc["2026-06-01"] = 102.85
+    monthly.loc["2024-11-01"] = 100.0
+    monthly.loc["2025-05-01"] = 100.0
+    monthly.loc["2025-11-01"] = 102.56
+    monthly.loc["2026-05-01"] = 102.85
     data = pd.DataFrame({"CPILFESL": monthly.reindex(daily_idx).ffill()}, index=daily_idx)
 
     lagged = macro_pipeline.calc_macro_context(data, lookback_years=1, apply_release_lags=True)
 
-    # June's completed CPI print should be hidden from early-June backtest dates
-    # and become visible only after the configured CPILFESL release lag.
-    assert lagged["core_cpi_yoy_pct"].loc["2026-06-11"] != pytest.approx(2.9)
-    assert lagged["inflation_dir_pp"].loc["2026-06-11"] != pytest.approx(0.3)
-    assert lagged["core_cpi_yoy_pct"].loc["2026-07-16"] == pytest.approx(2.9)
-    assert lagged["inflation_dir_pp"].loc["2026-07-16"] == pytest.approx(0.3)
+    # May's completed CPI print should be hidden from early-June backtest dates
+    # and become visible only after the configured conservative CPI release lag.
+    assert lagged["core_cpi_yoy_pct"].loc["2026-06-10"] != pytest.approx(2.9)
+    assert lagged["inflation_dir_pp"].loc["2026-06-10"] != pytest.approx(0.3)
+    assert lagged["core_cpi_yoy_pct"].loc["2026-06-15"] == pytest.approx(2.9)
+    assert lagged["inflation_dir_pp"].loc["2026-06-15"] == pytest.approx(0.3)
 
 
 def test_reference_library_exposes_official_inflation_and_ism_metadata() -> None:
