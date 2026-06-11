@@ -259,17 +259,47 @@ def test_prepare_chart_data_uses_release_lagged_macro_values() -> None:
     assert pce_yoy[425] == pytest.approx(round(float(macro_ctx["real_economy_raw"]["pce_yoy"].iloc[425]), 4))
 
 
-def test_core_cpi_inflation_direction_uses_monthly_prints_without_live_lag() -> None:
+def test_core_cpi_inflation_direction_uses_reported_nsa_monthly_prints_without_live_lag() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    daily_idx = pd.date_range("2024-01-01", "2026-08-31", freq="D")
+    monthly_idx = pd.date_range("2024-01-01", "2026-08-01", freq="MS")
+    nsa_monthly = pd.Series(
+        100.0 + np.arange(len(monthly_idx)) * 0.01, index=monthly_idx, name="CPILFENS"
+    )
+    sa_monthly = pd.Series(
+        100.0 + np.arange(len(monthly_idx)) * 0.01, index=monthly_idx, name="CPILFESL"
+    )
+
+    # Lock the reported-print example: latest NSA/BLS reported YoY print rounds
+    # to 2.9%, six monthly prints earlier rounds to 2.6%, so Inflation Direction
+    # is +0.3pp. SA CPILFESL would round lower; CPILFENS must win when present.
+    nsa_monthly.loc["2024-12-01"] = 100.0
+    nsa_monthly.loc["2025-06-01"] = 100.0
+    nsa_monthly.loc["2025-12-01"] = 102.6
+    nsa_monthly.loc["2026-06-01"] = 102.9
+    sa_monthly.loc["2024-12-01"] = 100.0
+    sa_monthly.loc["2025-06-01"] = 100.0
+    sa_monthly.loc["2025-12-01"] = 102.6
+    sa_monthly.loc["2026-06-01"] = 102.82
+    data = pd.DataFrame({
+        "CPILFENS": nsa_monthly.reindex(daily_idx).ffill(),
+        "CPILFESL": sa_monthly.reindex(daily_idx).ffill(),
+    }, index=daily_idx)
+
+    live = macro_pipeline.calc_macro_context(data, lookback_years=1, apply_release_lags=False)
+
+    assert live["core_cpi_yoy_pct"].loc["2026-06-11"] == pytest.approx(2.9)
+    assert round(float(live["core_cpi_yoy_pct"].loc["2026-06-11"]), 1) == 2.9
+    assert live["inflation_dir_pp"].loc["2026-06-11"] == pytest.approx(0.3)
+
+
+def test_core_cpi_inflation_direction_falls_back_to_sa_series() -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
     daily_idx = pd.date_range("2024-01-01", "2026-08-31", freq="D")
     monthly_idx = pd.date_range("2024-01-01", "2026-08-01", freq="MS")
     monthly = pd.Series(
         100.0 + np.arange(len(monthly_idx)) * 0.01, index=monthly_idx, name="CPILFESL"
     )
-
-    # Lock the reported-print example: latest YoY print 2.9%, six monthly
-    # prints earlier 2.6%, so Inflation Direction is +0.3pp. Intermediate
-    # months are arbitrary; the test is about monthly-period alignment.
     monthly.loc["2024-12-01"] = 100.0
     monthly.loc["2025-06-01"] = 100.0
     monthly.loc["2025-12-01"] = 102.6
@@ -318,6 +348,7 @@ def test_reference_library_exposes_official_inflation_and_ism_metadata() -> None
 
     library = build.build_library_indicators(data, idx)
 
+    assert "CPILFENS" in macro_pipeline.FRED_SERIES
     assert "PPIACO" in macro_pipeline.FRED_SERIES
     assert "ISM_PMI" in macro_pipeline.NON_FRED_SERIES
     assert library["ism_mfg"]["available"] is True
@@ -570,6 +601,7 @@ def test_documented_release_lags_are_locked_to_code() -> None:
         "UNRATE": 35,
         "RPI": 60,
         "GDPNOW": 0,
+        "CPILFENS": 45,
         "CPILFESL": 45,
     }
 

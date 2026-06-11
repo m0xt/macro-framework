@@ -282,10 +282,11 @@ def build_library_indicators(data, dates_index):
         desc="Official headline Consumer Price Index for All Urban Consumers (FRED CPIAUCSL), shown as YoY % inflation. Includes food and energy.",
         notes="BLS/FRED · headline consumer inflation YoY")
 
+    core_cpi_series, core_cpi_source = reported_core_cpi_series(data)
     add("cpi_core", "Official Core CPI", "Inflation",
-        data["CPILFESL"] if "CPILFESL" in data else None,
+        core_cpi_series,
         transform="yoy_pct", ref_line=2.0, ref_label="2% target area",
-        desc="Official Core CPI excluding food and energy (FRED CPILFESL), shown as YoY % inflation. This is the dashboard's inflation-direction anchor.",
+        desc=f"Official Core CPI excluding food and energy (FRED {core_cpi_source or 'CPILFENS/CPILFESL'}), shown as YoY % inflation. This is the dashboard's inflation-direction anchor.",
         notes="BLS/FRED · core consumer inflation YoY")
 
     add("ppi_all_commodities", "Official PPI All Commodities", "Inflation",

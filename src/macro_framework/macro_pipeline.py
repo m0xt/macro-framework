@@ -61,6 +61,7 @@ FRED_SERIES = {
     "DRTSCILM": "SLOOS C&I Lending",
     "DGS3MO": "3M Treasury",
     "CPIAUCSL": "CPI All Items",
+    "CPILFENS": "CPI Core (ex food & energy, NSA)",
     "CPILFESL": "CPI Core (ex food & energy)",
     "PPIACO": "Producer Price Index: All Commodities",
     "PCEPILFE": "Core PCE",
@@ -275,6 +276,28 @@ def monthly_yoy_direction_from_ffilled(
     if release_lag_days > 0:
         direction.index = direction.index + pd.Timedelta(days=release_lag_days)
     return direction.reindex(target_index, method="ffill")
+
+
+REPORTED_CORE_CPI_SERIES = ("CPILFENS", "CPILFESL")
+
+
+def reported_core_cpi_series(data: pd.DataFrame) -> tuple[pd.Series, str | None]:
+    """Return the dashboard's reported 12-month core CPI source.
+
+    BLS/FRED's not-seasonally-adjusted core CPI index (CPILFENS / CUUR0000SA0L1E)
+    matches the reported 12-month Core CPI print. Fall back to the seasonally
+    adjusted index (CPILFESL / CUSR0000SA0L1E) for older caches or source gaps.
+    """
+    for sid in REPORTED_CORE_CPI_SERIES:
+        if sid not in data:
+            continue
+        series = data[sid]
+        if isinstance(series, pd.DataFrame):
+            series = series.iloc[:, 0]
+        if not series.dropna().empty:
+            return series, sid
+    return pd.Series(np.nan, index=data.index), None
+
 
 def chg(series: pd.Series, period: int) -> pd.Series:
     """Simple change (for near-zero series like spreads)."""
@@ -1125,8 +1148,9 @@ def calc_inflation_context(data: pd.DataFrame) -> pd.DataFrame:
     if "CPIAUCSL" in data:
         cpi_yoy = monthly_yoy_from_ffilled(data["CPIAUCSL"], data.index)
         components["cpi_yoy"] = zscore(cpi_yoy, LOOKBACK)
-    if "CPILFESL" in data:
-        core_cpi_yoy = monthly_yoy_from_ffilled(data["CPILFESL"], data.index)
+    cpi_series, _core_cpi_source = reported_core_cpi_series(data)
+    if not cpi_series.dropna().empty:
+        core_cpi_yoy = monthly_yoy_from_ffilled(cpi_series, data.index)
         components["core_cpi_yoy"] = zscore(core_cpi_yoy, LOOKBACK)
 
     if not components:
@@ -1155,6 +1179,7 @@ RELEASE_LAGS_DAYS = {
     "UNRATE":   35,  # BLS Employment Situation — first Friday of next month
     "RPI":      60,  # BEA Personal Income & Outlays — bundled with PCE
     "GDPNOW":    0,  # Atlanta Fed nowcast — real-time
+    "CPILFENS": 45,  # BLS CPI release — ~mid next month
     "CPILFESL": 45,  # BLS CPI release — ~mid next month
 }
 
@@ -1419,11 +1444,13 @@ def calc_macro_context(data: pd.DataFrame, lookback_years: int = 3, apply_releas
     out["real_economy_raw"] = raw
 
     # ── Inflation Direction ─────────────────────────────────
-    # Source: FRED CPILFESL / BLS CUSR0000SA0L1E (SA core CPI index). Compute
-    # true monthly-period YoY (12 observations) and 6-month direction (6 monthly
-    # YoY prints), then optionally lag the completed print for historical tests.
-    cpi_series = data.get("CPILFESL", pd.Series(np.nan, index=data.index))
-    cpi_release_lag = RELEASE_LAGS_DAYS["CPILFESL"] if apply_release_lags else 0
+    # Source: FRED CPILFENS / BLS CUUR0000SA0L1E (NSA core CPI index),
+    # matching the reported 12-month core CPI print; fall back to CPILFESL /
+    # CUSR0000SA0L1E (SA index) for source/cache gaps. Compute true monthly-period
+    # YoY (12 observations) and 6-month direction (6 monthly YoY prints), then
+    # optionally lag the completed print for historical tests.
+    cpi_series, cpi_source = reported_core_cpi_series(data)
+    cpi_release_lag = RELEASE_LAGS_DAYS.get(cpi_source, 0) if apply_release_lags and cpi_source else 0
     core_cpi_yoy = monthly_yoy_from_ffilled(
         cpi_series, data.index, release_lag_days=cpi_release_lag
     )
@@ -1639,11 +1666,12 @@ def prepare_chart_data(data, composite, gii, fincon, breadth, business_cycle, in
     _season_names  = ['SPRING', 'SUMMER', 'FALL', 'WINTER']
     seasons_current = -1  # 0=spring,1=summer,2=fall,3=winter, -1=unknown
 
-    if "composite" in business_cycle and "CPILFESL" in data:
+    core_cpi_series, _core_cpi_source = reported_core_cpi_series(data)
+    if "composite" in business_cycle and not core_cpi_series.dropna().empty:
         mrci_s  = business_cycle["composite"].reindex(gii.index)
         # Core CPI YoY minus 2% Fed target — positive = above target, negative = below.
         # Compute on monthly CPI periods, then forward-fill to the chart index.
-        core_yoy   = monthly_yoy_from_ffilled(data["CPILFESL"], data.index)
+        core_yoy   = monthly_yoy_from_ffilled(core_cpi_series, data.index)
         infl_x     = (core_yoy - 2.0).reindex(gii.index)
 
         def _classify(m, ir):
