@@ -1,6 +1,6 @@
 # Repo map
 
-This is the agent-facing ownership map for `macro-framework`. The active production path is `scripts/refresh.sh` → `python -m macro_framework.build --no-cache` → `python -m macro_framework.sync_to_supabase latest` → commit `briefs/`, `outputs/dashboard.html`, and `snapshots/`.
+This is the agent-facing ownership map for `macro-framework`. Hermes Desktop cron is the scheduler source of truth: `macro-refresh-daily` runs daily at `0 22 * * *`, and `macro-refresh/briefs` runs Monday at `5 22 * * 1`. The active production path is `scripts/refresh.sh` → `python -m macro_framework.build --no-cache` → `python -m macro_framework.sync_to_supabase latest` → commit `briefs/`, `outputs/dashboard.html`, and `snapshots/`.
 
 ## Active production files
 
@@ -14,10 +14,10 @@ This is the agent-facing ownership map for `macro-framework`. The active product
 | `src/macro_framework/macro_pipeline.py` | active | Production Yahoo/FRED fetch, indicator math, MRMI formula, chart payload, snapshot schema. |
 | `src/macro_framework/weekly_briefs.py` | active | Claude CLI market/economy/top weekly brief generation. |
 | `src/macro_framework/sync_to_supabase.py` | active | Supabase doctor/latest/backfill sync; owns schema preflight and error taxonomy. |
-| `scripts/refresh.sh` | active | LaunchAgent cron path and ops-wrapper integration. |
-| `scripts/com.milkroad.macro-refresh.plist` | active | ET-aware Mon-Fri 4:05pm ET brief refresh template. |
-| `scripts/com.milkroad.macro-refresh-daily.plist` | active | ET-aware Mon-Fri 4:00pm ET data/dashboard refresh template. |
-| `scripts/setup-mac-mini.sh` | active | Mac mini launchd bootstrap. |
+| `scripts/refresh.sh` | active | Hermes Desktop cron path and ops-wrapper integration. |
+| `scripts/com.milkroad.macro-refresh.plist` | legacy | launchd brief refresh template; not the scheduler source of truth. |
+| `scripts/com.milkroad.macro-refresh-daily.plist` | legacy | launchd data/dashboard refresh template; not the scheduler source of truth. |
+| `scripts/setup-mac-mini.sh` | legacy | Mac mini launchd bootstrap retained for fallback/manual bootstrap. |
 | `migrations/` | active | Ordered SQL migrations; remote schema must equal the highest `000N_*.sql` and match `EXPECTED_SCHEMA_VERSION`. |
 | `.env.example` | active | Safe committed env template; never add real secrets. |
 | `pyproject.toml` | active | uv project metadata plus pytest/ruff/pyright config. |

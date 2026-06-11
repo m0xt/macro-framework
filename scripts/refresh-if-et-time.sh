@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# ET-aware launchd gate for macro-framework production refreshes.
+# ET-aware dry-runable gate for macro-framework refreshes.
 #
-# launchd evaluates StartCalendarInterval in the Mac's local timezone. Prague and
-# New York daylight-saving transitions do not move on the same dates, so the
-# checked-in plists fire at both possible Prague hours and this gate runs the
-# real refresh only when America/New_York is at the requested wall-clock time.
+# Hermes Desktop cron is the production source of truth and invokes the refresh
+# path on UTC schedules. This helper remains for local/manual checks and legacy
+# launchd use where a New York wall-clock guard is useful.
 
 set -euo pipefail
 

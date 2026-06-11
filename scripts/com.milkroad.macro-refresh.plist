@@ -21,15 +21,21 @@
         <string>__HOME__/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
     </dict>
 
-    <!-- Weekly brief refresh: Monday only, 5 minutes after the data refresh,
-         so the brief reflects the freshly-pulled Monday close data.
-         launchd uses Prague local time, so fire at both possible Prague
-         equivalents of 4:05pm ET and let refresh-if-et-time.sh run only
-         when America/New_York is Mon 16:05. Weekday 1=Mon. -->
+    <!-- ET-aware gate: launchd uses Prague local time, so fire at both possible
+         Prague equivalents of 4:05pm ET and let refresh-if-et-time.sh run only
+         when America/New_York is Mon-Fri 16:05. Weekday 1=Mon ... 5=Fri. -->
     <key>StartCalendarInterval</key>
     <array>
         <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>21</integer><key>Minute</key><integer>5</integer></dict>
         <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>5</integer></dict>
+        <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>21</integer><key>Minute</key><integer>5</integer></dict>
+        <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>5</integer></dict>
+        <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>21</integer><key>Minute</key><integer>5</integer></dict>
+        <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>5</integer></dict>
+        <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>21</integer><key>Minute</key><integer>5</integer></dict>
+        <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>5</integer></dict>
+        <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>21</integer><key>Minute</key><integer>5</integer></dict>
+        <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>5</integer></dict>
     </array>
 
     <key>RunAtLoad</key>

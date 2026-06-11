@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Refresh wrapper — LaunchAgent entry point.
+# Refresh wrapper — Hermes Desktop cron entry point.
 #
-# Production launchd jobs are ET-aware through scripts/refresh-if-et-time.sh:
-#   · Sun–Sat 4:00pm ET — data/dashboard refresh, Supabase sync, Atlas rebuild.
-#   · Mondays 4:05pm ET — force brief regeneration from fresh data, dashboard
+# Production schedules live in Hermes Desktop cron jobs:
+#   · macro-refresh-daily: 0 22 * * * — daily data/dashboard refresh,
+#     Supabase sync, Atlas rebuild.
+#   · macro-refresh/briefs: 5 22 * * 1 — Monday brief regeneration,
 #     rerender, Supabase latest sync, Atlas rebuild.
 #
 # Delegates boilerplate to ~/ops/lib/cron-wrapper.sh:

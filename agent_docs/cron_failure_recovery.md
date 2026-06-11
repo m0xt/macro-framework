@@ -1,6 +1,6 @@
 # Cron failure recovery
 
-`scripts/refresh.sh` is the production entry point. It builds local deliverables first, then runs Supabase sync, then commits tracked outputs through `~/ops/lib/cron-wrapper.sh`.
+`scripts/refresh.sh` is the production entry point. Hermes Desktop cron is the scheduler source of truth: `macro-refresh-daily` runs daily at `0 22 * * *`, and `macro-refresh/briefs` runs Monday at `5 22 * * 1`. The script builds local deliverables first, then runs Supabase sync, then commits tracked outputs through `~/ops/lib/cron-wrapper.sh`.
 
 Start every incident here:
 
@@ -82,12 +82,12 @@ Recovery:
 3. If only one brief is missing or stale, inspect the dated folder and rerun the full generator rather than hand-editing the hierarchy.
 4. If Claude is unavailable but the dashboard/snapshot is valid, decide with Bob whether to commit local data without refreshed briefs. Do not fabricate brief text.
 
-## launchd plist not loaded
+## Legacy launchd plist not loaded
 
 Symptoms:
-- No new `.cache/launchd-refresh*.log` output.
+- No new `.cache/launchd-refresh*.log` output while intentionally using the legacy launchd fallback.
 - Jobs do not appear in `launchctl list`.
-- Manual `scripts/refresh.sh` works.
+- Manual `scripts/refresh.sh` works. For production incidents, check Hermes Desktop cron first; launchd plists are not the schedule authority.
 
 Diagnose:
 

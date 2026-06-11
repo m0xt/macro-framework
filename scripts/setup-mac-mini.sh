@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# One-shot Mac mini bootstrap for the macro-framework refresh jobs.
+# Legacy one-shot Mac mini launchd bootstrap for macro-framework refresh jobs.
+# Hermes Desktop cron jobs are the production scheduler source of truth.
 #
 # Installs two LaunchAgents:
 #   · com.milkroad.macro-refresh-daily   — Mon–Fri 4:00pm ET data/dashboard refresh

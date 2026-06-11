@@ -315,6 +315,23 @@ def test_refresh_if_et_time_gate_matches_new_york_wall_clock() -> None:
     assert "ET gate matched for data at 2026-06-07 16:00 EDT" in proc.stdout
 
     env.update({
+        "MACRO_REFRESH_ET_WEEKDAY": "1",
+        "MACRO_REFRESH_ET_MINUTE": "05",
+        "MACRO_REFRESH_ET_STAMP": "2026-06-01 16:05 EDT",
+    })
+    proc = subprocess.run(
+        ["bash", "scripts/refresh-if-et-time.sh", "briefs"],
+        cwd=repo,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+
+    assert proc.returncode == 0
+    assert "ET gate matched for briefs at 2026-06-01 16:05 EDT" in proc.stdout
+
+    env.update({
         "MACRO_REFRESH_ET_WEEKDAY": "2",
         "MACRO_REFRESH_ET_MINUTE": "05",
         "MACRO_REFRESH_ET_STAMP": "2026-06-02 16:05 EDT",

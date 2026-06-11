@@ -70,23 +70,25 @@ The retired Macro Seasons/Spring/Summer/Fall/Winter model should not be reintrod
 
 ## Cron path
 
-`launchd` runs `scripts/refresh-if-et-time.sh` through two checked-in plist templates. The plists fire at both possible Prague equivalents and the gate checks `America/New_York`, avoiding a fixed Prague time during DST-transition mismatches.
+Hermes Desktop cron jobs are the production scheduler source of truth:
 
-- `scripts/com.milkroad.macro-refresh-daily.plist`: Monday-Friday 4:00pm ET data/dashboard refresh.
-- `scripts/com.milkroad.macro-refresh.plist`: Monday-Friday 4:05pm ET brief refresh from the fresh 4:00pm ET data.
+- `macro-refresh-daily`: `0 22 * * *` — daily data/dashboard refresh.
+- `macro-refresh/briefs`: `5 22 * * 1` — Monday brief refresh from the fresh data.
+
+`scripts/refresh-if-et-time.sh` is kept as a dry-runable New York wall-clock gate for manual checks and legacy launchd use; the checked-in plist templates are not the schedule authority.
 
 `refresh.sh` does the production path:
 
 1. Source `~/ops/lib/cron-wrapper.sh`.
 2. `cron_wrapper_pull` to fast-forward the repo.
-3. For data refreshes, run `python -m macro_framework.build --no-cache --skip-briefs`; for brief refreshes, run `python -m macro_framework.weekly_briefs --force` and then `python -m macro_framework.build --skip-briefs`.
+3. For data refreshes, run `python -m macro_framework.build --no-cache --skip-briefs`; for brief refreshes, first refresh the no-cache data snapshot, then run `python -m macro_framework.weekly_briefs --force` and `python -m macro_framework.build --skip-briefs`.
 4. Run `python -m macro_framework.sync_to_supabase latest`.
 5. Commit tracked outputs: `briefs/`, `docs/index.html`, `outputs/dashboard.html`, and `snapshots/`.
 6. Write `.cache/status.json` through the ops wrapper.
 
 Supabase failures are fail-soft: if the local dashboard build succeeds but sync fails with `supabase-auth`, `supabase-network`, or `supabase-schema-drift`, `refresh.sh` still commits local deliverables and records `refresh ok, supabase sync failed (<type>)`.
 
-Weekly brief helpers still support lazy Tuesday freshness for manual builds, but production uses `weekly_briefs --force` at 4:05pm ET each weekday so briefs always consume the fresh 4:00pm ET dashboard data.
+Weekly brief helpers still support lazy Tuesday freshness for manual builds, but production uses Monday `weekly_briefs --force` after the daily data refresh so briefs consume fresh dashboard data.
 
 ## External integrations
 
