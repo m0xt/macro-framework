@@ -89,7 +89,7 @@ def production_mrmi(data: pd.DataFrame, w_gii=1.0, w_breadth=1.0, w_fincon=1.0,
     gii = calc_growth_impulse(data)
     fincon = calc_financial_conditions(data)
     breadth = calc_sector_breadth(data)
-    macro_ctx = calc_macro_context(data)
+    macro_ctx = calc_macro_context(data, apply_release_lags=True)
 
     if (w_gii, w_breadth, w_fincon) == (1.0, 1.0, 1.0):
         mmi = calc_composite(gii, fincon, breadth)

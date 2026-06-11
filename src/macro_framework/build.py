@@ -2766,7 +2766,7 @@ def build_dashboard(use_cache: bool = True, *, refresh_briefs: bool = True) -> P
     composite = calc_composite(gii, fincon, breadth)
     biz_cycle = calc_business_cycle(data)
     infl_ctx = calc_inflation_context(data)
-    macro_ctx = calc_macro_context(data, lookback_years=3)
+    macro_ctx = calc_macro_context(data, lookback_years=3, apply_release_lags=False)
     mrmi_combined = calc_milk_road_macro_index(composite, macro_ctx)
 
     print(f"  Composite:  {composite.dropna().shape[0]} valid rows, latest={composite.dropna().iloc[-1]:.2f}")

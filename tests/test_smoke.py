@@ -212,7 +212,7 @@ def test_canonical_backtest_matches_task35_investor_posture_calmar() -> None:
         "btc": data["BTC-USD"].pct_change(),
     }
 
-    expected = {"spx": 2.88, "iwm": 2.58, "btc": 0.67}
+    expected = {"spx": 2.98, "iwm": 2.62, "btc": 0.82}
     for asset, expected_calmar in expected.items():
         result = backtest.backtest_signal(mrmi, asset_rets[asset])
         assert result is not None
@@ -257,6 +257,52 @@ def test_prepare_chart_data_uses_release_lagged_macro_values() -> None:
     # day 365 must not be visible until chart day 425.
     assert pce_yoy[365] is None
     assert pce_yoy[425] == pytest.approx(round(float(macro_ctx["real_economy_raw"]["pce_yoy"].iloc[425]), 4))
+
+
+def test_core_cpi_inflation_direction_uses_monthly_prints_without_live_lag() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    daily_idx = pd.date_range("2024-01-01", "2026-08-31", freq="D")
+    monthly_idx = pd.date_range("2024-01-01", "2026-08-01", freq="MS")
+    monthly = pd.Series(
+        100.0 + np.arange(len(monthly_idx)) * 0.01, index=monthly_idx, name="CPILFESL"
+    )
+
+    # Lock the reported-print example: latest YoY print 2.9%, six monthly
+    # prints earlier 2.6%, so Inflation Direction is +0.3pp. Intermediate
+    # months are arbitrary; the test is about monthly-period alignment.
+    monthly.loc["2024-12-01"] = 100.0
+    monthly.loc["2025-06-01"] = 100.0
+    monthly.loc["2025-12-01"] = 102.6
+    monthly.loc["2026-06-01"] = 102.9
+    data = pd.DataFrame({"CPILFESL": monthly.reindex(daily_idx).ffill()}, index=daily_idx)
+
+    live = macro_pipeline.calc_macro_context(data, lookback_years=1, apply_release_lags=False)
+
+    assert live["core_cpi_yoy_pct"].loc["2026-06-11"] == pytest.approx(2.9)
+    assert live["inflation_dir_pp"].loc["2026-06-11"] == pytest.approx(0.3)
+
+
+def test_core_cpi_release_lag_remains_available_for_backtests() -> None:
+    macro_pipeline = _import_module("macro_framework.macro_pipeline")
+    daily_idx = pd.date_range("2024-01-01", "2026-08-31", freq="D")
+    monthly_idx = pd.date_range("2024-01-01", "2026-08-01", freq="MS")
+    monthly = pd.Series(
+        100.0 + np.arange(len(monthly_idx)) * 0.01, index=monthly_idx, name="CPILFESL"
+    )
+    monthly.loc["2024-12-01"] = 100.0
+    monthly.loc["2025-06-01"] = 100.0
+    monthly.loc["2025-12-01"] = 102.6
+    monthly.loc["2026-06-01"] = 102.9
+    data = pd.DataFrame({"CPILFESL": monthly.reindex(daily_idx).ffill()}, index=daily_idx)
+
+    lagged = macro_pipeline.calc_macro_context(data, lookback_years=1, apply_release_lags=True)
+
+    # June's completed CPI print should be hidden from early-June backtest dates
+    # and become visible only after the configured CPILFESL release lag.
+    assert lagged["core_cpi_yoy_pct"].loc["2026-06-11"] != pytest.approx(2.9)
+    assert lagged["inflation_dir_pp"].loc["2026-06-11"] != pytest.approx(0.3)
+    assert lagged["core_cpi_yoy_pct"].loc["2026-07-16"] == pytest.approx(2.9)
+    assert lagged["inflation_dir_pp"].loc["2026-07-16"] == pytest.approx(0.3)
 
 
 def test_reference_library_exposes_official_inflation_and_ism_metadata() -> None:

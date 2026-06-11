@@ -225,6 +225,57 @@ def roc(series: pd.Series, period: int) -> pd.Series:
     """Rate of change (%)."""
     return series.pct_change(period) * 100
 
+
+def monthly_yoy_from_ffilled(series: pd.Series, target_index: pd.Index, *, release_lag_days: int = 0) -> pd.Series:
+    """12-month YoY from monthly observation periods, reindexed to a daily/dashboard index.
+
+    FRED CPI/PCE-style monthly series enter the production frame on their
+    observation month and are then forward-filled. Daily pct_change(365) drifts
+    around month boundaries and can compare against the wrong prior monthly
+    print. This helper collapses back to monthly periods first, computes a true
+    12-observation YoY, optionally shifts that completed monthly print to a
+    historical availability date, then forward-fills to the requested index.
+    """
+    clean = series.dropna().sort_index()
+    if clean.empty:
+        return pd.Series(np.nan, index=target_index)
+    clean.index = pd.to_datetime(clean.index)
+    target_index = pd.to_datetime(target_index)
+
+    # FRED monthly observations are forward-filled across the dashboard index;
+    # the actual monthly prints are the value-change points. Resample after that
+    # to preserve calendar-month spacing, including missing/unavailable months.
+    monthly = clean[clean.ne(clean.shift())]
+    monthly = monthly[~monthly.index.duplicated(keep="last")].sort_index().resample("MS").first()
+
+    yoy = monthly.pct_change(12, fill_method=None) * 100
+    if release_lag_days > 0:
+        yoy.index = yoy.index + pd.Timedelta(days=release_lag_days)
+    return yoy.reindex(target_index, method="ffill")
+
+
+def monthly_yoy_direction_from_ffilled(
+    series: pd.Series,
+    target_index: pd.Index,
+    *,
+    months: int = 6,
+    release_lag_days: int = 0,
+) -> pd.Series:
+    """Monthly YoY print change over ``months`` completed observations, in pp."""
+    clean = series.dropna().sort_index()
+    if clean.empty:
+        return pd.Series(np.nan, index=target_index)
+    clean.index = pd.to_datetime(clean.index)
+    target_index = pd.to_datetime(target_index)
+    monthly = clean[clean.ne(clean.shift())]
+    monthly = monthly[~monthly.index.duplicated(keep="last")].sort_index().resample("MS").first()
+
+    yoy = monthly.pct_change(12, fill_method=None) * 100
+    direction = yoy.diff(months)
+    if release_lag_days > 0:
+        direction.index = direction.index + pd.Timedelta(days=release_lag_days)
+    return direction.reindex(target_index, method="ffill")
+
 def chg(series: pd.Series, period: int) -> pd.Series:
     """Simple change (for near-zero series like spreads)."""
     return series.diff(period)
@@ -1068,13 +1119,14 @@ def calc_inflation_context(data: pd.DataFrame) -> pd.DataFrame:
     if "T10YIE" in data:
         components["breakeven_10y"] = zscore(data["T10YIE"], LOOKBACK)
 
-    # Realized: actual CPI year-over-year
-    # CPI is monthly data forward-filled to daily. YoY = pct change over 252 trading days.
+    # Realized: actual CPI year-over-year from monthly observation periods.
+    # The dashboard frame is forward-filled, but YoY should compare monthly
+    # prints 12 observations apart rather than approximating with 365 rows.
     if "CPIAUCSL" in data:
-        cpi_yoy = data["CPIAUCSL"].pct_change(365) * 100
+        cpi_yoy = monthly_yoy_from_ffilled(data["CPIAUCSL"], data.index)
         components["cpi_yoy"] = zscore(cpi_yoy, LOOKBACK)
     if "CPILFESL" in data:
-        core_cpi_yoy = data["CPILFESL"].pct_change(365) * 100
+        core_cpi_yoy = monthly_yoy_from_ffilled(data["CPILFESL"], data.index)
         components["core_cpi_yoy"] = zscore(core_cpi_yoy, LOOKBACK)
 
     if not components:
@@ -1320,8 +1372,9 @@ def calc_macro_context(data: pd.DataFrame, lookback_years: int = 3, apply_releas
 
     apply_release_lags=True (default) shifts each indicator forward by its
     actual publication lag, so backtests don't use data that wouldn't have
-    been available in real time. Set to False to compare against the unlagged
-    (look-ahead) baseline.
+    been available in real time. Production/live callers set it to False so
+    the dashboard reflects the latest FRED/BLS reported CPI print as soon as
+    it appears in the source feed.
     """
     YEAR = 365
     LB = YEAR * lookback_years
@@ -1366,10 +1419,18 @@ def calc_macro_context(data: pd.DataFrame, lookback_years: int = 3, apply_releas
     out["real_economy_raw"] = raw
 
     # ── Inflation Direction ─────────────────────────────────
-    cpi_series = _get("CPILFESL")
-    core_cpi_yoy = cpi_series.pct_change(YEAR) * 100
+    # Source: FRED CPILFESL / BLS CUSR0000SA0L1E (SA core CPI index). Compute
+    # true monthly-period YoY (12 observations) and 6-month direction (6 monthly
+    # YoY prints), then optionally lag the completed print for historical tests.
+    cpi_series = data.get("CPILFESL", pd.Series(np.nan, index=data.index))
+    cpi_release_lag = RELEASE_LAGS_DAYS["CPILFESL"] if apply_release_lags else 0
+    core_cpi_yoy = monthly_yoy_from_ffilled(
+        cpi_series, data.index, release_lag_days=cpi_release_lag
+    )
     out["core_cpi_yoy_pct"] = core_cpi_yoy
-    out["inflation_dir_pp"] = core_cpi_yoy.diff(180)  # 6-month change
+    out["inflation_dir_pp"] = monthly_yoy_direction_from_ffilled(
+        cpi_series, data.index, months=6, release_lag_days=cpi_release_lag
+    )
 
     out["lookback_years"] = lookback_years
     out["release_lags_applied"] = apply_release_lags
@@ -1580,9 +1641,9 @@ def prepare_chart_data(data, composite, gii, fincon, breadth, business_cycle, in
 
     if "composite" in business_cycle and "CPILFESL" in data:
         mrci_s  = business_cycle["composite"].reindex(gii.index)
-        # Core CPI YoY minus 2% Fed target — positive = above target, negative = below
-        # Use 365 rows (calendar-day index has ~365 rows/year, not 252 trading days)
-        core_yoy   = data["CPILFESL"].pct_change(365) * 100
+        # Core CPI YoY minus 2% Fed target — positive = above target, negative = below.
+        # Compute on monthly CPI periods, then forward-fill to the chart index.
+        core_yoy   = monthly_yoy_from_ffilled(data["CPILFESL"], data.index)
         infl_x     = (core_yoy - 2.0).reindex(gii.index)
 
         def _classify(m, ir):
@@ -1615,7 +1676,7 @@ def prepare_chart_data(data, composite, gii, fincon, breadth, business_cycle, in
             s = series.dropna()
             return round(float(s.iloc[-1]), 2) if len(s) else None
 
-        headline_yoy = data["CPIAUCSL"].pct_change(365) * 100 if "CPIAUCSL" in data else None
+        headline_yoy = monthly_yoy_from_ffilled(data["CPIAUCSL"], data.index) if "CPIAUCSL" in data else None
         chart_data["compass_inflation"] = {
             "core_cpi":     _latest_val(core_yoy),
             "headline_cpi": _latest_val(headline_yoy) if headline_yoy is not None else None,

@@ -345,7 +345,7 @@ def cmd_backfill() -> None:
     fincon = build.calc_financial_conditions(data)
     breadth = build.calc_sector_breadth(data)
     composite = build.calc_composite(gii, fincon, breadth)  # MMI series
-    macro_ctx = build.calc_macro_context(data)
+    macro_ctx = build.calc_macro_context(data, apply_release_lags=False)
     mrmi_combined = build.calc_milk_road_macro_index(composite, macro_ctx)
 
     series = {

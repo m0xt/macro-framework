@@ -1,6 +1,6 @@
 {
   "date": "2026-06-11",
-  "build_time_utc": "2026-06-11 08:10 UTC",
+  "build_time_utc": "2026-06-11 08:47 UTC",
   "mrmi": {
     "composite": 0.32149391061457083,
     "state": "green"
@@ -17,7 +17,7 @@
     "markets": null,
     "labor": 0.18641839801034915
   },
-  "inflation": 0.41657668970439765,
+  "inflation": 1.5471623703008395,
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
@@ -370,36 +370,36 @@
     ]
   },
   "mrmi_combined": {
-    "value": 0.016472323654986187,
+    "value": -0.004241108292532436,
     "state": "CAUTION",
     "legacy_state": "LONG",
     "exposure": 0.75,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
     "momentum": 0.32149391061457083,
-    "stress_intensity": 0.1100431739191692,
-    "stress_score": 1.100431739191692,
-    "growth_weakness": 0.9132643074945545,
-    "inflation_pressure_raw": 0.04322768565954149,
+    "stress_intensity": 0.15147003781420668,
+    "stress_score": 1.5147003781420667,
+    "growth_weakness": 0.46972961958996085,
+    "inflation_pressure_raw": 0.22389725751661427,
     "stress_score_bucket": "calm",
-    "macro_buffer": 0.4449784130404154,
+    "macro_buffer": 0.4242649810928967,
     "buffer_size": 0.5,
     "threshold": 0.75
   },
   "macro": {
-    "real_economy_score": -0.9132643074945545,
+    "real_economy_score": -0.46972961958996085,
     "real_economy_components": {
-      "pce": -1.215845106978737,
-      "labor_inv": 1.2435667150607626,
-      "income": -4.080220553586672,
+      "pce": -1.4702115446311725,
+      "labor_inv": 1.5275636954978724,
+      "income": -2.3357123447529724,
       "gdpnow": 0.39944171552642926
     },
-    "inflation_dir_pp": 0.04322768565954149,
-    "core_cpi_yoy_pct": 2.7433094309685213,
+    "inflation_dir_pp": 0.22389725751661427,
+    "core_cpi_yoy_pct": 2.8229420636110225,
     "raw": {
-      "pce_yoy": 2.0988757759820897,
-      "sahm_rule": 0.12333333333333396,
-      "income_yoy": -1.1845777006152192,
+      "pce_yoy": 1.9785865677171,
+      "sahm_rule": 0.09888888888888925,
+      "income_yoy": -0.39348102700582643,
       "gdpnow": 3.2906
     }
   },
