@@ -2,8 +2,8 @@
 # Refresh wrapper — LaunchAgent entry point.
 #
 # Production launchd jobs are ET-aware through scripts/refresh-if-et-time.sh:
-#   · Mon–Fri 4:00pm ET — data/dashboard refresh, Supabase sync, Atlas rebuild.
-#   · Mon–Fri 4:05pm ET — force brief regeneration from fresh data, dashboard
+#   · Sun–Sat 4:00pm ET — data/dashboard refresh, Supabase sync, Atlas rebuild.
+#   · Mondays 4:05pm ET — force brief regeneration from fresh data, dashboard
 #     rerender, Supabase latest sync, Atlas rebuild.
 #
 # Delegates boilerplate to ~/ops/lib/cron-wrapper.sh:
@@ -38,6 +38,7 @@ source "$HOME/ops/lib/cron-wrapper.sh"
 cron_wrapper_pull
 
 if [[ "$REFRESH_MODE" == "briefs" ]]; then
+    "$PYTHON_BIN" -m macro_framework.build --no-cache --skip-briefs
     "$PYTHON_BIN" -m macro_framework.weekly_briefs --force
     "$PYTHON_BIN" -m macro_framework.build --skip-briefs
 else

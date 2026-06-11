@@ -176,7 +176,7 @@ esac
     assert status["summary"] == "refresh ok, supabase sync failed (supabase-schema-drift)"
 
 
-def test_refresh_sh_briefs_only_forces_briefs_then_rerenders(tmp_path: Path) -> None:
+def test_refresh_sh_briefs_only_renders_fresh_data_snapshot_before_forcing_briefs(tmp_path: Path) -> None:
     repo = Path(__file__).resolve().parents[1]
     home = tmp_path / "home"
     ops_lib = home / "ops" / "lib"
@@ -216,6 +216,7 @@ Path(args.out).write_text(json.dumps({'status': args.status, 'summary': args.sum
 set -euo pipefail
 echo "$*" >> "$TEST_LOG"
 case "$*" in
+  "-m macro_framework.build --no-cache --skip-briefs") exit 0 ;;
   "-m macro_framework.weekly_briefs --force") exit 0 ;;
   "-m macro_framework.build --skip-briefs") exit 0 ;;
   "-m macro_framework.build_index_page") exit 0 ;;
@@ -246,8 +247,12 @@ esac
 
     assert proc.returncode == 0, proc.stderr
     log = log_path.read_text()
-    assert "-m macro_framework.weekly_briefs --force" in log
-    assert "-m macro_framework.build --skip-briefs" in log
+    assert log.splitlines()[:4] == [
+        "pull",
+        "-m macro_framework.build --no-cache --skip-briefs",
+        "-m macro_framework.weekly_briefs --force",
+        "-m macro_framework.build --skip-briefs",
+    ]
     assert "-m macro_framework.sync_to_supabase latest" in log
     assert "commit_outputs" in log
     assert "briefs/" in log
@@ -290,6 +295,41 @@ def test_refresh_if_et_time_gate_matches_new_york_wall_clock() -> None:
 
     assert proc.returncode == 0
     assert "ET gate skipped data" in proc.stdout
+
+    env.update({
+        "MACRO_REFRESH_ET_WEEKDAY": "7",
+        "MACRO_REFRESH_ET_HOUR": "16",
+        "MACRO_REFRESH_ET_MINUTE": "00",
+        "MACRO_REFRESH_ET_STAMP": "2026-06-07 16:00 EDT",
+    })
+    proc = subprocess.run(
+        ["bash", "scripts/refresh-if-et-time.sh", "data"],
+        cwd=repo,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+
+    assert proc.returncode == 0
+    assert "ET gate matched for data at 2026-06-07 16:00 EDT" in proc.stdout
+
+    env.update({
+        "MACRO_REFRESH_ET_WEEKDAY": "2",
+        "MACRO_REFRESH_ET_MINUTE": "05",
+        "MACRO_REFRESH_ET_STAMP": "2026-06-02 16:05 EDT",
+    })
+    proc = subprocess.run(
+        ["bash", "scripts/refresh-if-et-time.sh", "briefs"],
+        cwd=repo,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+    )
+
+    assert proc.returncode == 0
+    assert "ET gate skipped briefs" in proc.stdout
 
 
 def test_backtest_row_returns_stats():

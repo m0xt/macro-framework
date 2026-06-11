@@ -21,11 +21,15 @@
         <string>__HOME__/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
     </dict>
 
-    <!-- ET-aware gate: launchd uses Prague local time, so fire at both possible
-         Prague equivalents of 4:00pm ET and let refresh-if-et-time.sh run only
-         when America/New_York is Mon-Fri 16:00. Weekday 1=Mon ... 5=Fri. -->
+    <!-- Daily data refresh — every day (Sun-Sat) at 16:00 ET so crypto, FX, and
+         non-US-market series keep updating on weekends. launchd uses Prague
+         local time, so fire at both possible Prague equivalents of 4:00pm ET
+         (21:00 and 22:00) and let refresh-if-et-time.sh pick the correct one.
+         Weekday 0=Sun, 1=Mon ... 6=Sat. -->
     <key>StartCalendarInterval</key>
     <array>
+        <dict><key>Weekday</key><integer>0</integer><key>Hour</key><integer>21</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>0</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>0</integer></dict>
         <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>21</integer><key>Minute</key><integer>0</integer></dict>
         <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>0</integer></dict>
         <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>21</integer><key>Minute</key><integer>0</integer></dict>
@@ -36,6 +40,8 @@
         <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>0</integer></dict>
         <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>21</integer><key>Minute</key><integer>0</integer></dict>
         <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>6</integer><key>Hour</key><integer>21</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>6</integer><key>Hour</key><integer>22</integer><key>Minute</key><integer>0</integer></dict>
     </array>
 
     <key>RunAtLoad</key>
