@@ -284,6 +284,11 @@ def monthly_yoy_from_ffilled(
 
     yoy = monthly.pct_change(12, fill_method=None) * 100
     if use_cpi_release_dates:
+        # Synthetic missing months from resample() represent absent source data,
+        # not a newly released blank print. Drop them before forward-filling the
+        # live release-date series so one FRED gap does not overwrite the prior
+        # daily dashboard step with NaNs.
+        yoy = yoy.dropna()
         yoy.index = _approx_cpi_release_dates(yoy.index)
     elif release_lag_days > 0:
         yoy.index = yoy.index + pd.Timedelta(days=release_lag_days)
@@ -318,6 +323,11 @@ def monthly_yoy_direction_from_ffilled(
         yoy = headline_round(yoy, round_decimals)
     direction = yoy.diff(months)
     if use_cpi_release_dates:
+        # Synthetic missing months from resample() represent absent source data,
+        # not a newly released blank print. Drop them before forward-filling the
+        # live release-date series so one FRED gap does not overwrite the prior
+        # daily dashboard step with NaNs.
+        direction = direction.dropna()
         direction.index = _approx_cpi_release_dates(direction.index)
     elif release_lag_days > 0:
         direction.index = direction.index + pd.Timedelta(days=release_lag_days)
