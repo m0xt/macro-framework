@@ -39,7 +39,7 @@ def test_row_from_snapshot_maps_headline_to_mrmi_combined():
     assert row["date"] == "2026-05-11"
     assert row["mrmi"] == pytest.approx(1.0227)             # not 0.5227
     assert row["mrmi_state"] == "LONG"                      # not 'green'
-    assert "mrmi_exposure" not in row                        # schema v3 hot fields stay backward-compatible
+    assert "mrmi_exposure" not in row
     assert row["mmi"] == pytest.approx(0.5227)              # from mrmi_combined.momentum
     assert row["stress_intensity"] == pytest.approx(0.4321)
     assert row["stress_score"] == pytest.approx(4.321)
@@ -61,7 +61,7 @@ def test_row_from_snapshot_embeds_full_blob():
     assert row["snapshot"]["underliers"]["^GSPC"] == 5000.0
 
 
-def test_row_from_snapshot_keeps_constrained_state_backward_compatible():
+def test_row_from_snapshot_preserves_current_posture_in_snapshot_json():
     snapshot = {
         **SAMPLE_SNAPSHOT,
         "mrmi_combined": {
@@ -73,7 +73,8 @@ def test_row_from_snapshot_keeps_constrained_state_backward_compatible():
         },
     }
     row = row_from_snapshot(snapshot)
-    assert row["mrmi_state"] == "LONG"
+    assert row["mrmi_state"] == "LONG"  # schema v5 binary compatibility
+    assert "mrmi_exposure" not in row
     assert row["snapshot"]["mrmi_combined"]["state"] == "CAUTION"
     assert row["snapshot"]["mrmi_combined"]["exposure"] == pytest.approx(0.75)
 
@@ -81,7 +82,11 @@ def test_row_from_snapshot_keeps_constrained_state_backward_compatible():
 import numpy as np
 import pandas as pd
 
-from macro_framework.sync_to_supabase import rows_from_backfill_series
+from macro_framework.sync_to_supabase import (
+    rows_from_backfill_series,
+    rows_from_dashboard_output,
+    rows_from_snapshot_files,
+)
 
 
 def test_rows_from_backfill_series_basic():
@@ -108,7 +113,7 @@ def test_rows_from_backfill_series_basic():
     assert rows[0]["date"] == "2024-01-01"
     assert rows[0]["mrmi"] == 0.5
     assert rows[0]["mrmi_state"] == "LONG"      # mrmi > +0.25
-    assert rows[1]["mrmi_state"] == "LONG"      # CAUTION, constrained hot field
+    assert rows[1]["mrmi_state"] == "LONG"      # CAUTION maps to legacy LONG in schema v5
     assert rows[2]["mrmi_state"] == "CASH"      # mrmi < -0.50
     assert "mrmi_exposure" not in rows[0]
     assert rows[0]["stress_score"] == pytest.approx(3.5)
@@ -141,6 +146,43 @@ def test_rows_from_backfill_series_skips_nan_rows():
     rows = rows_from_backfill_series(series)
     assert len(rows) == 1
     assert rows[0]["date"] == "2024-01-02"
+
+
+def test_rows_from_snapshot_files_uses_dashboard_snapshot_contract(tmp_path):
+    current = tmp_path / "2026-06-12.json"
+    current.write_text(__import__("json").dumps(SAMPLE_SNAPSHOT))
+    legacy = tmp_path / "2026-04-15.json"
+    legacy.write_text(__import__("json").dumps({"date": "2026-04-15", "mrmi": {"composite": 0.1}}))
+
+    rows = rows_from_snapshot_files(tmp_path)
+
+    assert len(rows) == 1
+    assert rows[0]["date"] == "2026-05-11"
+    assert rows[0]["mrmi"] == pytest.approx(SAMPLE_SNAPSHOT["mrmi_combined"]["value"])
+    assert rows[0]["mrmi_state"] == "LONG"  # schema v5 binary compatibility
+    assert rows[0]["snapshot"]["mrmi_combined"]["state"] == SAMPLE_SNAPSHOT["mrmi_combined"]["state"]
+    assert "mrmi_exposure" not in rows[0]
+    assert rows[0]["snapshot"] == SAMPLE_SNAPSHOT
+
+
+def test_rows_from_dashboard_output_matches_chart_payload(tmp_path):
+    html = """
+<script>
+const CHART_DATA = {"dates":["2026-06-10","2026-06-11"],"mrmi_combined":{"value":[-0.6,0.1],"momentum":[-0.2,0.4],"stress_intensity":[0.2,0.1],"stress_score":[2.0,1.0],"growth_weakness":[0.4,0.2],"inflation_pressure_raw":[0.3,0.1],"stress_score_bucket":["calm","calm"],"macro_buffer":[0.4,0.45]},"macro":{"real_economy_score":[-0.4,-0.2],"inflation_dir_pp":[0.3,0.1],"core_cpi_yoy_pct":[2.9,2.9]},"drivers":{"gii_fast":[0.1,0.2],"breadth":[0.3,0.4],"fincon":[0.5,0.6]}};
+</script>
+"""
+    path = tmp_path / "dashboard.html"
+    path.write_text(html)
+
+    rows = rows_from_dashboard_output(path)
+
+    assert len(rows) == 2
+    assert rows[0]["date"] == "2026-06-10"
+    assert rows[0]["mrmi"] == pytest.approx(-0.6)
+    assert rows[0]["mrmi_state"] == "CASH"
+    assert rows[0]["stress_growth_pressure"] == pytest.approx(0.3)
+    assert rows[1]["mrmi_state"] == "LONG"  # CAUTION maps to legacy schema-v5 LONG
+    assert rows[1]["snapshot"] is None
 
 
 from macro_framework.sync_to_supabase import load_credentials

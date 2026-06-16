@@ -4,7 +4,7 @@ Sync computed macro indicators to Supabase.
 Subcommands:
   doctor   — preflight schema/version/auth before any write
   latest   — preflight, then upsert today's snapshot (default)
-  backfill — preflight, then recompute and upsert full daily history
+  backfill — preflight, then upsert dashboard chart history
 
 Requires SUPABASE_URL and SUPABASE_SERVICE_KEY in .env or environment.
 See docs/superpowers/specs/2026-05-11-supabase-sync-design.md for design.
@@ -15,6 +15,7 @@ import argparse
 import json
 import math
 import os
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,13 +28,16 @@ from supabase import Client, create_client
 from macro_framework.macro_pipeline import (
     UNIFIED_STRESS_ALPHA,
     UNIFIED_STRESS_BETA,
-    mrmi_legacy_state,
+)
+from macro_framework.macro_pipeline import (
+    mrmi_posture as build_mrmi_posture,
 )
 
 EXPECTED_SCHEMA_VERSION = 5
 SCHEMA_VERSION_KEY = "schema_version"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT_DIR = REPO_ROOT / "snapshots"
+DASHBOARD_OUTPUT = REPO_ROOT / "outputs" / "dashboard.html"
 _CHUNK_SIZE = 500
 
 EXIT_AUTH = 20
@@ -102,19 +106,26 @@ def row_from_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
     mrmi_c = snapshot["mrmi_combined"]
     macro = snapshot["macro"]
     components = snapshot["components"]
+    value = mrmi_c["value"]
+    growth_weakness = mrmi_c.get("growth_weakness")
+    inflation_pressure = mrmi_c.get("inflation_pressure_raw")
     return {
         "date": snapshot["date"],
-        "mrmi": mrmi_c["value"],
-        "mrmi_state": mrmi_c.get("legacy_state") or mrmi_legacy_state(mrmi_c["value"]),
+        "mrmi": value,
+        # Existing Supabase schema v5 only accepts LONG/CASH here. The current
+        # three-state posture remains available in the dashboard snapshot JSON;
+        # frontend code should derive CAUTION from `mrmi` thresholds or read
+        # `snapshot.mrmi_combined.state`.
+        "mrmi_state": "CASH" if build_mrmi_posture(value) == "CASH" else "LONG",
         "mmi": mrmi_c["momentum"],
         # New unified-stress semantics: normalized 0–1 stress_score / 10.
         "stress_intensity": mrmi_c["stress_intensity"],
         # New unified-stress semantics: normalized 0–10 production stress score.
         "stress_score": mrmi_c.get("stress_score"),
         # Column name unchanged; value is α·g contribution before normalization.
-        "stress_growth_pressure": mrmi_c.get("growth_weakness") * UNIFIED_STRESS_ALPHA,
+        "stress_growth_pressure": growth_weakness * UNIFIED_STRESS_ALPHA if growth_weakness is not None else None,
         # Column name unchanged; value is β·i contribution before normalization.
-        "stress_inflation_pressure": mrmi_c.get("inflation_pressure_raw") * UNIFIED_STRESS_BETA,
+        "stress_inflation_pressure": inflation_pressure * UNIFIED_STRESS_BETA if inflation_pressure is not None else None,
         # New round-boundary bucket: calm/watch/building/elevated.
         "stress_score_bucket": mrmi_c.get("stress_score_bucket"),
         "macro_buffer": mrmi_c["macro_buffer"],
@@ -129,10 +140,11 @@ def row_from_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
 
 
 def rows_from_backfill_series(series: dict[str, pd.Series]) -> list[dict[str, Any]]:
-    """Build macro_snapshots rows from per-column daily series.
+    """Build recomputed macro_snapshots rows from per-column daily series.
 
-    Skips rows where mrmi is NaN (pre-warmup dates). Derives mrmi_state
-    as backward-compatible LONG/CASH for the existing Supabase constraint.
+    Prefer `rows_from_snapshot_files()` for product/frontend history: it mirrors
+    the exact daily dashboard snapshots. This helper exists only for analytical
+    recompute workflows where no point-in-time snapshot file exists.
     """
     mrmi = series["mrmi"]
     rows: list[dict[str, Any]] = []
@@ -142,7 +154,7 @@ def rows_from_backfill_series(series: dict[str, pd.Series]) -> list[dict[str, An
             continue
         row: dict[str, Any] = {
             "date": pd.Timestamp(date).strftime("%Y-%m-%d"),
-            "mrmi_state": mrmi_legacy_state(value),
+            "mrmi_state": "CASH" if build_mrmi_posture(value) == "CASH" else "LONG",
             "snapshot": None,
         }
         for col in _HOT_COLUMNS:
@@ -326,49 +338,86 @@ def cmd_latest() -> None:
     _upsert_backtest(client)
 
 
-def cmd_backfill() -> None:
-    from macro_framework import build  # reuses fetch + compute pipeline
+def rows_from_snapshot_files(snapshot_dir: Path = SNAPSHOT_DIR) -> list[dict[str, Any]]:
+    """Build Supabase rows from the exact snapshots used by the dashboard.
 
-    if not build.DATA_CACHE.exists():
-        print(
-            f"error: {build.DATA_CACHE} not found.\n"
-            f"Run `uv run python -m macro_framework.build` first to populate the cache.",
-            file=sys.stderr,
-        )
+    This is the product/frontend source of truth: one hot Supabase value per
+    dashboard indicator, with the JSONB blob retained for audit. Older legacy
+    snapshots that predate the current `mrmi_combined` / `macro` schema are
+    skipped because they cannot populate the current frontend contract.
+    """
+    rows: list[dict[str, Any]] = []
+    for path in sorted(snapshot_dir.glob("*.json")):
+        with open(path) as f:
+            snapshot = json.load(f)
+        if "mrmi_combined" not in snapshot or "macro" not in snapshot:
+            print(f"Skipping {path.name}: legacy snapshot schema", file=sys.stderr)
+            continue
+        rows.append(row_from_snapshot(snapshot))
+    return rows
+
+
+def rows_from_dashboard_output(path: Path = DASHBOARD_OUTPUT) -> list[dict[str, Any]]:
+    """Build Supabase rows from the generated dashboard chart payload.
+
+    The website hot fields should match the same `CHART_DATA` arrays rendered in
+    `outputs/dashboard.html`. This avoids schema changes and avoids having a
+    second historical recompute path drift away from the actual dashboard.
+    """
+    if not path.exists():
+        print(f"error: dashboard output not found at {path}. Run build first.", file=sys.stderr)
         sys.exit(1)
-    client = _supabase_client()  # fail-fast on missing creds before heavy compute
-    preflight(client)
+    html = path.read_text()
+    match = re.search(r"const CHART_DATA = (\{.*?\});\n", html, re.S)
+    if not match:
+        print(f"error: CHART_DATA payload not found in {path}", file=sys.stderr)
+        sys.exit(1)
+    chart = json.loads(match.group(1))
 
-    print("Loading raw data + recomputing indicators...")
-    data = build.fetch_all_data(use_cache=True)
-    gii = build.calc_growth_impulse(data)
-    fincon = build.calc_financial_conditions(data)
-    breadth = build.calc_sector_breadth(data)
-    composite = build.calc_composite(gii, fincon, breadth)  # MMI series
-    macro_ctx = build.calc_macro_context(data, apply_release_lags=False)
-    mrmi_combined = build.calc_milk_road_macro_index(composite, macro_ctx)
+    dates = chart["dates"]
+    mrmi_c = chart.get("mrmi_combined") or {}
+    macro = chart.get("macro") or {}
+    drivers = chart.get("drivers") or {}
 
-    series = {
-        "mrmi": mrmi_combined["mrmi"],
-        "mmi": composite,
-        "stress_intensity": mrmi_combined["stress_intensity"],
-        "stress_score": mrmi_combined["stress_score"],
-        # Column name unchanged; value is α·g contribution before normalization.
-        "stress_growth_pressure": mrmi_combined["growth_weakness"] * build.UNIFIED_STRESS_ALPHA,
-        # Column name unchanged; value is β·i contribution before normalization.
-        "stress_inflation_pressure": mrmi_combined["inflation_pressure_raw"] * build.UNIFIED_STRESS_BETA,
-        "stress_score_bucket": mrmi_combined["stress_score_bucket"],
-        "macro_buffer": mrmi_combined["macro_buffer"],
-        "real_economy": macro_ctx["real_economy_score"],
-        "inflation_dir_pp": macro_ctx["inflation_dir_pp"],
-        "core_cpi_yoy_pct": macro_ctx["core_cpi_yoy_pct"],
-        "gii_fast": gii["fast"],
-        "breadth": breadth["composite"],
-        "fincon": fincon["composite"],
-    }
-    rows = rows_from_backfill_series(series)
-    print(f"Prepared {len(rows)} rows for backfill.")
+    def val(series: Any, i: int) -> Any:
+        if isinstance(series, dict):
+            series = series.get("values")
+        if series is None or i >= len(series):
+            return None
+        return series[i]
 
+    rows: list[dict[str, Any]] = []
+    for i, date in enumerate(dates):
+        mrmi = val(mrmi_c.get("value"), i)
+        if mrmi is None:
+            continue
+        growth_weakness = val(mrmi_c.get("growth_weakness"), i)
+        inflation_pressure = val(mrmi_c.get("inflation_pressure_raw"), i)
+        rows.append(
+            {
+                "date": date,
+                "mrmi": mrmi,
+                "mrmi_state": "CASH" if build_mrmi_posture(mrmi) == "CASH" else "LONG",
+                "mmi": val(mrmi_c.get("momentum"), i),
+                "stress_intensity": val(mrmi_c.get("stress_intensity"), i),
+                "stress_score": val(mrmi_c.get("stress_score"), i),
+                "stress_growth_pressure": growth_weakness * UNIFIED_STRESS_ALPHA if growth_weakness is not None else None,
+                "stress_inflation_pressure": inflation_pressure * UNIFIED_STRESS_BETA if inflation_pressure is not None else None,
+                "stress_score_bucket": val(mrmi_c.get("stress_score_bucket"), i),
+                "macro_buffer": val(mrmi_c.get("macro_buffer"), i),
+                "real_economy": val(macro.get("real_economy_score"), i),
+                "inflation_dir_pp": val(macro.get("inflation_dir_pp"), i),
+                "core_cpi_yoy_pct": val(macro.get("core_cpi_yoy_pct"), i),
+                "gii_fast": val(drivers.get("gii_fast"), i),
+                "breadth": val(drivers.get("breadth"), i),
+                "fincon": val(drivers.get("fincon"), i),
+                "snapshot": None,
+            }
+        )
+    return rows
+
+
+def _upsert_rows(client: Client, rows: list[dict[str, Any]], *, label: str) -> None:
     total = 0
     for i in range(0, len(rows), _CHUNK_SIZE):
         chunk = rows[i : i + _CHUNK_SIZE]
@@ -380,8 +429,19 @@ def cmd_backfill() -> None:
             first = chunk[0]["date"]
             last = chunk[-1]["date"]
             classified = classify_supabase_exception(exc)
-            print(f"  WARN[{classified.error_type}]: chunk {first}..{last} failed: {exc}", file=sys.stderr)
-    print(f"Backfill complete. {total} rows confirmed.")
+            print(f"  WARN[{classified.error_type}]: {label} chunk {first}..{last} failed: {exc}", file=sys.stderr)
+    print(f"{label} complete. {total} rows confirmed.")
+
+
+def cmd_backfill() -> None:
+    client = _supabase_client()  # fail-fast on missing creds
+    preflight(client)
+    rows = rows_from_dashboard_output()
+    print(f"Prepared {len(rows)} dashboard chart rows for backfill.")
+    if not rows:
+        print(f"error: no dashboard chart rows found in {DASHBOARD_OUTPUT}", file=sys.stderr)
+        sys.exit(1)
+    _upsert_rows(client, rows, label="Dashboard chart backfill")
 
 
 def main() -> None:
@@ -392,7 +452,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest="cmd")
     sub.add_parser("doctor", help="Preflight Supabase schema/version/auth without writing.")
     sub.add_parser("latest", help="Upsert today's snapshot (default).")
-    sub.add_parser("backfill", help="Recompute and upsert full daily history.")
+    sub.add_parser("backfill", help="Upsert dashboard chart history into Supabase.")
     args = parser.parse_args()
 
     try:

@@ -104,6 +104,58 @@ def test_weekly_briefs_dry_run_without_claude(tmp_path: Path, monkeypatch: pytes
     assert weekly_briefs.generate_all_briefs(force=True) is False
 
 
+def test_weekly_briefs_context_uses_dashboard_metric_precision() -> None:
+    weekly_briefs = _import_module("macro_framework.weekly_briefs")
+    latest = {
+        "date": "2026-06-04",
+        "mrmi": {"composite": 0.3379214977146659, "state": "green"},
+        "mrmi_combined": {
+            "value": 0.026000480638134205,
+            "state": "CAUTION",
+            "exposure": 0.75,
+            "momentum": 0.3379214977146659,
+            "macro_buffer": 0.4380789829234683,
+            "stress_score": 1.2384203415306333,
+            "stress_score_bucket": "Calm",
+        },
+        "components": {"gii_fast": 0.021, "fincon": 0.253, "breadth": 0.740},
+        "macro": {
+            "real_economy_score": -1.033,
+            "inflation_dir_pp": 0.044,
+            "core_cpi_yoy_pct": 2.786,
+            "real_economy_components": {"real_pce_yoy": 0.217},
+        },
+        "underliers": {},
+    }
+    prior = {
+        "mrmi": {"composite": 0.0049214977146659},
+        "components": {"gii_fast": -0.109, "fincon": 0.003, "breadth": 0.111},
+        "mrmi_combined": {"stress_score": 0.8684203415306333},
+        "macro": {"real_economy_score": -0.503, "inflation_dir_pp": 0.002},
+    }
+
+    market_context = weekly_briefs._market_context(latest, prior, prior)
+    economy_context = weekly_briefs._economy_context(latest, prior)
+    top_context = weekly_briefs._top_context(latest)
+
+    assert "MMI +0.34 (green) (1d +0.33)" in market_context
+    assert "GII: +0.02" in market_context
+    assert "Breadth: +0.74" in market_context
+    assert "FinCon: +0.25" in market_context
+    assert "Stress score (0-10): +1.24 (7d +0.37)" in economy_context
+    assert "Macro buffer currently feeding MRMI: +0.44" in economy_context
+    assert "Real Economy Score (z): -1.03 (7d -0.53)" in economy_context
+    assert "Inflation Direction (Δ6m, pp): +0.04 (7d +0.04)" in economy_context
+    assert "Real PCE YoY: +0.22" in economy_context
+    assert "Latest Core CPI YoY level: 2.79%" in economy_context
+    assert "MRMI +0.03 (CAUTION, 75% exposure)" in top_context
+    assert "MMI (momentum): +0.34" in top_context
+    combined_context = "\n".join([market_context, economy_context, top_context])
+    assert "+0.338" not in combined_context
+    assert "+0.026" not in combined_context
+    assert "+1.238" not in combined_context
+
+
 # ── (c) MRMI formula invariants ─────────────────────────────────────────────
 
 def test_mrmi_formula_matches_documented_equation() -> None:
