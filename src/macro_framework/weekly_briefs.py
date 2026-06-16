@@ -59,7 +59,11 @@ macro stress buffer drawn from growth and inflation conditions, then maps the
 MRMI value to CASH below -0.50, CAUTION from -0.50 to +0.25, and LONG above
 +0.25. Discuss growth, inflation, and stress in plain terms — do NOT use
 season metaphors (no "Spring/Summer/Fall/Winter") and do NOT use the term
-"MRCI". Refer to the growth axis simply as "growth".\
+"MRCI". Refer to the growth axis simply as "growth".
+
+Numeric convention: quote dashboard index/metric readings exactly as shown
+in Current readings — two decimals for MRMI, MMI, component indexes, stress,
+macro buffer, and deltas, preserving any leading plus sign shown.\
 """
 
 SYSTEM_MARKET = SYSTEM_BASE + """
@@ -107,25 +111,36 @@ Length: 5–7 sentences."""
 
 PILLAR_BRIEF_USER_TEMPLATE = (
     "This week's brief is dated {today}. Current readings:\n\n{context}\n\n"
+    "=== PREVIOUS {pillar_label} BRIEF ({previous_date}) ===\n{previous_brief}\n\n"
     "Search the web for the most material news from the last 5–7 days affecting "
     "{beat}, then write the brief connecting our framework signals to what is "
-    "actually happening. Explain the 'why' behind the moves in plain English. "
+    "actually happening. Use the previous brief as continuity: avoid repeating "
+    "the same setup unless it is still the key point, explicitly react to its "
+    "open questions or watch-points, and say what changed, resolved, or failed "
+    "to change since then. Explain the 'why' behind the moves in plain English. "
     "Keep the read decisive: what the dashboard says, why it matters, and what "
-    "would change the view next. "
+    "would change the view next. When quoting dashboard readings or changes, "
+    "copy the displayed reading above exactly; do not expand them to 3 decimals. "
     "Write the brief only — no preamble."
 )
 
 
 TOP_BRIEF_USER_TEMPLATE = (
     "Today is {today}. Headline framework readings:\n\n{top_context}\n"
+    "=== PREVIOUS HEADLINE BRIEF ({previous_date}) ===\n{previous_brief}\n\n"
     "=== THIS WEEK'S MARKET PILLAR BRIEF ===\n{market_brief}\n\n"
     "=== THIS WEEK'S ECONOMY PILLAR BRIEF ===\n{economy_brief}\n\n"
     "Synthesize a headline brief that connects both pillars to the MRMI read. "
     "You may search the web for one or two pieces of cross-cutting context "
     "(e.g. a major event tying the two stories together) but rely primarily on "
     "the pillar briefs above — don't restate them, build on them. "
+    "Use the previous headline brief as continuity: do not write the same brief "
+    "again, and directly address the prior brief's unresolved questions, watch-"
+    "points, or thesis if the new data/news changed the answer. "
     "Use plain English and keep the conclusion easy to repeat: what the dashboard "
-    "says, why it matters, and what would change the posture next. "
+    "says, why it matters, and what would change the posture next. When quoting "
+    "dashboard readings or changes, copy the displayed reading above exactly; "
+    "do not expand them to 3 decimals. "
     "Write the brief only — no preamble."
 )
 
@@ -160,7 +175,8 @@ def _g(snap: dict, *keys) -> float | None:
     return float(cur) if isinstance(cur, (int, float)) else None
 
 
-def _fmt(v: float | None, spec: str = "+.3f") -> str:
+def _fmt(v: float | None, spec: str = "+.2f") -> str:
+    # Brief prompts use the same 2dp metric convention as the dashboard display.
     return format(v, spec) if isinstance(v, (int, float)) else "—"
 
 
@@ -192,6 +208,31 @@ def _read_brief(path: Path) -> str:
     return path.read_text().strip() if path.exists() else ""
 
 
+def _latest_existing_brief(filename: str, before: str | date | None = None) -> tuple[str | None, str]:
+    """Return the latest non-empty brief file, optionally before a date.
+
+    Empty dated directories can be left behind by failed forced refreshes; they
+    should not count as either freshness or continuity context.
+    """
+    before_date: date | None = None
+    if isinstance(before, date):
+        before_date = before
+    elif isinstance(before, str) and before:
+        try:
+            before_date = datetime.strptime(before, "%Y-%m-%d").date()
+        except ValueError:
+            before_date = None
+
+    for d in reversed(_list_brief_dates()):
+        if before_date and d >= before_date:
+            continue
+        path = BRIEFS_DIR / d.isoformat() / filename
+        body = _read_brief(path)
+        if body:
+            return d.isoformat(), body
+    return None, ""
+
+
 # ── Tuesday-cadence freshness check ────────────────────────────────────────
 
 def _most_recent_tuesday(today: date) -> date:
@@ -203,11 +244,10 @@ def _most_recent_tuesday(today: date) -> date:
 def _is_stale(filename: str, today: date) -> bool:
     """A brief is stale if no archive contains it, or the latest archive is
     older than the most recent Tuesday."""
-    dates = _list_brief_dates()
     cutoff = _most_recent_tuesday(today)
-    for d in reversed(dates):
-        if (BRIEFS_DIR / d.isoformat() / filename).exists():
-            return d < cutoff
+    latest_date, _ = _latest_existing_brief(filename)
+    if latest_date:
+        return datetime.strptime(latest_date, "%Y-%m-%d").date() < cutoff
     return True
 
 
@@ -220,7 +260,7 @@ def _market_context(latest: dict, prior_1d: dict | None, prior_7d: dict | None) 
         b = _g(snap, *k)
         if a is None or b is None:
             return ""
-        return f" ({days}d {(a-b):+.3f})"
+        return f" ({days}d {_fmt(a-b)})"
 
     mmi = _g(latest, "mrmi", "composite")
     state = (latest.get("mrmi") or {}).get("state", "?")
@@ -240,7 +280,7 @@ def _market_context(latest: dict, prior_1d: dict | None, prior_7d: dict | None) 
         f"Date: {latest.get('date', '?')}",
         "",
         "=== MMI (Momentum Index) ===",
-        f"MMI {_fmt(mmi)} ({state})"
+        f"MMI {_fmt(mmi, '+.2f')} ({state})"
             + diff(mmi, prior_1d, "mrmi", "composite", days=1)
             + diff(mmi, prior_7d, "mrmi", "composite", days=7),
         f"  GII: {_fmt(gii)}"
@@ -269,7 +309,7 @@ def _economy_context(latest: dict, prior_7d: dict | None) -> str:
         b = _g(prior_7d, *k)
         if a is None or b is None:
             return ""
-        return f" (7d {(a-b):+.3f})"
+        return f" (7d {_fmt(a-b)})"
 
     # Fields driving the dashboard's economy pillar view
     re_score = _g(latest, "macro", "real_economy_score")
@@ -318,7 +358,7 @@ def _economy_context(latest: dict, prior_7d: dict | None) -> str:
     for key, label in component_labels.items():
         v = re_components.get(key)
         if isinstance(v, (int, float)):
-            lines.append(f"  {label}: {v:+.3f}")
+            lines.append(f"  {label}: {_fmt(v)}")
 
     lines.extend(["", "=== MACRO LEVELS ==="])
     for label, key in macro_underliers:
@@ -342,8 +382,8 @@ def _top_context(latest: dict) -> str:
     return (
         f"Date: {latest.get('date', '?')}\n\n"
         f"=== HEADLINE ===\n"
-        f"MRMI {_fmt(mrmi_value)} ({mrmi_state}, {exposure_label})\n"
-        f"  MMI (momentum): {_fmt(momentum)}\n"
+        f"MRMI {_fmt(mrmi_value, '+.2f')} ({mrmi_state}, {exposure_label})\n"
+        f"  MMI (momentum): {_fmt(momentum, '+.2f')}\n"
         f"  Macro buffer: {_fmt(macro_buffer)}\n"
         f"  Stress score: {_fmt(stress)}\n"
     )
@@ -448,11 +488,24 @@ def generate_pillar_brief(pillar: str, force: bool = False) -> bool:
     if pillar == "market":
         context = _market_context(latest, prior_1d, prior_7d)
         beat = "MMI (market momentum) over the last week"
+        pillar_label = "MARKET PILLAR"
     else:
         context = _economy_context(latest, prior_7d)
         beat = "the economy pillar (real-economy strength + inflation direction) over the last week"
+        pillar_label = "ECONOMY PILLAR"
 
-    prompt = PILLAR_BRIEF_USER_TEMPLATE.format(today=today, context=context, beat=beat)
+    previous_date, previous_brief = _latest_existing_brief(filename, before=today)
+    if not previous_brief:
+        previous_date, previous_brief = "none", "(No previous brief available.)"
+
+    prompt = PILLAR_BRIEF_USER_TEMPLATE.format(
+        today=today,
+        context=context,
+        pillar_label=pillar_label,
+        previous_date=previous_date,
+        previous_brief=previous_brief,
+        beat=beat,
+    )
 
     body = _run_claude(system, prompt, label=f"{pillar.capitalize()} brief", timeout=240)
     if not body:
@@ -477,13 +530,18 @@ def generate_top_brief(force: bool = False) -> bool:
         return False
     latest, _, _, today = snap_data
 
-    archive = _archive_dir_for(today)
+    archive = BRIEFS_DIR / today
     market_brief = _read_brief(archive / FILE_MARKET) or "(market pillar brief unavailable)"
     economy_brief = _read_brief(archive / FILE_ECONOMY) or "(economy pillar brief unavailable)"
+    previous_date, previous_brief = _latest_existing_brief(FILE_TOP, before=today)
+    if not previous_brief:
+        previous_date, previous_brief = "none", "(No previous headline brief available.)"
 
     prompt = TOP_BRIEF_USER_TEMPLATE.format(
         today=today,
         top_context=_top_context(latest),
+        previous_date=previous_date,
+        previous_brief=previous_brief,
         market_brief=market_brief,
         economy_brief=economy_brief,
     )
@@ -491,7 +549,7 @@ def generate_top_brief(force: bool = False) -> bool:
     body = _run_claude(SYSTEM_TOP, prompt, label="Top brief", timeout=240)
     if not body:
         return False
-    (archive / FILE_TOP).write_text(body + "\n")
+    (_archive_dir_for(today) / FILE_TOP).write_text(body + "\n")
     return True
 
 
@@ -501,6 +559,8 @@ def generate_all_briefs(force: bool = False) -> bool:
     """Pillar briefs first (so the top brief can read them), then top brief."""
     ok_market = generate_pillar_brief("market", force=force)
     ok_economy = generate_pillar_brief("economy", force=force)
+    if not (ok_market and ok_economy):
+        return False
     ok_top = generate_top_brief(force=force)
     return ok_market and ok_economy and ok_top
 
@@ -510,7 +570,8 @@ def main() -> None:
     import sys
 
     force = "--force" in sys.argv
-    generate_all_briefs(force=force)
+    ok = generate_all_briefs(force=force)
+    sys.exit(0 if ok else 1)
 
 
 if __name__ == "__main__":

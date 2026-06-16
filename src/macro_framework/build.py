@@ -98,12 +98,13 @@ def _refresh_all_briefs():
     """Lazy-regenerate (pillar briefs first, then top) on weekly Tuesday cadence."""
     try:
         from macro_framework.weekly_briefs import generate_all_briefs
-        generate_all_briefs()
+        if not generate_all_briefs():
+            print("  Warning: brief refresh did not produce all expected files")
     except Exception as e:
         print(f"  Warning: brief refresh failed: {e}")
 
 
-def _latest_brief_dir():
+def _latest_brief_dir(filename=None):
     if not BRIEFS_DIR.exists():
         return None, None
     dated = []
@@ -115,6 +116,10 @@ def _latest_brief_dir():
             _dt.strptime(p.name, "%Y-%m-%d")
         except ValueError:
             continue
+        if filename:
+            brief_path = p / filename
+            if not brief_path.exists() or not brief_path.read_text().strip():
+                continue
         dated.append(p)
     if not dated:
         return None, None
@@ -125,7 +130,7 @@ def _latest_brief_dir():
 def _load_brief_html(filename, snap_date):
     """Returns (html, date_str, is_stale). html='' if missing.
     Reads from the most-recent dated folder under briefs/."""
-    latest_dir, latest_date = _latest_brief_dir()
+    latest_dir, latest_date = _latest_brief_dir(filename)
     if not latest_dir:
         return "", None, False
     path = latest_dir / filename
