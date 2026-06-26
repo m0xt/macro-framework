@@ -1,14 +1,14 @@
 {
   "date": "2026-06-25",
-  "build_time_utc": "2026-06-25 04:01 UTC",
+  "build_time_utc": "2026-06-25 04:06 UTC",
   "mrmi": {
-    "composite": 0.5771096081092125,
+    "composite": 0.5771095675964543,
     "state": "green"
   },
   "components": {
-    "gii_fast": -0.7046499852189657,
+    "gii_fast": -0.704650106756342,
     "fincon": 0.6016205908727978,
-    "breadth": 1.8343582186738054
+    "breadth": 1.834358218672907
   },
   "mrci": {
     "composite": 0.14532326367075146,
@@ -21,7 +21,7 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": -0.7046,
+    "score": -0.7047,
     "supportive_count": 1,
     "drag_count": 9,
     "rows": [
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": 0.2327067113028075,
+    "value": 0.23270667079004925,
     "state": "CAUTION",
     "legacy_state": "LONG",
     "exposure": 0.75,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": 0.5771096081092125,
+    "momentum": 0.5771095675964543,
     "stress_intensity": 0.18880579361281002,
     "stress_score": 1.8880579361281002,
     "growth_weakness": 0.4639000064573567,
@@ -406,7 +406,7 @@
   "underliers": {
     "^GSPC": 7358.22021484375,
     "IWM": 296.69000244140625,
-    "BTC-USD": 60789.0,
+    "BTC-USD": 60759.62109375,
     "^VIX": 18.6299991607666,
     "^MOVE": 65.38999938964844,
     "^TNX": 4.4019999504089355,
