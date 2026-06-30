@@ -1,0 +1,12 @@
+The stress score barely moved this week, ticking to +1.97 (+0.06) and holding in the Calm band while the macro buffer stayed at +0.40 — but the most important development was one the dashboard mostly didn't see. The [May PCE report released June 25](https://www.cnbc.com/2026/06/25/pce-inflation-report-may-2026-.html) showed core PCE at 3.4% year-over-year, the highest since October 2023, with monthly momentum running at 0.3% — a clear signal that tariff pass-through is still in motion, not fading as some had hoped. The dashboard's Inflation Direction axis measures the six-month change in core CPI rather than PCE, so that reading held flat at +0.30 (7d +0.00) with core CPI YoY still at 2.90% — the stress score barely reacted to data that moved markets. Growth softened in the same release: real personal consumption grew more slowly than expected, pulling [GDPNow down to 2.5% annualized for Q2](https://www.fx.co/en/forex-news/3040643) from 3.0% the prior week and nudging the Real Economy Score to -0.48 (7d -0.02). [Jobless claims held near 226,000](https://tradingeconomics.com/united-states/jobless-claims) and the [final Q1 GDP print came in above the 1.6% consensus](https://x.com/marketsday/status/2067898738723713457), confirming solid backward-looking growth but doing nothing to arrest the Q2 slowdown in spending. With core PCE now running well above core CPI, the [July 14 CPI print](https://www.bls.gov/schedule/news_release/cpi.htm) carries more weight than it did last week: if core CPI begins to catch up and breaks above 2.90%, the Inflation Direction reading rises, the stress score trends toward Watch territory, and the macro buffer begins to erode faster.
+
+---
+
+Sources:
+- [PCE inflation report May 2026 — CNBC](https://www.cnbc.com/2026/06/25/pce-inflation-report-may-2026-.html)
+- [Atlanta Fed GDPNow softens to 2.5% for Q2 2026 — FX.co](https://www.fx.co/en/forex-news/3040643)
+- [US Jobless Claims — Trading Economics](https://tradingeconomics.com/united-states/jobless-claims)
+- [Final Q1 GDP / economic calendar week of June 22–26 — X / Markets Today](https://x.com/marketsday/status/2067898738723713457)
+- [CPI release schedule — BLS](https://www.bls.gov/schedule/news_release/cpi.htm)
+- [Personal Income and Outlays, May 2026 — BEA](https://www.bea.gov/news/2026/personal-income-and-outlays-may-2026)
+- [Effects of realized tariff changes on PCE prices — Dallas Fed](https://www.dallasfed.org/research/economics/2026/0505-mau)
