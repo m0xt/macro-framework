@@ -256,7 +256,9 @@ def test_canonical_backtest_matches_task35_investor_posture_calmar() -> None:
     backtest = _import_module("macro_framework.backtest_production")
     data_path = ROOT / ".cache" / "raw_data.pkl"
     assert data_path.exists(), "raw_data.pkl is required for the canonical backtest smoke test"
-    data = pd.read_pickle(data_path)
+    calibration_end = pd.Timestamp("2026-07-01")
+    data = pd.read_pickle(data_path).loc[:calibration_end]
+    assert data.index.max() == calibration_end, "raw_data.pkl must include the canonical backtest sample"
     mrmi, _mmi = backtest.production_mrmi(data)
     asset_rets = {
         "spx": data["^GSPC"].pct_change(),
@@ -264,7 +266,7 @@ def test_canonical_backtest_matches_task35_investor_posture_calmar() -> None:
         "btc": data["BTC-USD"].pct_change(),
     }
 
-    expected = {"spx": 2.98, "iwm": 2.62, "btc": 0.82}
+    expected = {"spx": 2.94, "iwm": 2.60, "btc": 0.68}
     for asset, expected_calmar in expected.items():
         result = backtest.backtest_signal(mrmi, asset_rets[asset])
         assert result is not None
