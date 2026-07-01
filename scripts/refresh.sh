@@ -12,6 +12,11 @@
 
 set -euo pipefail
 
+# Hermes Desktop can inject its own Python 3.11 paths into PYTHONPATH. This
+# project runs an isolated Python 3.14 virtualenv, so inherited Python paths can
+# make binary deps such as pydantic_core fail during the Supabase sync step.
+unset PYTHONPATH PYTHONHOME
+
 cd "$(dirname "${BASH_SOURCE[0]}")/.."   # repo root
 
 REFRESH_MODE=data
