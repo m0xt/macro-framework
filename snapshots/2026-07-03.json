@@ -1,14 +1,14 @@
 {
   "date": "2026-07-03",
-  "build_time_utc": "2026-07-03 04:04 UTC",
+  "build_time_utc": "2026-07-03 04:12 UTC",
   "mrmi": {
-    "composite": 0.6868138083748735,
+    "composite": 0.6867430276984625,
     "state": "green"
   },
   "components": {
-    "gii_fast": -0.3998725679804778,
+    "gii_fast": -0.40008491001015917,
     "fincon": 0.699881774839937,
-    "breadth": 1.760432218265161
+    "breadth": 1.7604322182656096
   },
   "mrci": {
     "composite": 0.20394745466218067,
@@ -21,7 +21,7 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": -0.3999,
+    "score": -0.4001,
     "supportive_count": 3,
     "drag_count": 7,
     "rows": [
@@ -101,14 +101,14 @@
         "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
         "unit": "price",
         "trend_type": "roc",
-        "current": 6.2485,
-        "trend_21d": -2.8303,
-        "trend_126d": 4.0636,
-        "z_21d": -0.6272,
-        "z_126d": -0.5618,
-        "z_change_7d": -0.108,
-        "z_change_30d": -0.5495,
-        "contribution_7d": -0.0108
+        "current": 6.2475,
+        "trend_21d": -2.8458,
+        "trend_126d": 4.047,
+        "z_21d": -0.6293,
+        "z_126d": -0.5635,
+        "z_change_7d": -0.1101,
+        "z_change_30d": -0.5516,
+        "contribution_7d": -0.01101
       },
       {
         "key": "VIX_INV",
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": 0.26006532852738795,
+    "value": 0.25999454785097686,
     "state": "RISK-ON",
     "legacy_state": "LONG",
     "exposure": 1.0,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": 0.6868138083748735,
+    "momentum": 0.6867430276984625,
     "stress_intensity": 0.3534969596949713,
     "stress_score": 3.534969596949713,
     "growth_weakness": 0.9034409657907156,
@@ -406,13 +406,13 @@
   "underliers": {
     "^GSPC": 7483.240234375,
     "IWM": 297.5799865722656,
-    "BTC-USD": 61374.53125,
+    "BTC-USD": 61334.44140625,
     "^VIX": 16.149999618530273,
     "^MOVE": 66.79000091552734,
     "^TNX": 4.484999656677246,
     "HYG": 79.70999908447266,
-    "HG=F": 6.248499870300293,
-    "GC=F": 4189.89990234375,
+    "HG=F": 6.247499942779541,
+    "GC=F": 4188.7001953125,
     "DBC": 26.56999969482422,
     "DGS10": 4.48,
     "DGS2": 4.17,
