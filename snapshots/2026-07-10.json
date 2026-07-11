@@ -1,14 +1,14 @@
 {
   "date": "2026-07-10",
-  "build_time_utc": "2026-07-10 04:02 UTC",
+  "build_time_utc": "2026-07-10 04:06 UTC",
   "mrmi": {
-    "composite": 0.6859967231888877,
+    "composite": 0.6859967091125165,
     "state": "green"
   },
   "components": {
-    "gii_fast": -0.0573512016406436,
+    "gii_fast": -0.05735124386943864,
     "fincon": 0.8300521445003454,
-    "breadth": 1.2852892267069613
+    "breadth": 1.285289226706643
   },
   "mrci": {
     "composite": 0.15153506501222513,
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": 0.2729976037651074,
+    "value": 0.2729975896887362,
     "state": "RISK-ON",
     "legacy_state": "LONG",
     "exposure": 1.0,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": 0.6859967231888877,
+    "momentum": 0.6859967091125165,
     "stress_intensity": 0.3259982388475605,
     "stress_score": 3.2599823884756054,
     "growth_weakness": 0.8300501796954777,
@@ -406,7 +406,7 @@
   "underliers": {
     "^GSPC": 7543.64013671875,
     "IWM": 297.239990234375,
-    "BTC-USD": 63898.23828125,
+    "BTC-USD": 63955.33984375,
     "^VIX": 15.84000015258789,
     "^MOVE": 65.4000015258789,
     "^TNX": 4.539000034332275,
