@@ -1,14 +1,14 @@
 {
   "date": "2026-07-30",
-  "build_time_utc": "2026-07-30 04:04 UTC",
+  "build_time_utc": "2026-07-30 04:19 UTC",
   "mrmi": {
-    "composite": -0.24794843217260729,
+    "composite": -0.2411414919486776,
     "state": "red"
   },
   "components": {
-    "gii_fast": -0.8966258553789915,
+    "gii_fast": -0.8762050347071882,
     "fincon": -0.10084862412836493,
-    "breadth": 0.2536291829895347
+    "breadth": 0.25362918298952036
   },
   "mrci": {
     "composite": 0.9995879907090978,
@@ -21,9 +21,9 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": -0.8966,
-    "supportive_count": 0,
-    "drag_count": 10,
+    "score": -0.8762,
+    "supportive_count": 1,
+    "drag_count": 9,
     "rows": [
       {
         "key": "SPHB_SPLV",
@@ -186,22 +186,22 @@
         "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
         "unit": "price",
         "trend_type": "roc",
-        "current": 6.2735,
-        "trend_21d": 0.9413,
-        "trend_126d": 15.1841,
-        "z_21d": -0.0868,
-        "z_126d": 0.5336,
-        "z_change_7d": -0.3317,
-        "z_change_30d": 0.4726,
-        "contribution_7d": -0.03317
+        "current": 6.366,
+        "trend_21d": 2.4296,
+        "trend_126d": 16.8824,
+        "z_21d": 0.1174,
+        "z_126d": 0.7033,
+        "z_change_7d": -0.1275,
+        "z_change_30d": 0.6768,
+        "contribution_7d": -0.01275
       }
     ],
     "brief": [
       "Growth Impulses deteriorated over the latest week, led by SPHB/SPLV (-0.12 contribution points).",
-      "At -0.90, GII is currently weighing on MMI.",
-      "Support currently comes from none.",
+      "At -0.88, GII is currently weighing on MMI.",
+      "Support currently comes from Copper (+0.12z).",
       "The main drag is SPHB/SPLV (-2.42z) and XLY/XLP (-1.87z).",
-      "Input breadth is broadly negative: 0 of 10 inputs are positive and 10 inputs are negative.",
+      "Input breadth is broadly negative: 1 of 10 inputs are positive and 9 inputs are negative.",
       "The next read improves if SPHB/SPLV mean-reverts and support broadens; it gets worse if Copper fails to hold or the current drags deepen."
     ]
   },
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": -0.5217154241944186,
+    "value": -0.5149084839704889,
     "state": "RISK-OFF",
     "legacy_state": "CASH",
     "exposure": 0.0,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": -0.24794843217260729,
+    "momentum": -0.2411414919486776,
     "stress_intensity": 0.04753398404362266,
     "stress_score": 0.4753398404362266,
     "growth_weakness": 0.6343124966717183,
@@ -406,13 +406,13 @@
   "underliers": {
     "^GSPC": 7316.14990234375,
     "IWM": 288.57000732421875,
-    "BTC-USD": 64049.05859375,
+    "BTC-USD": 64023.5390625,
     "^VIX": 20.65999984741211,
     "^MOVE": 70.87999725341797,
     "^TNX": 4.622000217437744,
     "HYG": 79.23999786376953,
-    "HG=F": 6.273499965667725,
-    "GC=F": 4034.699951171875,
+    "HG=F": 6.366000175476074,
+    "GC=F": 4113.7001953125,
     "DBC": 29.420000076293945,
     "DGS10": 4.61,
     "DGS2": 4.26,
