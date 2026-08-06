@@ -1,14 +1,14 @@
 {
   "date": "2026-08-06",
-  "build_time_utc": "2026-08-06 04:05 UTC",
+  "build_time_utc": "2026-08-06 04:15 UTC",
   "mrmi": {
-    "composite": 0.5779672152452027,
+    "composite": 0.5787708433884983,
     "state": "green"
   },
   "components": {
-    "gii_fast": 0.2990236027337323,
+    "gii_fast": 0.30143448716365645,
     "fincon": 0.5230217153892162,
-    "breadth": 0.9118563276126593
+    "breadth": 0.9118563276126225
   },
   "mrci": {
     "composite": 0.8098370906480556,
@@ -21,7 +21,7 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": 0.299,
+    "score": 0.3014,
     "supportive_count": 7,
     "drag_count": 3,
     "rows": [
@@ -50,14 +50,14 @@
         "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
         "unit": "price",
         "trend_type": "roc",
-        "current": 6.703,
-        "trend_21d": 6.4644,
-        "trend_126d": 20.4925,
-        "z_21d": 0.685,
-        "z_126d": 1.0656,
-        "z_change_7d": 0.4532,
-        "z_change_30d": 0.3825,
-        "contribution_7d": 0.04532
+        "current": 6.714,
+        "trend_21d": 6.6391,
+        "trend_126d": 20.6903,
+        "z_21d": 0.7091,
+        "z_126d": 1.0854,
+        "z_change_7d": 0.4773,
+        "z_change_30d": 0.4066,
+        "contribution_7d": 0.04773
       },
       {
         "key": "WEI",
@@ -199,7 +199,7 @@
     "brief": [
       "Growth Impulses improved over the latest week, led by SPHB/SPLV (+0.19 contribution points).",
       "At +0.30, GII is currently supporting MMI.",
-      "Support currently comes from XLI/XLU (+1.90z) and Copper (+0.69z).",
+      "Support currently comes from XLI/XLU (+1.90z) and Copper (+0.71z).",
       "The main drag is WEI (-0.45z) and HYG (-0.22z).",
       "Input breadth is broadly constructive: 7 of 10 inputs are positive and 3 inputs are negative.",
       "The next read improves if WEI stops acting as a drag and more inputs join the positive side; it weakens if XLI/XLU rolls over."
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": 0.32796721524520267,
+    "value": 0.32877084338849816,
     "state": "RISK-ON",
     "legacy_state": "LONG",
     "exposure": 1.0,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": 0.5779672152452027,
+    "momentum": 0.5787708433884983,
     "stress_intensity": 0.0,
     "stress_score": 0.0,
     "growth_weakness": 0.0,
@@ -406,13 +406,13 @@
   "underliers": {
     "^GSPC": 7723.5498046875,
     "IWM": 299.7699890136719,
-    "BTC-USD": 64436.94921875,
+    "BTC-USD": 64516.6484375,
     "^VIX": 15.8100004196167,
     "^MOVE": 70.87999725341797,
     "^TNX": 4.616999626159668,
     "HYG": 79.5199966430664,
-    "HG=F": 6.703000068664551,
-    "GC=F": 4245.7998046875,
+    "HG=F": 6.714000225067139,
+    "GC=F": 4323.2998046875,
     "DBC": 28.479999542236328,
     "DGS10": 4.63,
     "DGS2": 4.2,
