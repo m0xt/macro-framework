@@ -1,29 +1,29 @@
 {
-  "date": "2026-08-14",
-  "build_time_utc": "2026-08-14 05:21 UTC",
+  "date": "2026-08-15",
+  "build_time_utc": "2026-08-15 04:03 UTC",
   "mrmi": {
-    "composite": 0.7793757951005768,
+    "composite": 0.816960069460018,
     "state": "green"
   },
   "components": {
-    "gii_fast": 0.7276937455620418,
-    "fincon": 0.648106200344832,
-    "breadth": 0.9623274393948564
+    "gii_fast": 0.8686370799505424,
+    "fincon": 0.6798715918898028,
+    "breadth": 0.9023715365397085
   },
   "mrci": {
-    "composite": 0.23057324451912714,
-    "real_economy": -0.20883841124072058,
-    "credit_money": -0.0582879875135916,
+    "composite": 0.2278537688347414,
+    "real_economy": -0.20705818767829057,
+    "credit_money": -0.11569570610333219,
     "markets": null,
-    "labor": 0.6699849002789748
+    "labor": 0.6627657253477733
   },
-  "inflation": -0.8137027990687657,
+  "inflation": -0.6618584931269575,
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": 0.7277,
-    "supportive_count": 9,
-    "drag_count": 1,
+    "score": 0.8686,
+    "supportive_count": 10,
+    "drag_count": 0,
     "rows": [
       {
         "key": "XLI_XLU",
@@ -33,14 +33,14 @@
         "explanation": "Industrials versus utilities; a higher ratio signals cyclicals beating defensives.",
         "unit": "ratio",
         "trend_type": "roc",
-        "current": 4.2187,
-        "trend_21d": 6.9101,
-        "trend_126d": 15.0512,
-        "z_21d": 1.6099,
-        "z_126d": 1.9453,
-        "z_change_7d": -0.0431,
-        "z_change_30d": 2.2656,
-        "contribution_7d": -0.00431
+        "current": 4.2092,
+        "trend_21d": 6.6704,
+        "trend_126d": 14.7933,
+        "z_21d": 1.5404,
+        "z_126d": 1.8949,
+        "z_change_7d": -0.3907,
+        "z_change_30d": 2.1949,
+        "contribution_7d": -0.03907
       },
       {
         "key": "YC",
@@ -53,11 +53,11 @@
         "current": 0.48,
         "trend_21d": 0.12,
         "trend_126d": -0.02,
-        "z_21d": 1.4077,
-        "z_126d": -0.3601,
-        "z_change_7d": 0.3588,
-        "z_change_30d": 1.3476,
-        "contribution_7d": 0.03588
+        "z_21d": 1.4037,
+        "z_126d": -0.3571,
+        "z_change_7d": 0.477,
+        "z_change_30d": 1.3408,
+        "contribution_7d": 0.0477
       },
       {
         "key": "XLY_XLP",
@@ -67,14 +67,14 @@
         "explanation": "Consumer discretionary versus staples; a higher ratio signals cyclical consumer risk appetite.",
         "unit": "ratio",
         "trend_type": "roc",
-        "current": 1.3773,
-        "trend_21d": 5.9084,
-        "trend_126d": 0.0027,
-        "z_21d": 1.1282,
-        "z_126d": -0.0222,
-        "z_change_7d": 0.3986,
-        "z_change_30d": 2.2687,
-        "contribution_7d": 0.03986
+        "current": 1.373,
+        "trend_21d": 5.5744,
+        "trend_126d": -0.3127,
+        "z_21d": 1.0562,
+        "z_126d": -0.0509,
+        "z_change_7d": 0.2482,
+        "z_change_30d": 2.204,
+        "contribution_7d": 0.02482
       },
       {
         "key": "SPHB_SPLV",
@@ -84,48 +84,14 @@
         "explanation": "High-beta equities versus low-volatility equities; a higher ratio signals investors favor riskier stocks.",
         "unit": "ratio",
         "trend_type": "roc",
-        "current": 1.9877,
-        "trend_21d": 8.6987,
-        "trend_126d": 19.8782,
-        "z_21d": 1.0697,
-        "z_126d": 0.5621,
-        "z_change_7d": 0.571,
-        "z_change_30d": 2.235,
-        "contribution_7d": 0.0571
-      },
-      {
-        "key": "HYG",
-        "label": "HYG",
-        "group": "Credit/risk appetite",
-        "source": "HYG high-yield ETF",
-        "explanation": "High-yield bond ETF; rising HYG usually signals stronger risk appetite and credit conditions.",
-        "unit": "price",
-        "trend_type": "roc",
-        "current": 79.79,
-        "trend_21d": 1.1957,
-        "trend_126d": 1.7829,
-        "z_21d": 0.8783,
-        "z_126d": -0.2616,
-        "z_change_7d": 0.7889,
-        "z_change_30d": 1.8602,
-        "contribution_7d": 0.07889
-      },
-      {
-        "key": "VIX_INV",
-        "label": "VIX inverted",
-        "group": "Vol/rates",
-        "source": "VIX, inverted",
-        "explanation": "Equity volatility, inverted so lower volatility is positive for risk appetite.",
-        "unit": "index",
-        "trend_type": "change",
-        "current": -14.63,
-        "trend_21d": 3.95,
-        "trend_126d": 4.6,
-        "z_21d": 0.6549,
-        "z_126d": 0.5622,
-        "z_change_7d": 0.0182,
-        "z_change_30d": 1.0877,
-        "contribution_7d": 0.00182
+        "current": 1.9852,
+        "trend_21d": 8.5637,
+        "trend_126d": 19.7294,
+        "z_21d": 1.043,
+        "z_126d": 0.5487,
+        "z_change_7d": 0.6001,
+        "z_change_30d": 2.2174,
+        "contribution_7d": 0.06001
       },
       {
         "key": "WEI",
@@ -136,13 +102,30 @@
         "unit": "index",
         "trend_type": "change",
         "current": 2.7,
-        "trend_21d": -0.17,
-        "trend_126d": 0.01,
-        "z_21d": -0.5484,
-        "z_126d": -0.1699,
-        "z_change_7d": 0.0,
-        "z_change_30d": -1.4904,
-        "contribution_7d": 0.0
+        "trend_21d": 0.28,
+        "trend_126d": -0.03,
+        "z_21d": 0.812,
+        "z_126d": -0.2643,
+        "z_change_7d": 1.3604,
+        "z_change_30d": 3.0493,
+        "contribution_7d": 0.13604
+      },
+      {
+        "key": "HYG",
+        "label": "HYG",
+        "group": "Credit/risk appetite",
+        "source": "HYG high-yield ETF",
+        "explanation": "High-yield bond ETF; rising HYG usually signals stronger risk appetite and credit conditions.",
+        "unit": "price",
+        "trend_type": "roc",
+        "current": 79.71,
+        "trend_21d": 1.0943,
+        "trend_126d": 1.6808,
+        "z_21d": 0.7686,
+        "z_126d": -0.3266,
+        "z_change_7d": 0.8919,
+        "z_change_30d": 1.7482,
+        "contribution_7d": 0.08919
       },
       {
         "key": "BDI_SA",
@@ -152,14 +135,31 @@
         "explanation": "Dry-bulk shipping proxy; rising values can indicate stronger real-economy trade and commodity demand.",
         "unit": "pct",
         "trend_type": "change",
-        "current": 0.2376,
-        "trend_21d": 0.0768,
-        "trend_126d": 0.0648,
-        "z_21d": 0.4647,
-        "z_126d": -0.3095,
-        "z_change_7d": 0.4135,
-        "z_change_30d": 0.3763,
-        "contribution_7d": 0.04135
+        "current": 0.273,
+        "trend_21d": 0.1121,
+        "trend_126d": 0.1002,
+        "z_21d": 0.7321,
+        "z_126d": -0.1654,
+        "z_change_7d": 0.0788,
+        "z_change_30d": 0.6418,
+        "contribution_7d": 0.00788
+      },
+      {
+        "key": "VIX_INV",
+        "label": "VIX inverted",
+        "group": "Vol/rates",
+        "source": "VIX, inverted",
+        "explanation": "Equity volatility, inverted so lower volatility is positive for risk appetite.",
+        "unit": "index",
+        "trend_type": "change",
+        "current": -14.25,
+        "trend_21d": 4.33,
+        "trend_126d": 4.98,
+        "z_21d": 0.72,
+        "z_126d": 0.606,
+        "z_change_7d": 0.2012,
+        "z_change_30d": 1.1558,
+        "contribution_7d": 0.02012
       },
       {
         "key": "COPPER",
@@ -172,11 +172,11 @@
         "current": 6.5925,
         "trend_21d": 4.3117,
         "trend_126d": 12.2988,
-        "z_21d": 0.4076,
-        "z_126d": 0.2611,
-        "z_change_7d": -0.1722,
-        "z_change_30d": 0.1618,
-        "contribution_7d": -0.01722
+        "z_21d": 0.4093,
+        "z_126d": 0.2644,
+        "z_change_7d": -0.0413,
+        "z_change_30d": 0.1644,
+        "contribution_7d": -0.00413
       },
       {
         "key": "BAML_INV",
@@ -189,26 +189,26 @@
         "current": -2.71,
         "trend_21d": 0.08,
         "trend_126d": 0.23,
-        "z_21d": 0.2043,
-        "z_126d": 0.3982,
-        "z_change_7d": 0.1559,
-        "z_change_30d": 0.374,
-        "contribution_7d": 0.01559
+        "z_21d": 0.2011,
+        "z_126d": 0.3952,
+        "z_change_7d": 0.2843,
+        "z_change_30d": 0.3729,
+        "contribution_7d": 0.02843
       }
     ],
     "brief": [
-      "Growth Impulses improved over the latest week, led by HYG (+0.08 contribution points).",
-      "At +0.73, GII is currently supporting MMI.",
-      "Support currently comes from XLI/XLU (+1.61z) and Yield curve (+1.41z).",
-      "The main drag is WEI (-0.55z).",
-      "Input breadth is broadly constructive: 9 of 10 inputs are positive and 1 input is negative.",
-      "The next read improves if WEI stops acting as a drag and more inputs join the positive side; it weakens if XLI/XLU rolls over."
+      "Growth Impulses improved over the latest week, led by WEI (+0.14 contribution points).",
+      "At +0.87, GII is currently supporting MMI.",
+      "Support currently comes from XLI/XLU (+1.54z) and Yield curve (+1.40z).",
+      "The main drag is none.",
+      "Input breadth is broadly constructive: 10 of 10 inputs are positive and 0 inputs are negative.",
+      "The next read improves if HY spread inverted stops acting as a drag and more inputs join the positive side; it weakens if XLI/XLU rolls over."
     ]
   },
   "sector_breadth_drilldown": {
     "intro": "Sector Breadth asks whether cyclical equity participation is broadening or narrowing.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative Breadth signals rise first; 7-day contribution is still proxied as each input's 7-day z-score change divided by the 7 sector breadth components.",
-    "score": 0.9623,
+    "score": 0.9024,
     "supportive_count": 6,
     "drag_count": 1,
     "rows": [
@@ -219,24 +219,11 @@
         "source": "iShares Russell 2000 ETF",
         "explanation": "Small caps reflect domestic cyclical participation and financing sensitivity.",
         "unit": "price",
-        "current": 303.5,
-        "z_21d": 1.6128,
-        "z_change_7d": 0.1541,
-        "z_change_30d": 1.3103,
-        "contribution_7d": 0.022014
-      },
-      {
-        "key": "IBB",
-        "label": "IBB",
-        "group": "Biotech",
-        "source": "iShares Biotechnology ETF",
-        "explanation": "Biotech adds speculative growth participation outside mega-cap technology.",
-        "unit": "price",
-        "current": 198.94,
-        "z_21d": 1.4519,
-        "z_change_7d": -0.1004,
-        "z_change_30d": 0.3892,
-        "contribution_7d": -0.014343
+        "current": 305.09,
+        "z_21d": 1.8199,
+        "z_change_7d": 0.6178,
+        "z_change_30d": 1.5347,
+        "contribution_7d": 0.088257
       },
       {
         "key": "KBE",
@@ -245,11 +232,24 @@
         "source": "SPDR Bank ETF",
         "explanation": "Banks capture credit-cycle health, yield-curve sensitivity, and domestic risk appetite.",
         "unit": "price",
-        "current": 71.41,
-        "z_21d": 1.4509,
-        "z_change_7d": 0.3604,
-        "z_change_30d": 0.0662,
-        "contribution_7d": 0.051486
+        "current": 71.67,
+        "z_21d": 1.5126,
+        "z_change_7d": 0.4542,
+        "z_change_30d": 0.1612,
+        "contribution_7d": 0.064886
+      },
+      {
+        "key": "IBB",
+        "label": "IBB",
+        "group": "Biotech",
+        "source": "iShares Biotechnology ETF",
+        "explanation": "Biotech adds speculative growth participation outside mega-cap technology.",
+        "unit": "price",
+        "current": 198.26,
+        "z_21d": 1.3635,
+        "z_change_7d": -0.3491,
+        "z_change_30d": 0.3239,
+        "contribution_7d": -0.049871
       },
       {
         "key": "IYT",
@@ -258,11 +258,11 @@
         "source": "iShares Transportation ETF",
         "explanation": "Transports track economically sensitive shipping, logistics, and travel activity.",
         "unit": "price",
-        "current": 88.14,
-        "z_21d": 0.9837,
-        "z_change_7d": 0.3008,
-        "z_change_30d": -0.1742,
-        "contribution_7d": 0.042971
+        "current": 87.44,
+        "z_21d": 0.6821,
+        "z_change_7d": 0.1326,
+        "z_change_30d": -0.4499,
+        "contribution_7d": 0.018943
       },
       {
         "key": "XRT",
@@ -271,11 +271,11 @@
         "source": "SPDR Retail ETF",
         "explanation": "Retail reflects consumer-facing cyclical participation beyond defensive staples.",
         "unit": "price",
-        "current": 89.29,
-        "z_21d": 0.7938,
-        "z_change_7d": -0.527,
-        "z_change_30d": 0.1871,
-        "contribution_7d": -0.075286
+        "current": 88.95,
+        "z_21d": 0.6737,
+        "z_change_7d": -0.5569,
+        "z_change_30d": 0.0736,
+        "contribution_7d": -0.079557
       },
       {
         "key": "XHB",
@@ -284,11 +284,11 @@
         "source": "SPDR Homebuilders ETF",
         "explanation": "Homebuilders are rate-sensitive cyclicals and often react early to financial conditions.",
         "unit": "price",
-        "current": 109.53,
-        "z_21d": 0.5017,
-        "z_change_7d": -0.3316,
-        "z_change_30d": 0.0137,
-        "contribution_7d": -0.047371
+        "current": 109.02,
+        "z_21d": 0.3734,
+        "z_change_7d": 0.065,
+        "z_change_30d": -0.1143,
+        "contribution_7d": 0.009286
       },
       {
         "key": "SMH",
@@ -297,18 +297,18 @@
         "source": "VanEck Semiconductor ETF",
         "explanation": "Semiconductors are a high-beta cyclical leadership group; strength broadens risk appetite.",
         "unit": "price",
-        "current": 589.12,
-        "z_21d": -0.0586,
-        "z_change_7d": 0.1637,
-        "z_change_30d": 0.5351,
-        "contribution_7d": 0.023386
+        "current": 587.82,
+        "z_21d": -0.1087,
+        "z_change_7d": 0.5136,
+        "z_change_30d": 0.5121,
+        "contribution_7d": 0.073371
       }
     ],
     "brief": [
-      "Sector Breadth deteriorated over the latest week, led by XRT (-0.08 contribution points).",
-      "At +0.96, Breadth is currently supporting MMI.",
-      "Support currently comes from IWM (+1.61z) and IBB (+1.45z).",
-      "The main drag is SMH (-0.06z).",
+      "Sector Breadth improved over the latest week, led by IWM (+0.09 contribution points).",
+      "At +0.90, Breadth is currently supporting MMI.",
+      "Support currently comes from IWM (+1.82z) and KBE (+1.51z).",
+      "The main drag is SMH (-0.11z).",
       "Input breadth is broadly constructive: 6 of 7 inputs are positive and 1 input is negative.",
       "The next read improves if SMH stops acting as a drag and more inputs join the positive side; it weakens if IWM rolls over."
     ]
@@ -316,7 +316,7 @@
   "financial_conditions_drilldown": {
     "intro": "Financial Conditions asks whether volatility and credit stress are loosening or tightening.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative FinCon signals rise first; 7-day contribution is still proxied as each input's 7-day z-score change divided by the 3 financial conditions components.",
-    "score": 0.6481,
+    "score": 0.6799,
     "supportive_count": 3,
     "drag_count": 0,
     "rows": [
@@ -327,11 +327,11 @@
         "source": "CBOE Volatility Index",
         "explanation": "S&P 500 implied volatility. The z-score is inverted, so falling VIX loosens financial conditions and supports MMI.",
         "unit": "index",
-        "current": 14.63,
-        "z_21d": 1.0338,
-        "z_change_7d": 0.0603,
-        "z_change_30d": 0.9886,
-        "contribution_7d": 0.0201
+        "current": 14.25,
+        "z_21d": 1.1324,
+        "z_change_7d": 0.3129,
+        "z_change_30d": 1.0885,
+        "contribution_7d": 0.1043
       },
       {
         "key": "BAMLH0A0HYM2",
@@ -341,10 +341,10 @@
         "explanation": "High-yield option-adjusted spread. The z-score is inverted, so tighter credit spreads read as looser conditions.",
         "unit": "spread %",
         "current": 2.71,
-        "z_21d": 0.8708,
-        "z_change_7d": -0.0876,
-        "z_change_30d": 0.3587,
-        "contribution_7d": -0.0292
+        "z_21d": 0.8662,
+        "z_change_7d": -0.0852,
+        "z_change_30d": 0.3595,
+        "contribution_7d": -0.0284
       },
       {
         "key": "^MOVE",
@@ -354,45 +354,45 @@
         "explanation": "Treasury-market implied volatility. The z-score is inverted, so calmer rate volatility is positive for financial conditions.",
         "unit": "index",
         "current": 70.88,
-        "z_21d": 0.0397,
-        "z_change_7d": 0.0051,
-        "z_change_30d": -0.027,
-        "contribution_7d": 0.0017
+        "z_21d": 0.0411,
+        "z_change_7d": 0.0066,
+        "z_change_30d": -0.0225,
+        "contribution_7d": 0.0022
       }
     ],
     "brief": [
-      "Financial Conditions deteriorated over the latest week, led by HY spread (-0.03 contribution points).",
-      "At +0.65, FinCon is currently supporting MMI.",
-      "Support currently comes from VIX (+1.03z) and HY spread (+0.87z).",
+      "Financial Conditions improved over the latest week, led by VIX (+0.10 contribution points).",
+      "At +0.68, FinCon is currently supporting MMI.",
+      "Support currently comes from VIX (+1.13z) and HY spread (+0.87z).",
       "The main drag is none.",
       "Input breadth is broadly constructive: 3 of 3 inputs are positive and 0 inputs are negative.",
       "The next read improves if MOVE stops acting as a drag and more inputs join the positive side; it weakens if VIX rolls over."
     ]
   },
   "mrmi_combined": {
-    "value": 0.5293757951005769,
+    "value": 0.5619746516309734,
     "state": "RISK-ON",
     "legacy_state": "LONG",
     "exposure": 1.0,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": 0.7793757951005768,
-    "stress_intensity": 0.0,
-    "stress_score": 0.0,
-    "growth_weakness": 0.0,
+    "momentum": 0.816960069460018,
+    "stress_intensity": 0.009970835658089434,
+    "stress_score": 0.09970835658089434,
+    "growth_weakness": 0.13305481935580865,
     "inflation_pressure_raw": 0.0,
     "stress_score_bucket": "calm",
-    "macro_buffer": 0.5,
+    "macro_buffer": 0.4950145821709553,
     "buffer_size": 0.5,
     "threshold": 0.75
   },
   "macro": {
-    "real_economy_score": 0.04381476809011342,
+    "real_economy_score": -0.13305481935580865,
     "real_economy_components": {
-      "pce": -1.7411107028826642,
-      "labor_inv": 2.269082718263282,
-      "income": -2.1398782019900104,
-      "gdpnow": 1.7871652589698466
+      "pce": -1.7381768647669085,
+      "labor_inv": 2.265754732544335,
+      "income": -2.1332610208577876,
+      "gdpnow": 1.0734638756571266
     },
     "inflation_dir_pp": 0.0,
     "core_cpi_yoy_pct": 2.5,
@@ -400,32 +400,32 @@
       "pce_yoy": 1.743814700104851,
       "sahm_rule": 0.0,
       "income_yoy": -0.480198328192305,
-      "gdpnow": 5.8334
+      "gdpnow": 4.312
     }
   },
   "underliers": {
-    "^GSPC": 7798.990234375,
-    "IWM": 303.5,
-    "BTC-USD": 63318.87109375,
-    "^VIX": 14.630000114440918,
+    "^GSPC": 7785.759765625,
+    "IWM": 305.0899963378906,
+    "BTC-USD": 63008.98828125,
+    "^VIX": 14.25,
     "^MOVE": 70.87999725341797,
-    "^TNX": 4.640999794006348,
-    "HYG": 79.79000091552734,
+    "^TNX": 4.696000099182129,
+    "HYG": 79.70999908447266,
     "HG=F": 6.59250020980835,
     "GC=F": 4363.60009765625,
-    "DBC": 29.780000686645508,
-    "DGS10": 4.68,
-    "DGS2": 4.2,
+    "DBC": 30.0,
+    "DGS10": 4.63,
+    "DGS2": 4.15,
     "DGS3MO": 3.87,
-    "DFII10": 2.42,
+    "DFII10": 2.39,
     "BAMLH0A0HYM2": 2.71,
-    "T5YIE": 2.21,
-    "T10YIE": 2.24,
+    "T5YIE": 2.24,
+    "T10YIE": 2.27,
     "ICSA": 209000.0,
     "CCSA": 1777000.0,
     "DTWEXBGS": 119.0649,
     "WALCL": 6759955.0,
     "WTREGEN": 963950.0,
-    "RRPONTSYD": 0.45
+    "RRPONTSYD": 0.25
   }
 }
