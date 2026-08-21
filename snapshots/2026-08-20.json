@@ -1,14 +1,14 @@
 {
   "date": "2026-08-20",
-  "build_time_utc": "2026-08-20 04:02 UTC",
+  "build_time_utc": "2026-08-20 04:06 UTC",
   "mrmi": {
-    "composite": 0.5395054267741926,
+    "composite": 0.5398680259511976,
     "state": "green"
   },
   "components": {
-    "gii_fast": 0.4695331331475868,
+    "gii_fast": 0.4706209306779078,
     "fincon": 0.5381200435384592,
-    "breadth": 0.6108631036365315
+    "breadth": 0.610863103637226
   },
   "mrci": {
     "composite": 0.15759759570889492,
@@ -21,7 +21,7 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": 0.4695,
+    "score": 0.4706,
     "supportive_count": 9,
     "drag_count": 1,
     "rows": [
@@ -169,14 +169,14 @@
         "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
         "unit": "price",
         "trend_type": "roc",
-        "current": 6.4825,
-        "trend_21d": 0.5897,
-        "trend_126d": 6.8573,
-        "z_21d": -0.1107,
-        "z_126d": -0.2791,
-        "z_change_7d": -0.5355,
-        "z_change_30d": -0.4015,
-        "contribution_7d": -0.05355
+        "current": 6.4875,
+        "trend_21d": 0.6672,
+        "trend_126d": 6.9398,
+        "z_21d": -0.0999,
+        "z_126d": -0.2707,
+        "z_change_7d": -0.5247,
+        "z_change_30d": -0.3906,
+        "contribution_7d": -0.05247
       },
       {
         "key": "BDI_SA",
@@ -200,7 +200,7 @@
       "Growth Impulses deteriorated over the latest week, led by Yield curve (-0.10 contribution points).",
       "At +0.47, GII is currently supporting MMI.",
       "Support currently comes from WEI (+0.80z) and Yield curve (+0.76z).",
-      "The main drag is Copper (-0.11z).",
+      "The main drag is Copper (-0.10z).",
       "Input breadth is broadly constructive: 9 of 10 inputs are positive and 1 input is negative.",
       "The next read improves if Copper stops acting as a drag and more inputs join the positive side; it weakens if WEI rolls over."
     ]
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": 0.2835361562866181,
+    "value": 0.2838987554636232,
     "state": "RISK-ON",
     "legacy_state": "LONG",
     "exposure": 1.0,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": 0.5395054267741926,
+    "momentum": 0.5398680259511976,
     "stress_intensity": 0.011938540975148898,
     "stress_score": 0.11938540975148898,
     "growth_weakness": 0.15931266618877696,
@@ -406,13 +406,13 @@
   "underliers": {
     "^GSPC": 7707.97998046875,
     "IWM": 301.7200012207031,
-    "BTC-USD": 69114.09375,
+    "BTC-USD": 69213.7265625,
     "^VIX": 14.890000343322754,
     "^MOVE": 71.26000213623047,
     "^TNX": 4.6529998779296875,
     "HYG": 79.70999908447266,
-    "HG=F": 6.482500076293945,
-    "GC=F": 4366.0,
+    "HG=F": 6.487500190734863,
+    "GC=F": 4489.39990234375,
     "DBC": 30.760000228881836,
     "DGS10": 4.71,
     "DGS2": 4.19,
