@@ -1,14 +1,14 @@
 {
   "date": "2026-08-21",
-  "build_time_utc": "2026-08-21 04:02 UTC",
+  "build_time_utc": "2026-08-21 04:06 UTC",
   "mrmi": {
-    "composite": 0.2325392393291084,
+    "composite": 0.2305373811319061,
     "state": "green"
   },
   "components": {
-    "gii_fast": 0.11499140345828188,
+    "gii_fast": 0.10898582886685271,
     "fincon": 0.4184897105621004,
-    "breadth": 0.1641366039669429
+    "breadth": 0.1641366039667652
   },
   "mrci": {
     "composite": 0.10178954850368296,
@@ -21,7 +21,7 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": 0.115,
+    "score": 0.109,
     "supportive_count": 6,
     "drag_count": 4,
     "rows": [
@@ -111,6 +111,23 @@
         "contribution_7d": -0.19561
       },
       {
+        "key": "COPPER",
+        "label": "Copper",
+        "group": "Growth/commodities",
+        "source": "HG=F copper futures",
+        "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
+        "unit": "price",
+        "trend_type": "roc",
+        "current": 6.46,
+        "trend_21d": 0.3729,
+        "trend_126d": 5.8409,
+        "z_21d": -0.1444,
+        "z_126d": -0.3834,
+        "z_change_7d": -0.571,
+        "z_change_30d": -0.3752,
+        "contribution_7d": -0.0571
+      },
+      {
         "key": "XLI_XLU",
         "label": "XLI/XLU",
         "group": "Credit/risk appetite",
@@ -126,23 +143,6 @@
         "z_change_7d": -1.4387,
         "z_change_30d": -0.0698,
         "contribution_7d": -0.14387
-      },
-      {
-        "key": "COPPER",
-        "label": "Copper",
-        "group": "Growth/commodities",
-        "source": "HG=F copper futures",
-        "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
-        "unit": "price",
-        "trend_type": "roc",
-        "current": 6.4875,
-        "trend_21d": 0.8002,
-        "trend_126d": 6.2915,
-        "z_21d": -0.0844,
-        "z_126d": -0.3372,
-        "z_change_7d": -0.5109,
-        "z_change_30d": -0.3151,
-        "contribution_7d": -0.05109
       },
       {
         "key": "XLY_XLP",
@@ -198,9 +198,9 @@
     ],
     "brief": [
       "Growth Impulses deteriorated over the latest week, led by Yield curve (-0.20 contribution points).",
-      "At +0.12, GII is currently supporting MMI.",
+      "At +0.11, GII is currently supporting MMI.",
       "Support currently comes from SPHB/SPLV (+0.50z) and WEI (+0.37z).",
-      "The main drag is Yield curve (-0.20z) and Copper (-0.08z).",
+      "The main drag is Yield curve (-0.20z) and Copper (-0.14z).",
       "Input breadth is mixed: 6 of 10 inputs are positive and 4 inputs are negative.",
       "The next read improves if Yield curve stops acting as a drag and more inputs join the positive side; it weakens if SPHB/SPLV rolls over."
     ]
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": -0.023361457249557516,
+    "value": -0.025363315446759738,
     "state": "CAUTION",
     "legacy_state": "LONG",
     "exposure": 0.75,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": 0.2325392393291084,
+    "momentum": 0.2305373811319061,
     "stress_intensity": 0.011801393157331697,
     "stress_score": 0.11801393157331697,
     "growth_weakness": 0.1574825108486971,
@@ -406,13 +406,13 @@
   "underliers": {
     "^GSPC": 7641.16015625,
     "IWM": 297.6700134277344,
-    "BTC-USD": 74545.09375,
+    "BTC-USD": 74701.6796875,
     "^VIX": 16.010000228881836,
     "^MOVE": 73.18000030517578,
     "^TNX": 4.696000099182129,
     "HYG": 79.55999755859375,
-    "HG=F": 6.487500190734863,
-    "GC=F": 4489.39990234375,
+    "HG=F": 6.460000038146973,
+    "GC=F": 4516.2998046875,
     "DBC": 31.110000610351562,
     "DGS10": 4.65,
     "DGS2": 4.19,
