@@ -1,14 +1,14 @@
 {
-  "date": "2026-08-30",
-  "build_time_utc": "2026-08-30 04:06 UTC",
+  "date": "2026-08-31",
+  "build_time_utc": "2026-08-31 04:03 UTC",
   "mrmi": {
-    "composite": 0.1951962496985132,
+    "composite": 0.18800996491024013,
     "state": "green"
   },
   "components": {
-    "gii_fast": -0.05196177743928121,
+    "gii_fast": -0.07352063180425897,
     "fincon": 0.8003056805453402,
-    "breadth": -0.1627551540105194
+    "breadth": -0.16275515401036086
   },
   "mrci": {
     "composite": 0.1934439670128084,
@@ -21,7 +21,7 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": -0.052,
+    "score": -0.0735,
     "supportive_count": 4,
     "drag_count": 6,
     "rows": [
@@ -128,6 +128,23 @@
         "contribution_7d": -0.04135
       },
       {
+        "key": "COPPER",
+        "label": "Copper",
+        "group": "Growth/commodities",
+        "source": "HG=F copper futures",
+        "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
+        "unit": "price",
+        "trend_type": "roc",
+        "current": 6.562,
+        "trend_21d": -0.1294,
+        "trend_126d": 8.94,
+        "z_21d": -0.2568,
+        "z_126d": -0.0711,
+        "z_change_7d": -0.2316,
+        "z_change_30d": -0.8334,
+        "contribution_7d": -0.02316
+      },
+      {
         "key": "BAML_INV",
         "label": "HY spread inverted",
         "group": "Credit/risk appetite",
@@ -162,23 +179,6 @@
         "contribution_7d": 0.00282
       },
       {
-        "key": "COPPER",
-        "label": "Copper",
-        "group": "Growth/commodities",
-        "source": "HG=F copper futures",
-        "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
-        "unit": "price",
-        "trend_type": "roc",
-        "current": 6.659,
-        "trend_21d": 1.3469,
-        "trend_126d": 10.5503,
-        "z_21d": -0.0412,
-        "z_126d": 0.0945,
-        "z_change_7d": -0.016,
-        "z_change_30d": -0.6178,
-        "contribution_7d": -0.0016
-      },
-      {
         "key": "VIX_INV",
         "label": "VIX inverted",
         "group": "Vol/rates",
@@ -198,7 +198,7 @@
     ],
     "brief": [
       "Growth Impulses improved over the latest week, led by BDRY/BDI proxy (+0.10 contribution points).",
-      "At -0.05, GII is currently weighing on MMI.",
+      "At -0.07, GII is currently weighing on MMI.",
       "Support currently comes from BDRY/BDI proxy (+1.24z) and WEI (+0.45z).",
       "The main drag is XLI/XLU (-0.89z) and XLY/XLP (-0.64z).",
       "Input breadth is mixed: 4 of 10 inputs are positive and 6 inputs are negative.",
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": -0.05491059584613622,
+    "value": -0.062096880634409324,
     "state": "CAUTION",
     "legacy_state": "LONG",
     "exposure": 0.75,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": 0.1951962496985132,
+    "momentum": 0.18800996491024013,
     "stress_intensity": 0.00021369108929885302,
     "stress_score": 0.00213691089298853,
     "growth_weakness": 0.0028515793720396143,
@@ -406,13 +406,13 @@
   "underliers": {
     "^GSPC": 7711.759765625,
     "IWM": 295.75,
-    "BTC-USD": 78206.421875,
+    "BTC-USD": 77671.328125,
     "^VIX": 14.430000305175781,
     "^MOVE": 70.97000122070312,
     "^TNX": 4.71999979019165,
     "HYG": 79.73999786376953,
-    "HG=F": 6.658999919891357,
-    "GC=F": 4529.89990234375,
+    "HG=F": 6.561999797821045,
+    "GC=F": 4478.10009765625,
     "DBC": 30.790000915527344,
     "DGS10": 4.67,
     "DGS2": 4.2,
