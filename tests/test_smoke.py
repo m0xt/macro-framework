@@ -104,6 +104,28 @@ def test_weekly_briefs_dry_run_without_claude(tmp_path: Path, monkeypatch: pytes
     assert weekly_briefs.generate_all_briefs(force=True) is False
 
 
+def test_weekly_briefs_previous_context_skips_same_week_reruns(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    weekly_briefs = _import_module("macro_framework.weekly_briefs")
+    briefs_dir = tmp_path / "briefs"
+    monkeypatch.setattr(weekly_briefs, "BRIEFS_DIR", briefs_dir)
+    for day, text in [
+        ("2026-09-22", "last weekly read"),
+        ("2026-09-27", "same-week rerun"),
+        ("2026-09-28", "current read"),
+    ]:
+        d = briefs_dir / day
+        d.mkdir(parents=True)
+        (d / "top.md").write_text(text)
+
+    previous_date, previous = weekly_briefs._latest_existing_brief(
+        "top.md",
+        before=weekly_briefs._previous_week_brief_cutoff("2026-09-28"),
+    )
+
+    assert previous_date == "2026-09-22"
+    assert previous == "last weekly read"
+
+
 def test_weekly_briefs_context_uses_dashboard_metric_precision() -> None:
     weekly_briefs = _import_module("macro_framework.weekly_briefs")
     latest = {
@@ -130,26 +152,32 @@ def test_weekly_briefs_context_uses_dashboard_metric_precision() -> None:
     prior = {
         "mrmi": {"composite": 0.0049214977146659},
         "components": {"gii_fast": -0.109, "fincon": 0.003, "breadth": 0.111},
-        "mrmi_combined": {"stress_score": 0.8684203415306333},
+        "mrmi_combined": {
+            "value": -0.3039995193618658,
+            "momentum": 0.0049214977146659,
+            "macro_buffer": 0.0680789829234683,
+            "stress_score": 0.8684203415306333,
+        },
         "macro": {"real_economy_score": -0.503, "inflation_dir_pp": 0.002},
     }
 
-    market_context = weekly_briefs._market_context(latest, prior, prior)
+    market_context = weekly_briefs._market_context(latest, prior)
     economy_context = weekly_briefs._economy_context(latest, prior)
-    top_context = weekly_briefs._top_context(latest)
+    top_context = weekly_briefs._top_context(latest, prior)
 
-    assert "MMI +0.34 (green) (1d +0.33)" in market_context
-    assert "GII: +0.02" in market_context
+    assert "Market momentum +0.34 (green) (7d +0.33)" in market_context
+    assert "(1d" not in market_context
+    assert "Growth impulses: +0.02" in market_context
     assert "Breadth: +0.74" in market_context
-    assert "FinCon: +0.25" in market_context
+    assert "Financial conditions: +0.25" in market_context
     assert "Stress score (0-10): +1.24 (7d +0.37)" in economy_context
-    assert "Macro buffer currently feeding MRMI: +0.44" in economy_context
+    assert "Macro buffer currently feeding the headline posture: +0.44" in economy_context
     assert "Real Economy Score (z): -1.03 (7d -0.53)" in economy_context
     assert "Inflation Direction (Δ6m, pp): +0.04 (7d +0.04)" in economy_context
     assert "Real PCE YoY: +0.22" in economy_context
     assert "Latest Core CPI YoY level: 2.79%" in economy_context
-    assert "MRMI +0.03 (CAUTION, 75% exposure)" in top_context
-    assert "MMI (momentum): +0.34" in top_context
+    assert "Headline allocation posture +0.03 (CAUTION, 75% exposure) (7d" in top_context
+    assert "Market momentum: +0.34 (7d" in top_context
     combined_context = "\n".join([market_context, economy_context, top_context])
     assert "+0.338" not in combined_context
     assert "+0.026" not in combined_context
@@ -242,13 +270,13 @@ def test_stress_score_bucket_boundaries_match_supabase_constraint() -> None:
 
 def test_mrmi_posture_boundaries_match_investor_grade_zone() -> None:
     macro_pipeline = _import_module("macro_framework.macro_pipeline")
-    assert macro_pipeline.mrmi_posture(-0.501) == "CASH"
+    assert macro_pipeline.mrmi_posture(-0.501) == "RISK-OFF"
     assert macro_pipeline.mrmi_exposure(-0.501) == 0.0
     assert macro_pipeline.mrmi_posture(-0.50) == "CAUTION"
     assert macro_pipeline.mrmi_exposure(-0.50) == 0.75
     assert macro_pipeline.mrmi_posture(0.25) == "CAUTION"
     assert macro_pipeline.mrmi_exposure(0.25) == 0.75
-    assert macro_pipeline.mrmi_posture(0.251) == "LONG"
+    assert macro_pipeline.mrmi_posture(0.251) == "RISK-ON"
     assert macro_pipeline.mrmi_exposure(0.251) == 1.0
 
 

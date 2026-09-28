@@ -48,28 +48,31 @@ relevant.
 Writing standard: make the brief easier to read without making it shallow.
 Use short sentences where the logic is dense. Prefer everyday phrasing such as
 "stocks are getting broader support" over jargon like "cyclical participation
-is confirming the impulse." Use acronyms only when useful, and anchor them in
-simple meaning: MRMI is the dashboard's headline posture, and MMI is market
-momentum. Explain technical phrases in context if you need them.
+is confirming the impulse." Do not use abbreviations or ticker-style shorthand
+in narrative text. Write names out in plain English: "headline allocation
+posture" instead of "MRMI," "market momentum" or "Market Momentum Index"
+instead of "MMI," and "growth impulses" or "Growth Impulses Index" instead of
+"GII." Explain technical phrases in context if you need them.
 
-Framework context: MRMI is the headline allocation posture index: LONG
+Framework context: the headline allocation posture index maps to LONG
 (100% exposure), CAUTION (75% exposure), or CASH (0% exposure). It combines
-MMI (market momentum from credit, market breadth, and volatility) with a
-macro stress buffer drawn from growth and inflation conditions, then maps the
-MRMI value to CASH below -0.50, CAUTION from -0.50 to +0.25, and LONG above
-+0.25. Discuss growth, inflation, and stress in plain terms — do NOT use
-season metaphors (no "Spring/Summer/Fall/Winter") and do NOT use the term
-"MRCI". Refer to the growth axis simply as "growth".
+market momentum from credit, market breadth, and volatility with a macro stress
+buffer drawn from growth and inflation conditions, then maps the headline value
+to CASH below -0.50, CAUTION from -0.50 to +0.25, and LONG above +0.25.
+Discuss growth, inflation, and stress in plain terms — do NOT use season
+metaphors (no "Spring/Summer/Fall/Winter") and do NOT use the term "MRCI".
+Refer to the growth axis simply as "growth".
 
 Numeric convention: quote dashboard index/metric readings exactly as shown
-in Current readings — two decimals for MRMI, MMI, component indexes, stress,
-macro buffer, and deltas, preserving any leading plus sign shown.\
+in Current readings — two decimals for headline allocation posture, market
+momentum, component indexes, stress, macro buffer, and deltas, preserving any
+leading plus sign shown.\
 """
 
 SYSTEM_MARKET = SYSTEM_BASE + """
 
-Your beat for this brief: the MARKET PILLAR (MMI), the dashboard's market
-momentum read. Its three drivers are Growth Impulses (credit spreads, sector
+Your beat for this brief: the MARKET PILLAR, the dashboard's market
+momentum read. Its three drivers are growth impulses (credit spreads, sector
 rotation, copper, volatility, yield curve, and shipping), Breadth (whether
 the rally is supported by more than a few leaders), and Financial Conditions
 (equity volatility, bond volatility, and credit spreads). Discuss divergences
@@ -89,7 +92,7 @@ when both happen together. Reading guide:
 The two underlying axes feeding the stress score are:
   · Real Economy Score (z) — whether spending, jobs, income, and GDPNow look healthy or weak
   · Inflation Direction (Δ Core CPI YoY over 6m, in pp) — whether core inflation is speeding up or cooling
-The same normalized stress score now drives the MRMI macro-buffer erosion.
+The same normalized stress score now drives the headline posture macro-buffer erosion.
 
 Lead with where the 0–10 stress score sits and what it implies, then
 explain what growth and inflation are doing to drive that reading, then call
@@ -99,7 +102,7 @@ plain-spoken. Length: 5–7 sentences."""
 SYSTEM_TOP = SYSTEM_BASE + """
 
 This is the headline brief — a synthesis that connects both pillars to
-where MRMI is and what it's signaling. You will receive the latest
+where the headline allocation posture is and what it's signaling. You will receive the latest
 framework snapshot AND the pillar briefs already written by your colleagues
 this week. Use them as your foundation rather than re-deriving the
 underlying analysis. Connect the cross-pillar story: where do market and
@@ -114,7 +117,9 @@ PILLAR_BRIEF_USER_TEMPLATE = (
     "=== PREVIOUS {pillar_label} BRIEF ({previous_date}) ===\n{previous_brief}\n\n"
     "Search the web for the most material news from the last 5–7 days affecting "
     "{beat}, then write the brief connecting our framework signals to what is "
-    "actually happening. Use the previous brief as continuity: avoid repeating "
+    "actually happening. Use the displayed 7d changes as the comparison baseline; "
+    "do not compare today's values to yesterday's values. Use the previous weekly "
+    "brief as continuity: avoid repeating "
     "the same setup unless it is still the key point, explicitly react to its "
     "open questions or watch-points, and say what changed, resolved, or failed "
     "to change since then. Explain the 'why' behind the moves in plain English. "
@@ -130,7 +135,9 @@ TOP_BRIEF_USER_TEMPLATE = (
     "=== PREVIOUS HEADLINE BRIEF ({previous_date}) ===\n{previous_brief}\n\n"
     "=== THIS WEEK'S MARKET PILLAR BRIEF ===\n{market_brief}\n\n"
     "=== THIS WEEK'S ECONOMY PILLAR BRIEF ===\n{economy_brief}\n\n"
-    "Synthesize a headline brief that connects both pillars to the MRMI read. "
+    "Synthesize a headline brief that connects both pillars to the headline allocation posture. "
+    "Use the displayed 7d changes as the comparison baseline; do not compare "
+    "today's values to yesterday's values. "
     "You may search the web for one or two pieces of cross-cutting context "
     "(e.g. a major event tying the two stories together) but rely primarily on "
     "the pillar briefs above — don't restate them, build on them. "
@@ -233,6 +240,21 @@ def _latest_existing_brief(filename: str, before: str | date | None = None) -> t
     return None, ""
 
 
+def _previous_week_brief_cutoff(today: str | date) -> date:
+    """Latest archive date allowed as continuity context for weekly briefs.
+
+    Briefs should compare against the last weekly read, not an accidental or
+    operational same-week rerun. A five-day exclusion window keeps Sunday/Monday
+    retries from becoming the "previous brief" while still allowing last week's
+    Monday/Tuesday archive on the next scheduled run.
+    """
+    if isinstance(today, str):
+        today_date = datetime.strptime(today, "%Y-%m-%d").date()
+    else:
+        today_date = today
+    return today_date - timedelta(days=5)
+
+
 # ── Tuesday-cadence freshness check ────────────────────────────────────────
 
 def _most_recent_tuesday(today: date) -> date:
@@ -253,14 +275,14 @@ def _is_stale(filename: str, today: date) -> bool:
 
 # ── pillar-specific context builders ───────────────────────────────────────
 
-def _market_context(latest: dict, prior_1d: dict | None, prior_7d: dict | None) -> str:
-    def diff(a, snap, *k, days):
-        if not snap:
+def _market_context(latest: dict, prior_7d: dict | None) -> str:
+    def diff7(a, *k):
+        if not prior_7d:
             return ""
-        b = _g(snap, *k)
+        b = _g(prior_7d, *k)
         if a is None or b is None:
             return ""
-        return f" ({days}d {_fmt(a-b)})"
+        return f" (7d {_fmt(a-b)})"
 
     mmi = _g(latest, "mrmi", "composite")
     state = (latest.get("mrmi") or {}).get("state", "?")
@@ -279,19 +301,15 @@ def _market_context(latest: dict, prior_1d: dict | None, prior_7d: dict | None) 
     lines = [
         f"Date: {latest.get('date', '?')}",
         "",
-        "=== MMI (Momentum Index) ===",
-        f"MMI {_fmt(mmi, '+.2f')} ({state})"
-            + diff(mmi, prior_1d, "mrmi", "composite", days=1)
-            + diff(mmi, prior_7d, "mrmi", "composite", days=7),
-        f"  GII: {_fmt(gii)}"
-            + diff(gii, prior_1d, "components", "gii_fast", days=1)
-            + diff(gii, prior_7d, "components", "gii_fast", days=7),
+        "=== MARKET MOMENTUM INDEX ===",
+        f"Market momentum {_fmt(mmi, '+.2f')} ({state})"
+            + diff7(mmi, "mrmi", "composite"),
+        f"  Growth impulses: {_fmt(gii)}"
+            + diff7(gii, "components", "gii_fast"),
         f"  Breadth: {_fmt(breadth)}"
-            + diff(breadth, prior_1d, "components", "breadth", days=1)
-            + diff(breadth, prior_7d, "components", "breadth", days=7),
-        f"  FinCon: {_fmt(fincon)}"
-            + diff(fincon, prior_1d, "components", "fincon", days=1)
-            + diff(fincon, prior_7d, "components", "fincon", days=7),
+            + diff7(breadth, "components", "breadth"),
+        f"  Financial conditions: {_fmt(fincon)}"
+            + diff7(fincon, "components", "fincon"),
         "",
         "=== MARKET LEVELS ===",
     ]
@@ -337,7 +355,7 @@ def _economy_context(latest: dict, prior_7d: dict | None) -> str:
         f"Stress score (0-10): {_fmt(stress_score)}" + stress_delta,
         f"  · Bucket: {stress_bucket or 'unknown'}",
         "  · Calm <3, Watch <5, Building <7, Elevated ≥7.",
-        "  · Macro buffer currently feeding MRMI: " + _fmt(macro_buffer)
+        "  · Macro buffer currently feeding the headline posture: " + _fmt(macro_buffer)
             + "  (0.5 = full strength tailwind; 0.0 = fully eroded)",
         "",
         "=== UNDERLYING AXES (collapsible 'Underlying components' on dashboard) ===",
@@ -368,8 +386,16 @@ def _economy_context(latest: dict, prior_7d: dict | None) -> str:
     return "\n".join(l for l in lines if l != "")
 
 
-def _top_context(latest: dict) -> str:
-    """Just the headline numbers — pillar briefs supply the analysis."""
+def _top_context(latest: dict, prior_7d: dict | None = None) -> str:
+    """Headline numbers and week-over-week deltas — pillar briefs supply the analysis."""
+    def diff7(a, *k):
+        if not prior_7d:
+            return ""
+        b = _g(prior_7d, *k)
+        if a is None or b is None:
+            return ""
+        return f" (7d {_fmt(a-b)})"
+
     mrmi_combined = latest.get("mrmi_combined") or {}
     mrmi_value = mrmi_combined.get("value")
     mrmi_state = mrmi_combined.get("state", "?")
@@ -382,10 +408,11 @@ def _top_context(latest: dict) -> str:
     return (
         f"Date: {latest.get('date', '?')}\n\n"
         f"=== HEADLINE ===\n"
-        f"MRMI {_fmt(mrmi_value, '+.2f')} ({mrmi_state}, {exposure_label})\n"
-        f"  MMI (momentum): {_fmt(momentum, '+.2f')}\n"
-        f"  Macro buffer: {_fmt(macro_buffer)}\n"
-        f"  Stress score: {_fmt(stress)}\n"
+        f"Headline allocation posture {_fmt(mrmi_value, '+.2f')} ({mrmi_state}, {exposure_label})"
+        f"{diff7(mrmi_value, 'mrmi_combined', 'value')}\n"
+        f"  Market momentum: {_fmt(momentum, '+.2f')}{diff7(momentum, 'mrmi_combined', 'momentum')}\n"
+        f"  Macro buffer: {_fmt(macro_buffer)}{diff7(macro_buffer, 'mrmi_combined', 'macro_buffer')}\n"
+        f"  Stress score: {_fmt(stress)}{diff7(stress, 'mrmi_combined', 'stress_score')}\n"
     )
 
 
@@ -486,15 +513,18 @@ def generate_pillar_brief(pillar: str, force: bool = False) -> bool:
     latest, prior_1d, prior_7d, today = snap_data
 
     if pillar == "market":
-        context = _market_context(latest, prior_1d, prior_7d)
-        beat = "MMI (market momentum) over the last week"
+        context = _market_context(latest, prior_7d)
+        beat = "market momentum over the last week"
         pillar_label = "MARKET PILLAR"
     else:
         context = _economy_context(latest, prior_7d)
         beat = "the economy pillar (real-economy strength + inflation direction) over the last week"
         pillar_label = "ECONOMY PILLAR"
 
-    previous_date, previous_brief = _latest_existing_brief(filename, before=today)
+    previous_date, previous_brief = _latest_existing_brief(
+        filename,
+        before=_previous_week_brief_cutoff(today),
+    )
     if not previous_brief:
         previous_date, previous_brief = "none", "(No previous brief available.)"
 
@@ -507,7 +537,7 @@ def generate_pillar_brief(pillar: str, force: bool = False) -> bool:
         beat=beat,
     )
 
-    body = _run_claude(system, prompt, label=f"{pillar.capitalize()} brief", timeout=240)
+    body = _run_claude(system, prompt, label=f"{pillar.capitalize()} brief", timeout=600)
     if not body:
         return False
     (_archive_dir_for(today) / filename).write_text(body + "\n")
@@ -528,25 +558,28 @@ def generate_top_brief(force: bool = False) -> bool:
     if snap_data is None:
         print("  Top brief: no snapshots — skipping.")
         return False
-    latest, _, _, today = snap_data
+    latest, _, prior_7d, today = snap_data
 
     archive = BRIEFS_DIR / today
     market_brief = _read_brief(archive / FILE_MARKET) or "(market pillar brief unavailable)"
     economy_brief = _read_brief(archive / FILE_ECONOMY) or "(economy pillar brief unavailable)"
-    previous_date, previous_brief = _latest_existing_brief(FILE_TOP, before=today)
+    previous_date, previous_brief = _latest_existing_brief(
+        FILE_TOP,
+        before=_previous_week_brief_cutoff(today),
+    )
     if not previous_brief:
         previous_date, previous_brief = "none", "(No previous headline brief available.)"
 
     prompt = TOP_BRIEF_USER_TEMPLATE.format(
         today=today,
-        top_context=_top_context(latest),
+        top_context=_top_context(latest, prior_7d),
         previous_date=previous_date,
         previous_brief=previous_brief,
         market_brief=market_brief,
         economy_brief=economy_brief,
     )
 
-    body = _run_claude(SYSTEM_TOP, prompt, label="Top brief", timeout=240)
+    body = _run_claude(SYSTEM_TOP, prompt, label="Top brief", timeout=600)
     if not body:
         return False
     (_archive_dir_for(today) / FILE_TOP).write_text(body + "\n")
