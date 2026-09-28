@@ -117,8 +117,9 @@ PILLAR_BRIEF_USER_TEMPLATE = (
     "=== PREVIOUS {pillar_label} BRIEF ({previous_date}) ===\n{previous_brief}\n\n"
     "Search the web for the most material news from the last 5–7 days affecting "
     "{beat}, then write the brief connecting our framework signals to what is "
-    "actually happening. Use the displayed 7d changes as the comparison baseline; "
-    "do not compare today's values to yesterday's values. Use the previous weekly "
+    "actually happening. Use the displayed comparison against the previous weekly "
+    "brief as the baseline; do not compare today's values to yesterday's values. "
+    "Use the previous weekly "
     "brief as continuity: avoid repeating "
     "the same setup unless it is still the key point, explicitly react to its "
     "open questions or watch-points, and say what changed, resolved, or failed "
@@ -136,8 +137,8 @@ TOP_BRIEF_USER_TEMPLATE = (
     "=== THIS WEEK'S MARKET PILLAR BRIEF ===\n{market_brief}\n\n"
     "=== THIS WEEK'S ECONOMY PILLAR BRIEF ===\n{economy_brief}\n\n"
     "Synthesize a headline brief that connects both pillars to the headline allocation posture. "
-    "Use the displayed 7d changes as the comparison baseline; do not compare "
-    "today's values to yesterday's values. "
+    "Use the displayed comparison against the previous weekly brief as the baseline; "
+    "do not compare today's values to yesterday's values. "
     "You may search the web for one or two pieces of cross-cutting context "
     "(e.g. a major event tying the two stories together) but rely primarily on "
     "the pillar briefs above — don't restate them, build on them. "
@@ -255,6 +256,14 @@ def _previous_week_brief_cutoff(today: str | date) -> date:
     return today_date - timedelta(days=5)
 
 
+def _load_snapshot_for_date(snapshot_date: str | date | None) -> dict | None:
+    if not snapshot_date:
+        return None
+    date_str = snapshot_date.isoformat() if isinstance(snapshot_date, date) else snapshot_date
+    path = SNAPSHOT_DIR / f"{date_str}.json"
+    return _load(path) if path.exists() else None
+
+
 # ── Tuesday-cadence freshness check ────────────────────────────────────────
 
 def _most_recent_tuesday(today: date) -> date:
@@ -275,14 +284,14 @@ def _is_stale(filename: str, today: date) -> bool:
 
 # ── pillar-specific context builders ───────────────────────────────────────
 
-def _market_context(latest: dict, prior_7d: dict | None) -> str:
-    def diff7(a, *k):
-        if not prior_7d:
+def _market_context(latest: dict, comparison: dict | None, comparison_label: str = "7d") -> str:
+    def diff(a, *k):
+        if not comparison:
             return ""
-        b = _g(prior_7d, *k)
+        b = _g(comparison, *k)
         if a is None or b is None:
             return ""
-        return f" (7d {_fmt(a-b)})"
+        return f" ({comparison_label} previous {_fmt(b)}; change {_fmt(a-b)})"
 
     mmi = _g(latest, "mrmi", "composite")
     state = (latest.get("mrmi") or {}).get("state", "?")
@@ -303,13 +312,13 @@ def _market_context(latest: dict, prior_7d: dict | None) -> str:
         "",
         "=== MARKET MOMENTUM INDEX ===",
         f"Market momentum {_fmt(mmi, '+.2f')} ({state})"
-            + diff7(mmi, "mrmi", "composite"),
+            + diff(mmi, "mrmi", "composite"),
         f"  Growth impulses: {_fmt(gii)}"
-            + diff7(gii, "components", "gii_fast"),
+            + diff(gii, "components", "gii_fast"),
         f"  Breadth: {_fmt(breadth)}"
-            + diff7(breadth, "components", "breadth"),
+            + diff(breadth, "components", "breadth"),
         f"  Financial conditions: {_fmt(fincon)}"
-            + diff7(fincon, "components", "fincon"),
+            + diff(fincon, "components", "fincon"),
         "",
         "=== MARKET LEVELS ===",
     ]
@@ -320,14 +329,14 @@ def _market_context(latest: dict, prior_7d: dict | None) -> str:
     return "\n".join(lines)
 
 
-def _economy_context(latest: dict, prior_7d: dict | None) -> str:
-    def diff7(a, *k):
-        if not prior_7d:
+def _economy_context(latest: dict, comparison: dict | None, comparison_label: str = "7d") -> str:
+    def diff(a, *k):
+        if not comparison:
             return ""
-        b = _g(prior_7d, *k)
+        b = _g(comparison, *k)
         if a is None or b is None:
             return ""
-        return f" (7d {_fmt(a-b)})"
+        return f" ({comparison_label} previous {_fmt(b)}; change {_fmt(a-b)})"
 
     # Fields driving the dashboard's economy pillar view
     re_score = _g(latest, "macro", "real_economy_score")
@@ -336,7 +345,7 @@ def _economy_context(latest: dict, prior_7d: dict | None) -> str:
     stress_score = _g(latest, "mrmi_combined", "stress_score")
     stress_bucket = _g(latest, "mrmi_combined", "stress_score_bucket")
     macro_buffer = _g(latest, "mrmi_combined", "macro_buffer")
-    stress_delta = diff7(stress_score, "mrmi_combined", "stress_score")
+    stress_delta = diff(stress_score, "mrmi_combined", "stress_score")
 
     # Real-economy sub-components (the four feeding the score)
     re_components = (latest.get("macro") or {}).get("real_economy_components") or {}
@@ -359,9 +368,9 @@ def _economy_context(latest: dict, prior_7d: dict | None) -> str:
             + "  (0.5 = full strength tailwind; 0.0 = fully eroded)",
         "",
         "=== UNDERLYING AXES (collapsible 'Underlying components' on dashboard) ===",
-        f"Real Economy Score (z): {_fmt(re_score)}" + diff7(re_score, "macro", "real_economy_score"),
+        f"Real Economy Score (z): {_fmt(re_score)}" + diff(re_score, "macro", "real_economy_score"),
         "  · Above 0 = healthy growth; below 0 = weakening",
-        f"Inflation Direction (Δ6m, pp): {_fmt(inf_dir)}" + diff7(inf_dir, "macro", "inflation_dir_pp"),
+        f"Inflation Direction (Δ6m, pp): {_fmt(inf_dir)}" + diff(inf_dir, "macro", "inflation_dir_pp"),
         "  · Above 0 = inflation accelerating; below 0 = decelerating",
         f"  · Latest Core CPI YoY level: {core_cpi:.2f}%" if isinstance(core_cpi, (int, float)) else "",
         "",
@@ -386,15 +395,15 @@ def _economy_context(latest: dict, prior_7d: dict | None) -> str:
     return "\n".join(l for l in lines if l != "")
 
 
-def _top_context(latest: dict, prior_7d: dict | None = None) -> str:
-    """Headline numbers and week-over-week deltas — pillar briefs supply the analysis."""
-    def diff7(a, *k):
-        if not prior_7d:
+def _top_context(latest: dict, comparison: dict | None = None, comparison_label: str = "7d") -> str:
+    """Headline numbers and comparison deltas — pillar briefs supply the analysis."""
+    def diff(a, *k):
+        if not comparison:
             return ""
-        b = _g(prior_7d, *k)
+        b = _g(comparison, *k)
         if a is None or b is None:
             return ""
-        return f" (7d {_fmt(a-b)})"
+        return f" ({comparison_label} previous {_fmt(b)}; change {_fmt(a-b)})"
 
     mrmi_combined = latest.get("mrmi_combined") or {}
     mrmi_value = mrmi_combined.get("value")
@@ -409,10 +418,10 @@ def _top_context(latest: dict, prior_7d: dict | None = None) -> str:
         f"Date: {latest.get('date', '?')}\n\n"
         f"=== HEADLINE ===\n"
         f"Headline allocation posture {_fmt(mrmi_value, '+.2f')} ({mrmi_state}, {exposure_label})"
-        f"{diff7(mrmi_value, 'mrmi_combined', 'value')}\n"
-        f"  Market momentum: {_fmt(momentum, '+.2f')}{diff7(momentum, 'mrmi_combined', 'momentum')}\n"
-        f"  Macro buffer: {_fmt(macro_buffer)}{diff7(macro_buffer, 'mrmi_combined', 'macro_buffer')}\n"
-        f"  Stress score: {_fmt(stress)}{diff7(stress, 'mrmi_combined', 'stress_score')}\n"
+        f"{diff(mrmi_value, 'mrmi_combined', 'value')}\n"
+        f"  Market momentum: {_fmt(momentum, '+.2f')}{diff(momentum, 'mrmi_combined', 'momentum')}\n"
+        f"  Macro buffer: {_fmt(macro_buffer)}{diff(macro_buffer, 'mrmi_combined', 'macro_buffer')}\n"
+        f"  Stress score: {_fmt(stress)}{diff(stress, 'mrmi_combined', 'stress_score')}\n"
     )
 
 
@@ -512,21 +521,23 @@ def generate_pillar_brief(pillar: str, force: bool = False) -> bool:
         return False
     latest, prior_1d, prior_7d, today = snap_data
 
-    if pillar == "market":
-        context = _market_context(latest, prior_7d)
-        beat = "market momentum over the last week"
-        pillar_label = "MARKET PILLAR"
-    else:
-        context = _economy_context(latest, prior_7d)
-        beat = "the economy pillar (real-economy strength + inflation direction) over the last week"
-        pillar_label = "ECONOMY PILLAR"
-
     previous_date, previous_brief = _latest_existing_brief(
         filename,
         before=_previous_week_brief_cutoff(today),
     )
     if not previous_brief:
         previous_date, previous_brief = "none", "(No previous brief available.)"
+    comparison = _load_snapshot_for_date(previous_date) or prior_7d
+    comparison_label = f"since {previous_date}" if previous_date != "none" else "7d"
+
+    if pillar == "market":
+        context = _market_context(latest, comparison, comparison_label)
+        beat = "market momentum over the last week"
+        pillar_label = "MARKET PILLAR"
+    else:
+        context = _economy_context(latest, comparison, comparison_label)
+        beat = "the economy pillar (real-economy strength + inflation direction) over the last week"
+        pillar_label = "ECONOMY PILLAR"
 
     prompt = PILLAR_BRIEF_USER_TEMPLATE.format(
         today=today,
@@ -570,9 +581,12 @@ def generate_top_brief(force: bool = False) -> bool:
     if not previous_brief:
         previous_date, previous_brief = "none", "(No previous headline brief available.)"
 
+    comparison = _load_snapshot_for_date(previous_date) or prior_7d
+    comparison_label = f"since {previous_date}" if previous_date != "none" else "7d"
+
     prompt = TOP_BRIEF_USER_TEMPLATE.format(
         today=today,
-        top_context=_top_context(latest, prior_7d),
+        top_context=_top_context(latest, comparison, comparison_label),
         previous_date=previous_date,
         previous_brief=previous_brief,
         market_brief=market_brief,

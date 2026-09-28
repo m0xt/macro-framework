@@ -161,23 +161,23 @@ def test_weekly_briefs_context_uses_dashboard_metric_precision() -> None:
         "macro": {"real_economy_score": -0.503, "inflation_dir_pp": 0.002},
     }
 
-    market_context = weekly_briefs._market_context(latest, prior)
-    economy_context = weekly_briefs._economy_context(latest, prior)
-    top_context = weekly_briefs._top_context(latest, prior)
+    market_context = weekly_briefs._market_context(latest, prior, "since 2026-06-01")
+    economy_context = weekly_briefs._economy_context(latest, prior, "since 2026-06-01")
+    top_context = weekly_briefs._top_context(latest, prior, "since 2026-06-01")
 
-    assert "Market momentum +0.34 (green) (7d +0.33)" in market_context
+    assert "Market momentum +0.34 (green) (since 2026-06-01 previous +0.00; change +0.33)" in market_context
     assert "(1d" not in market_context
     assert "Growth impulses: +0.02" in market_context
     assert "Breadth: +0.74" in market_context
     assert "Financial conditions: +0.25" in market_context
-    assert "Stress score (0-10): +1.24 (7d +0.37)" in economy_context
+    assert "Stress score (0-10): +1.24 (since 2026-06-01 previous +0.87; change +0.37)" in economy_context
     assert "Macro buffer currently feeding the headline posture: +0.44" in economy_context
-    assert "Real Economy Score (z): -1.03 (7d -0.53)" in economy_context
-    assert "Inflation Direction (Δ6m, pp): +0.04 (7d +0.04)" in economy_context
+    assert "Real Economy Score (z): -1.03 (since 2026-06-01 previous -0.50; change -0.53)" in economy_context
+    assert "Inflation Direction (Δ6m, pp): +0.04 (since 2026-06-01 previous +0.00; change +0.04)" in economy_context
     assert "Real PCE YoY: +0.22" in economy_context
     assert "Latest Core CPI YoY level: 2.79%" in economy_context
-    assert "Headline allocation posture +0.03 (CAUTION, 75% exposure) (7d" in top_context
-    assert "Market momentum: +0.34 (7d" in top_context
+    assert "Headline allocation posture +0.03 (CAUTION, 75% exposure) (since 2026-06-01 previous -0.30; change +0.33)" in top_context
+    assert "Market momentum: +0.34 (since 2026-06-01 previous +0.00; change +0.33)" in top_context
     combined_context = "\n".join([market_context, economy_context, top_context])
     assert "+0.338" not in combined_context
     assert "+0.026" not in combined_context
