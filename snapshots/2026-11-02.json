@@ -1,14 +1,14 @@
 {
   "date": "2026-11-02",
-  "build_time_utc": "2026-11-02 05:02 UTC",
+  "build_time_utc": "2026-11-02 06:31 UTC",
   "mrmi": {
-    "composite": -0.7693180771274362,
+    "composite": -0.7644909887442927,
     "state": "red"
   },
   "components": {
-    "gii_fast": -1.0662115291427166,
+    "gii_fast": -1.0517302639929027,
     "fincon": -1.1743535346844518,
-    "breadth": -0.06738916755514021
+    "breadth": -0.0673891675555235
   },
   "mrci": {
     "composite": 0.5580170543773907,
@@ -21,7 +21,7 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": -1.0662,
+    "score": -1.0517,
     "supportive_count": 1,
     "drag_count": 9,
     "rows": [
@@ -152,14 +152,14 @@
         "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
         "unit": "price",
         "trend_type": "roc",
-        "current": 6.4585,
-        "trend_21d": -2.77,
-        "trend_126d": 5.1616,
-        "z_21d": -0.6587,
-        "z_126d": -0.3651,
-        "z_change_7d": -0.4836,
-        "z_change_30d": -0.4611,
-        "contribution_7d": -0.04836
+        "current": 6.5215,
+        "trend_21d": -1.8216,
+        "trend_126d": 6.1874,
+        "z_21d": -0.5139,
+        "z_126d": -0.2599,
+        "z_change_7d": -0.3387,
+        "z_change_30d": -0.3163,
+        "contribution_7d": -0.03387
       },
       {
         "key": "WEI",
@@ -188,7 +188,7 @@
         "trend_type": "roc",
         "current": 77.43,
         "trend_21d": 0.259,
-        "trend_126d": -1.1091,
+        "trend_126d": -1.109,
         "z_21d": 0.0548,
         "z_126d": -1.7674,
         "z_change_7d": -0.2008,
@@ -198,7 +198,7 @@
     ],
     "brief": [
       "Growth Impulses improved over the latest week, led by Yield curve (+0.15 contribution points).",
-      "At -1.07, GII is currently weighing on MMI.",
+      "At -1.05, GII is currently weighing on MMI.",
       "Support currently comes from HYG (+0.05z).",
       "The main drag is SPHB/SPLV (-3.00z) and XLI/XLU (-1.57z).",
       "Input breadth is broadly negative: 1 of 10 inputs are positive and 9 inputs are negative.",
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": -1.0263024245132888,
+    "value": -1.0214753361301454,
     "state": "RISK-OFF",
     "legacy_state": "CASH",
     "exposure": 0.0,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": -0.7693180771274362,
+    "momentum": -0.7644909887442927,
     "stress_intensity": 0.013968694771705458,
     "stress_score": 0.1396869477170546,
     "growth_weakness": 0.18640385051154632,
@@ -406,13 +406,13 @@
   "underliers": {
     "^GSPC": 7580.06982421875,
     "IWM": 279.3299865722656,
-    "BTC-USD": 78298.0,
+    "BTC-USD": 78070.796875,
     "^VIX": 19.420000076293945,
     "^MOVE": 100.19999694824219,
     "^TNX": 4.928999900817871,
     "HYG": 77.43000030517578,
-    "HG=F": 6.458499908447266,
-    "GC=F": 3898.89990234375,
+    "HG=F": 6.521500110626221,
+    "GC=F": 3920.0,
     "DBC": 33.61000061035156,
     "DGS10": 4.98,
     "DGS2": 4.61,
