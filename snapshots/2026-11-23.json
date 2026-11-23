@@ -1,14 +1,14 @@
 {
   "date": "2026-11-23",
-  "build_time_utc": "2026-11-23 05:02 UTC",
+  "build_time_utc": "2026-11-23 06:31 UTC",
   "mrmi": {
-    "composite": -1.9539435922689143,
+    "composite": -1.9499006201305977,
     "state": "red"
   },
   "components": {
-    "gii_fast": -1.4299386777678769,
+    "gii_fast": -1.4178097613519145,
     "fincon": -2.8403094674377853,
-    "breadth": -1.5915826316010813
+    "breadth": -1.5915826316020936
   },
   "mrci": {
     "composite": -0.014717261101947626,
@@ -21,7 +21,7 @@
   "growth_impulse_drilldown": {
     "intro": "Growth Impulses asks whether global growth/risk appetite is accelerating or fading.",
     "sort_note": "Rows sort by absolute current z-score (|current z|), so the strongest positive or negative signals rise first; 7-day contribution is still proxied as each input's 7-day fast z-score change divided by the 10 growth-impulse components.",
-    "score": -1.4299,
+    "score": -1.4178,
     "supportive_count": 0,
     "drag_count": 10,
     "rows": [
@@ -67,14 +67,14 @@
         "explanation": "Cyclical commodity proxy for industrial and global growth demand.",
         "unit": "price",
         "trend_type": "roc",
-        "current": 5.477,
-        "trend_21d": -15.197,
-        "trend_126d": -11.9453,
-        "z_21d": -2.3908,
-        "z_126d": -2.0213,
-        "z_change_7d": -0.7258,
-        "z_change_30d": -1.7321,
-        "contribution_7d": -0.07258
+        "current": 5.531,
+        "trend_21d": -14.3609,
+        "trend_126d": -11.0772,
+        "z_21d": -2.2696,
+        "z_126d": -1.9355,
+        "z_change_7d": -0.6046,
+        "z_change_30d": -1.6109,
+        "contribution_7d": -0.06046
       },
       {
         "key": "HYG",
@@ -198,7 +198,7 @@
     ],
     "brief": [
       "Growth Impulses deteriorated over the latest week, led by WEI (-0.16 contribution points).",
-      "At -1.43, GII is currently weighing on MMI.",
+      "At -1.42, GII is currently weighing on MMI.",
       "Support currently comes from none.",
       "The main drag is VIX inverted (-3.00z) and SPHB/SPLV (-2.50z).",
       "Input breadth is broadly negative: 0 of 10 inputs are positive and 10 inputs are negative.",
@@ -370,13 +370,13 @@
     ]
   },
   "mrmi_combined": {
-    "value": -2.2084862319669956,
+    "value": -2.204443259828679,
     "state": "RISK-OFF",
     "legacy_state": "CASH",
     "exposure": 0.0,
     "cash_threshold": -0.5,
     "long_threshold": 0.25,
-    "momentum": -1.9539435922689143,
+    "momentum": -1.9499006201305977,
     "stress_intensity": 0.009085279396161926,
     "stress_score": 0.09085279396161926,
     "growth_weakness": 0.12123760237414319,
@@ -406,13 +406,13 @@
   "underliers": {
     "^GSPC": 6910.39013671875,
     "IWM": 256.6099853515625,
-    "BTC-USD": 61218.69921875,
+    "BTC-USD": 61488.44921875,
     "^VIX": 35.88999938964844,
     "^MOVE": 106.30999755859375,
     "^TNX": 4.9120001792907715,
     "HYG": 76.33000183105469,
-    "HG=F": 5.4770002365112305,
-    "GC=F": 3515.39990234375,
+    "HG=F": 5.531000137329102,
+    "GC=F": 3617.89990234375,
     "DBC": 29.31999969482422,
     "DGS10": 5.04,
     "DGS2": 4.76,
